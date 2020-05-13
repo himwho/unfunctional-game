@@ -6,12 +6,15 @@
 - clipping through first door
 - Quicktime events to door
 - email support door (setup and send an email)
-- long run distance door (reference all walking simulators)
+- long run distance door (reference all walking simulators), add stamina bar mechanics
 - 2nd Person shooter door, fight dumb AI but camera view is from their perspective of you
 - dlc door, open a fake shop page
 - bad RNG door
 - dumb NPC conversation
 - FPS but the every aim gun throws your aim somewhere random
+- over achiever, constant achievement abuse level
+- compass following task level (constantly collowing compass and paths)
+- item degradation level (you use items but they immediately break before you finish each task)
 
 
 #### TODO
