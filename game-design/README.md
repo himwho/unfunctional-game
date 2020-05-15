@@ -24,3 +24,27 @@
 - design: add references and pulls to `reference-design` dir
 
 #### DONE
+
+
+## LEVEL DESCRIPTIONS
+
+### LEVEL1
+A stupidly confusing MainMenu UI system, difficult to find the `Start Game` button
+
+### LEVEL2
+An obscene amount of audio/video adjustment steps:
+- brightness
+- contrast
+- left screen tear
+- right screen tear
+- top screen tear
+- bottom screan tear
+- left channel audio
+- right channel audio
+- poor threshold compression parameter
+- visual effect adjustment for particles/fog (that barely exist)
+
+### LEVEL3
+A simple room as per our design aesthetic, door doesn't directly open but instead requires a wall clip glitch
+
+### LEVEL4
