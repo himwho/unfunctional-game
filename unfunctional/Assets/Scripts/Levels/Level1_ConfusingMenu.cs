@@ -32,6 +32,9 @@ public class Level1_ConfusingMenu : LevelManager
     public GameObject[] subMenuPanels;     // Fake sub-menus that open for no reason
     public float subMenuPopupInterval = 8f;
 
+    [Header("Completion Feedback")]
+    public Text completionText;            // Optional: assigned in editor or created at runtime
+
     private RectTransform realButtonRect;
     private bool realButtonFound = false;
     private float subMenuTimer;
@@ -62,7 +65,7 @@ public class Level1_ConfusingMenu : LevelManager
 
     private void Update()
     {
-        if (levelComplete) return;
+        if (levelComplete || realButtonFound) return;
 
         // Slowly rotate the entire menu for maximum confusion
         if (enableMenuDrift && mainPanel != null)
@@ -71,7 +74,7 @@ public class Level1_ConfusingMenu : LevelManager
         }
 
         // Make the real start button flee from the mouse cursor
-        if (enableButtonFlee && realButtonRect != null && !realButtonFound)
+        if (enableButtonFlee && realButtonRect != null)
         {
             FleeFromCursor();
         }
@@ -119,8 +122,7 @@ public class Level1_ConfusingMenu : LevelManager
     {
         Debug.Log("[Level1] Fake start button clicked! Nice try.");
 
-        // Do something annoying:
-        // - Change the button text to something taunting
+        // Change the button text to something taunting
         Text btnText = btn.GetComponentInChildren<Text>();
         if (btnText != null)
         {
@@ -159,19 +161,110 @@ public class Level1_ConfusingMenu : LevelManager
 
     private void OnRealStartClicked()
     {
-        if (levelComplete) return;
+        if (levelComplete || realButtonFound) return;
 
         Debug.Log("[Level1] Real start button found! Completing level.");
         realButtonFound = true;
 
-        // Brief celebration, then move on
-        StartCoroutine(CompleteLevelAfterDelay(0.5f));
+        // Disable all interactable buttons so nothing else can be clicked
+        DisableAllButtons();
+
+        // Close any open sub-menus
+        CloseAllSubMenus();
+
+        // Show completion feedback
+        StartCoroutine(ShowCompletionAndAdvance());
     }
 
-    private IEnumerator CompleteLevelAfterDelay(float delay)
+    private IEnumerator ShowCompletionAndAdvance()
     {
-        yield return new WaitForSeconds(delay);
+        // Flash the real button green to confirm the click
+        if (realStartButton != null)
+        {
+            Image btnImage = realStartButton.GetComponent<Image>();
+            if (btnImage != null)
+            {
+                btnImage.color = new Color(0.1f, 0.8f, 0.1f, 1f);
+            }
+            Text btnText = realStartButton.GetComponentInChildren<Text>();
+            if (btnText != null)
+            {
+                btnText.text = "FOUND IT!";
+                btnText.fontSize = 14;
+                btnText.color = Color.white;
+            }
+            // Grow the button so it's actually visible
+            RectTransform rt = realStartButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.sizeDelta = new Vector2(200, 50);
+            }
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        // Show a centered "GAME STARTING..." message
+        if (completionText != null)
+        {
+            completionText.gameObject.SetActive(true);
+            completionText.text = "GAME STARTING...";
+        }
+        else if (mainPanel != null)
+        {
+            // Create one on the fly if not assigned
+            GameObject msgObj = new GameObject("CompletionMsg");
+            msgObj.transform.SetParent(mainPanel, false);
+            RectTransform msgRect = msgObj.AddComponent<RectTransform>();
+            msgRect.anchorMin = new Vector2(0.2f, 0.4f);
+            msgRect.anchorMax = new Vector2(0.8f, 0.6f);
+            msgRect.offsetMin = Vector2.zero;
+            msgRect.offsetMax = Vector2.zero;
+
+            Text msgText = msgObj.AddComponent<Text>();
+            msgText.text = "GAME STARTING...";
+            msgText.fontSize = 56;
+            msgText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            msgText.alignment = TextAnchor.MiddleCenter;
+            msgText.color = new Color(0.2f, 1f, 0.2f, 1f);
+        }
+
+        // Stop the menu rotation
+        enableMenuDrift = false;
+
+        // Brief pause for the player to read the message,
+        // then the GameManager fade-to-black + scene unload handles the rest
+        yield return new WaitForSeconds(1.0f);
+
         CompleteLevel();
+    }
+
+    private void DisableAllButtons()
+    {
+        if (fakeStartButtons != null)
+        {
+            foreach (Button btn in fakeStartButtons)
+            {
+                if (btn != null) btn.interactable = false;
+            }
+        }
+        if (decoyButtons != null)
+        {
+            foreach (Button btn in decoyButtons)
+            {
+                if (btn != null) btn.interactable = false;
+            }
+        }
+        // Don't disable the real button -- it just got clicked and should look "activated"
+    }
+
+    private void CloseAllSubMenus()
+    {
+        if (subMenuPanels == null) return;
+        foreach (GameObject panel in subMenuPanels)
+        {
+            if (panel != null)
+                panel.SetActive(false);
+        }
     }
 
     private void FleeFromCursor()
@@ -203,14 +296,8 @@ public class Level1_ConfusingMenu : LevelManager
     {
         if (subMenuPanels == null || subMenuPanels.Length == 0) return;
 
-        // Close all first
-        foreach (GameObject panel in subMenuPanels)
-        {
-            if (panel != null)
-                panel.SetActive(false);
-        }
+        CloseAllSubMenus();
 
-        // Open a random one
         int idx = Random.Range(0, subMenuPanels.Length);
         if (subMenuPanels[idx] != null)
         {

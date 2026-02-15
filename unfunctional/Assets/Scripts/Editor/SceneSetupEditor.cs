@@ -18,7 +18,8 @@ public class SceneSetupEditor : EditorWindow
             "This will:\n" +
             "1. Create the Player prefab in Assets/Prefabs/\n" +
             "2. Set up the GLOBAL scene with GameManager, InputManager, PauseMenu Canvas, EventSystem\n" +
-            "3. Set up LEVEL1 scene with confusing menu UI\n\n" +
+            "3. Set up LEVEL1 scene with confusing menu UI\n" +
+            "4. Set up LEVEL2 scene with settings puzzle UI\n\n" +
             "Existing objects in those scenes will be preserved. Continue?",
             "Yes, set it up", "Cancel"))
         {
@@ -28,6 +29,7 @@ public class SceneSetupEditor : EditorWindow
         CreatePlayerPrefab();
         SetupGlobalScene();
         SetupLevel1Scene();
+        SetupLevel2Scene();
 
         Debug.Log("[SceneSetup] All scenes set up successfully!");
         EditorUtility.DisplayDialog("Done", "All scenes and prefabs have been set up.", "OK");
@@ -387,9 +389,307 @@ public class SceneSetupEditor : EditorWindow
         Debug.Log("[SceneSetup] LEVEL1 scene set up with confusing menu UI");
     }
 
+    [MenuItem("Unfunctional/4. Setup LEVEL2 Scene")]
+    public static void SetupLevel2Scene()
+    {
+        // Open LEVEL2 scene
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL2.unity", OpenSceneMode.Single);
+
+        // --- Level Manager Root ---
+        GameObject levelRoot = GameObject.Find("Level2Manager");
+        if (levelRoot == null)
+        {
+            levelRoot = new GameObject("Level2Manager");
+        }
+        Level2_SettingsPuzzle puzzleScript = levelRoot.GetComponent<Level2_SettingsPuzzle>();
+        if (puzzleScript == null)
+        {
+            puzzleScript = levelRoot.AddComponent<Level2_SettingsPuzzle>();
+        }
+
+        // --- Settings Canvas ---
+        GameObject canvasObj = GameObject.Find("SettingsCanvas");
+        Canvas canvas;
+        if (canvasObj == null)
+        {
+            canvasObj = new GameObject("SettingsCanvas");
+            canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 10;
+            CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            canvasObj.AddComponent<GraphicRaycaster>();
+        }
+        else
+        {
+            canvas = canvasObj.GetComponent<Canvas>();
+        }
+        puzzleScript.settingsCanvas = canvas;
+
+        // --- Background Panel ---
+        GameObject bgPanel = FindOrCreateChild(canvasObj, "BackgroundPanel");
+        RectTransform bgRect = EnsureRectTransform(bgPanel);
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.offsetMin = Vector2.zero;
+        bgRect.offsetMax = Vector2.zero;
+
+        Image bgImage = bgPanel.GetComponent<Image>();
+        if (bgImage == null) bgImage = bgPanel.AddComponent<Image>();
+        bgImage.color = new Color(0.06f, 0.06f, 0.1f, 1f);
+
+        // --- Title ---
+        GameObject titleObj = FindOrCreateChild(bgPanel, "TitleText");
+        Text titleText = EnsureText(titleObj);
+        titleText.text = "DISPLAY & AUDIO CALIBRATION";
+        titleText.fontSize = 36;
+        titleText.alignment = TextAnchor.MiddleCenter;
+        titleText.color = new Color(0.9f, 0.9f, 0.9f);
+        PositionRect(titleObj, new Vector2(0.1f, 0.9f), new Vector2(0.9f, 0.97f));
+        puzzleScript.titleText = titleText;
+
+        // --- Instruction Text ---
+        GameObject instrObj = FindOrCreateChild(bgPanel, "InstructionText");
+        Text instrText = EnsureText(instrObj);
+        instrText.text = "Adjust all parameters until the output feels... right.";
+        instrText.fontSize = 18;
+        instrText.alignment = TextAnchor.MiddleCenter;
+        instrText.color = new Color(0.6f, 0.6f, 0.6f);
+        instrText.fontStyle = FontStyle.Italic;
+        PositionRect(instrObj, new Vector2(0.15f, 0.84f), new Vector2(0.85f, 0.9f));
+        puzzleScript.instructionText = instrText;
+
+        // --- Progress Text ---
+        GameObject progressObj = FindOrCreateChild(bgPanel, "ProgressText");
+        Text progressText = EnsureText(progressObj);
+        progressText.text = "0/10 calibrated";
+        progressText.fontSize = 22;
+        progressText.alignment = TextAnchor.MiddleRight;
+        progressText.color = Color.white;
+        PositionRect(progressObj, new Vector2(0.65f, 0.78f), new Vector2(0.95f, 0.84f));
+        puzzleScript.progressText = progressText;
+
+        // --- Feedback Text ---
+        GameObject feedbackObj = FindOrCreateChild(bgPanel, "FeedbackText");
+        Text feedbackText = EnsureText(feedbackObj);
+        feedbackText.text = "";
+        feedbackText.fontSize = 20;
+        feedbackText.alignment = TextAnchor.MiddleCenter;
+        feedbackText.color = new Color(0.7f, 0.7f, 0.3f);
+        PositionRect(feedbackObj, new Vector2(0.1f, 0.78f), new Vector2(0.6f, 0.84f));
+        puzzleScript.feedbackText = feedbackText;
+
+        // --- Slider Panel (scrollable area with all sliders) ---
+        GameObject sliderPanel = FindOrCreateChild(bgPanel, "SliderPanel");
+        PositionRect(sliderPanel, new Vector2(0.05f, 0.12f), new Vector2(0.95f, 0.77f));
+
+        // Create all 10 sliders
+        string[] sliderNames = new string[]
+        {
+            "Brightness",
+            "Contrast",
+            "Left Screen Tear",
+            "Right Screen Tear",
+            "Top Screen Tear",
+            "Bottom Screen Tear",
+            "Left Channel Audio",
+            "Right Channel Audio",
+            "Compression Threshold",
+            "Particle Fog Density"
+        };
+
+        // Layout: 2 columns, 5 rows
+        Slider[] sliders = new Slider[10];
+        Image[] statusIcons = new Image[10];
+
+        for (int i = 0; i < sliderNames.Length; i++)
+        {
+            int col = i % 2;
+            int row = i / 2;
+
+            float colStart = col == 0 ? 0.0f : 0.52f;
+            float colEnd = col == 0 ? 0.48f : 1.0f;
+
+            float rowHeight = 1.0f / 5f;
+            float rowTop = 1.0f - row * rowHeight;
+            float rowBottom = rowTop - rowHeight;
+
+            string sliderObjName = $"Slider_{sliderNames[i].Replace(" ", "")}";
+            GameObject sliderRoot = FindOrCreateChild(sliderPanel, sliderObjName);
+            PositionRect(sliderRoot, new Vector2(colStart, rowBottom), new Vector2(colEnd, rowTop));
+
+            // Status icon (small dot at left)
+            GameObject iconObj = FindOrCreateChild(sliderRoot, "StatusIcon");
+            PositionRect(iconObj, new Vector2(0.0f, 0.25f), new Vector2(0.04f, 0.75f));
+            Image icon = iconObj.GetComponent<Image>();
+            if (icon == null) icon = iconObj.AddComponent<Image>();
+            icon.color = new Color(0.9f, 0.2f, 0.2f, 0.6f); // Start red
+            statusIcons[i] = icon;
+
+            // Label
+            GameObject labelObj = FindOrCreateChild(sliderRoot, "Label");
+            PositionRect(labelObj, new Vector2(0.05f, 0.55f), new Vector2(0.95f, 0.95f));
+            Text label = EnsureText(labelObj);
+            label.text = sliderNames[i];
+            label.fontSize = 16;
+            label.alignment = TextAnchor.LowerLeft;
+            label.color = new Color(0.8f, 0.8f, 0.8f);
+
+            // Slider background
+            GameObject sliderBgObj = FindOrCreateChild(sliderRoot, "SliderBg");
+            PositionRect(sliderBgObj, new Vector2(0.05f, 0.1f), new Vector2(0.95f, 0.5f));
+
+            // Unity Slider component
+            Slider slider = sliderBgObj.GetComponent<Slider>();
+            if (slider == null)
+            {
+                // Build the slider UI structure
+                Image sliderBgImage = sliderBgObj.GetComponent<Image>();
+                if (sliderBgImage == null) sliderBgImage = sliderBgObj.AddComponent<Image>();
+                sliderBgImage.color = new Color(0.15f, 0.15f, 0.2f, 1f);
+
+                // Background (track)
+                GameObject bgTrack = FindOrCreateChild(sliderBgObj, "Background");
+                PositionRect(bgTrack, new Vector2(0.0f, 0.3f), new Vector2(1.0f, 0.7f));
+                Image trackImg = bgTrack.GetComponent<Image>();
+                if (trackImg == null) trackImg = bgTrack.AddComponent<Image>();
+                trackImg.color = new Color(0.25f, 0.25f, 0.3f);
+
+                // Fill area
+                GameObject fillArea = FindOrCreateChild(sliderBgObj, "FillArea");
+                PositionRect(fillArea, new Vector2(0.0f, 0.3f), new Vector2(1.0f, 0.7f));
+
+                GameObject fill = FindOrCreateChild(fillArea, "Fill");
+                PositionRect(fill, Vector2.zero, Vector2.one);
+                Image fillImg = fill.GetComponent<Image>();
+                if (fillImg == null) fillImg = fill.AddComponent<Image>();
+                fillImg.color = new Color(0.3f, 0.5f, 0.8f, 0.8f);
+
+                // Handle area
+                GameObject handleArea = FindOrCreateChild(sliderBgObj, "HandleArea");
+                PositionRect(handleArea, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f));
+
+                // Handle
+                GameObject handle = FindOrCreateChild(handleArea, "Handle");
+                RectTransform handleRect = EnsureRectTransform(handle);
+                handleRect.sizeDelta = new Vector2(16, 0);
+                Image handleImg = handle.GetComponent<Image>();
+                if (handleImg == null) handleImg = handle.AddComponent<Image>();
+                handleImg.color = new Color(0.8f, 0.8f, 0.9f, 1f);
+
+                slider = sliderBgObj.AddComponent<Slider>();
+                slider.targetGraphic = handleImg;
+                slider.fillRect = fill.GetComponent<RectTransform>();
+                slider.handleRect = handle.GetComponent<RectTransform>();
+                slider.direction = Slider.Direction.LeftToRight;
+                slider.minValue = 0f;
+                slider.maxValue = 1f;
+                slider.wholeNumbers = false;
+            }
+
+            sliders[i] = slider;
+        }
+
+        // Wire all slider references
+        puzzleScript.brightnessSlider = sliders[0];
+        puzzleScript.contrastSlider = sliders[1];
+        puzzleScript.leftScreenTearSlider = sliders[2];
+        puzzleScript.rightScreenTearSlider = sliders[3];
+        puzzleScript.topScreenTearSlider = sliders[4];
+        puzzleScript.bottomScreenTearSlider = sliders[5];
+        puzzleScript.leftChannelAudioSlider = sliders[6];
+        puzzleScript.rightChannelAudioSlider = sliders[7];
+        puzzleScript.compressionThresholdSlider = sliders[8];
+        puzzleScript.particleFogSlider = sliders[9];
+        puzzleScript.sliderStatusIcons = statusIcons;
+
+        // --- Brightness Overlay (covers the screen, alpha controlled by script) ---
+        GameObject brightnessOvl = FindOrCreateChild(canvasObj, "BrightnessOverlay");
+        PositionRect(brightnessOvl, Vector2.zero, Vector2.one);
+        Image brightnessImg = brightnessOvl.GetComponent<Image>();
+        if (brightnessImg == null) brightnessImg = brightnessOvl.AddComponent<Image>();
+        brightnessImg.color = new Color(0, 0, 0, 0);
+        brightnessImg.raycastTarget = false;
+        puzzleScript.brightnessOverlay = brightnessImg;
+
+        // --- Contrast Overlay ---
+        GameObject contrastOvl = FindOrCreateChild(canvasObj, "ContrastOverlay");
+        PositionRect(contrastOvl, Vector2.zero, Vector2.one);
+        Image contrastImg = contrastOvl.GetComponent<Image>();
+        if (contrastImg == null) contrastImg = contrastOvl.AddComponent<Image>();
+        contrastImg.color = new Color(0.5f, 0.5f, 0.5f, 0);
+        contrastImg.raycastTarget = false;
+        puzzleScript.contrastOverlay = contrastImg;
+
+        // --- Screen Tear Panels (thin strips that jitter) ---
+        puzzleScript.leftTearPanel = CreateTearPanel(canvasObj, "LeftTearPanel",
+            new Vector2(0.0f, 0.3f), new Vector2(0.5f, 0.7f));
+        puzzleScript.rightTearPanel = CreateTearPanel(canvasObj, "RightTearPanel",
+            new Vector2(0.5f, 0.3f), new Vector2(1.0f, 0.7f));
+        puzzleScript.topTearPanel = CreateTearPanel(canvasObj, "TopTearPanel",
+            new Vector2(0.2f, 0.5f), new Vector2(0.8f, 1.0f));
+        puzzleScript.bottomTearPanel = CreateTearPanel(canvasObj, "BottomTearPanel",
+            new Vector2(0.2f, 0.0f), new Vector2(0.8f, 0.5f));
+
+        // --- Confirm Button (hidden by default, appears when all sliders correct) ---
+        GameObject confirmObj = FindOrCreateChild(bgPanel, "ConfirmButton");
+        Button confirmBtn = SetupButton(confirmObj, "Apply Settings",
+            new Vector2(0.5f, 0.05f), new Vector2(200, 45),
+            new Color(0.15f, 0.5f, 0.15f, 1f), 22);
+        confirmObj.SetActive(false);
+        puzzleScript.confirmButton = confirmBtn;
+        Text confirmBtnText = confirmObj.GetComponentInChildren<Text>();
+        puzzleScript.confirmButtonText = confirmBtnText;
+
+        // --- EventSystem for standalone testing ---
+        if (Object.FindAnyObjectByType<EventSystem>() == null)
+        {
+            GameObject esObj = new GameObject("EventSystem");
+            esObj.AddComponent<EventSystem>();
+            esObj.AddComponent<StandaloneInputModule>();
+        }
+
+        // Save
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL2 scene set up with settings puzzle UI");
+    }
+
     // =========================================================================
     // Helper Methods
     // =========================================================================
+
+    private static RectTransform CreateTearPanel(GameObject parent, string name,
+        Vector2 anchorMin, Vector2 anchorMax)
+    {
+        GameObject panel = FindOrCreateChild(parent, name);
+        PositionRect(panel, anchorMin, anchorMax);
+
+        Image img = panel.GetComponent<Image>();
+        if (img == null) img = panel.AddComponent<Image>();
+        img.color = new Color(0.1f, 0.1f, 0.15f, 0.15f);
+        img.raycastTarget = false;
+
+        return panel.GetComponent<RectTransform>();
+    }
+
+    private static void PositionRect(GameObject obj, Vector2 anchorMin, Vector2 anchorMax)
+    {
+        RectTransform rect = EnsureRectTransform(obj);
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    private static Text EnsureText(GameObject obj)
+    {
+        Text text = obj.GetComponent<Text>();
+        if (text == null) text = obj.AddComponent<Text>();
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        return text;
+    }
 
     private static GameObject CreatePauseMenuCanvas()
     {

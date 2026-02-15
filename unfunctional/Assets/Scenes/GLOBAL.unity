@@ -556,6 +556,9 @@ MonoBehaviour:
   - LEVEL4
   - LEVEL5
   - LEVEL6
+  fadeOutDuration: 0.5
+  fadeInDuration: 0.5
+  fadeColor: {r: 0, g: 0, b: 0, a: 1}
   currentLevelIndex: -1
   currentState: 0
 --- !u!4 &797292601
@@ -805,7 +808,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 48
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
