@@ -22,8 +22,11 @@
 - planning: breakdown development components for first 3 levels
 - design: moodboard and color pallette
 - design: add references and pulls to `reference-design` dir
-- Asset: Create main character (temp stick figure design?)
-- Asset: Create Input Management system
+- Level3: Build room mesh, door, clippable wall section, exit trigger in LEVEL3 scene
+- Level4: Place NPC model, wire up dialogue Canvas in LEVEL4 scene
+- Level5: Wire up QTE Canvas UI and test sequence in LEVEL5 scene
+- Level6: Design real vs trivial achievement objectives in LEVEL6 scene
+- Player: Create capsule prefab with PlayerController + Camera child
 
 
 #### DONE

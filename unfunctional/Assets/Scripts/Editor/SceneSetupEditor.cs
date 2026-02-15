@@ -75,10 +75,12 @@ public class SceneSetupEditor : EditorWindow
         cam.fieldOfView = 70;
         cam.nearClipPlane = 0.1f;
         cam.farClipPlane = 1000f;
+        cam.depth = 0; // Higher than BackgroundCamera (-100) so it renders on top
         cam.tag = "MainCamera";
         camObj.tag = "MainCamera";
 
-        AudioListener listener = camObj.AddComponent<AudioListener>();
+        // No AudioListener here -- the GLOBAL scene's BackgroundCamera
+        // already has one and Unity only allows one active AudioListener.
 
         // Wire the camera reference on PlayerController
         PlayerController pc = player.GetComponent<PlayerController>();
@@ -99,12 +101,35 @@ public class SceneSetupEditor : EditorWindow
         // Open the GLOBAL scene
         var scene = EditorSceneManager.OpenScene("Assets/Scenes/GLOBAL.unity", OpenSceneMode.Single);
 
-        // Remove the default Main Camera if present (player prefab has its own)
-        GameObject existingCam = GameObject.FindGameObjectWithTag("MainCamera");
-        if (existingCam != null && existingCam.name == "Main Camera")
+        // Keep (or create) a persistent background camera.
+        // This camera always renders a solid dark background so the Game view
+        // never shows "No cameras rendering". Level-specific cameras (e.g. Player
+        // prefab) can render on top with higher depth when 3D levels are loaded.
+        GameObject camObj = GameObject.Find("BackgroundCamera");
+        if (camObj == null)
         {
-            Object.DestroyImmediate(existingCam);
+            // Reuse the default Main Camera if it exists, just rename it
+            GameObject existingCam = GameObject.FindGameObjectWithTag("MainCamera");
+            if (existingCam != null && existingCam.name == "Main Camera")
+            {
+                camObj = existingCam;
+                camObj.name = "BackgroundCamera";
+            }
+            else
+            {
+                camObj = new GameObject("BackgroundCamera");
+            }
         }
+        Camera bgCam = camObj.GetComponent<Camera>();
+        if (bgCam == null) bgCam = camObj.AddComponent<Camera>();
+        bgCam.clearFlags = CameraClearFlags.SolidColor;
+        bgCam.backgroundColor = new Color(0.04f, 0.04f, 0.06f, 1f);
+        bgCam.depth = -100; // Lowest depth so any other camera renders on top
+        bgCam.cullingMask = 0; // Don't render anything, just clear to background color
+        camObj.tag = "Untagged"; // Don't tag as MainCamera; player camera will be MainCamera
+        // Ensure it has an AudioListener (only one per scene tree)
+        if (camObj.GetComponent<AudioListener>() == null)
+            camObj.AddComponent<AudioListener>();
 
         // --- GameManager ---
         GameObject gmObj = GameObject.Find("GameManager");
@@ -544,48 +569,76 @@ public class SceneSetupEditor : EditorWindow
             Slider slider = sliderBgObj.GetComponent<Slider>();
             if (slider == null)
             {
-                // Build the slider UI structure
+                // Build the slider UI structure matching Unity's expected hierarchy.
+                // The Slider component drives the fill and handle RectTransforms
+                // by adjusting their anchor positions along the slider axis.
+
                 Image sliderBgImage = sliderBgObj.GetComponent<Image>();
                 if (sliderBgImage == null) sliderBgImage = sliderBgObj.AddComponent<Image>();
                 sliderBgImage.color = new Color(0.15f, 0.15f, 0.2f, 1f);
 
-                // Background (track)
+                // Background (visual track)
                 GameObject bgTrack = FindOrCreateChild(sliderBgObj, "Background");
-                PositionRect(bgTrack, new Vector2(0.0f, 0.3f), new Vector2(1.0f, 0.7f));
+                RectTransform bgTrackRect = EnsureRectTransform(bgTrack);
+                bgTrackRect.anchorMin = Vector2.zero;
+                bgTrackRect.anchorMax = Vector2.one;
+                bgTrackRect.offsetMin = new Vector2(5, 2);
+                bgTrackRect.offsetMax = new Vector2(-5, -2);
                 Image trackImg = bgTrack.GetComponent<Image>();
                 if (trackImg == null) trackImg = bgTrack.AddComponent<Image>();
                 trackImg.color = new Color(0.25f, 0.25f, 0.3f);
 
-                // Fill area
-                GameObject fillArea = FindOrCreateChild(sliderBgObj, "FillArea");
-                PositionRect(fillArea, new Vector2(0.0f, 0.3f), new Vector2(1.0f, 0.7f));
+                // Fill Area - stretches across the slider with padding for the handle
+                GameObject fillArea = FindOrCreateChild(sliderBgObj, "Fill Area");
+                RectTransform fillAreaRect = EnsureRectTransform(fillArea);
+                fillAreaRect.anchorMin = Vector2.zero;
+                fillAreaRect.anchorMax = Vector2.one;
+                fillAreaRect.offsetMin = new Vector2(5, 2);
+                fillAreaRect.offsetMax = new Vector2(-5, -2);
 
+                // Fill - the Slider component drives anchorMax.x on this
                 GameObject fill = FindOrCreateChild(fillArea, "Fill");
-                PositionRect(fill, Vector2.zero, Vector2.one);
+                RectTransform fillRect = EnsureRectTransform(fill);
+                fillRect.anchorMin = Vector2.zero;
+                fillRect.anchorMax = new Vector2(0f, 1f); // Slider will set anchorMax.x
+                fillRect.offsetMin = Vector2.zero;
+                fillRect.offsetMax = Vector2.zero;
+                fillRect.sizeDelta = Vector2.zero;
                 Image fillImg = fill.GetComponent<Image>();
                 if (fillImg == null) fillImg = fill.AddComponent<Image>();
                 fillImg.color = new Color(0.3f, 0.5f, 0.8f, 0.8f);
 
-                // Handle area
-                GameObject handleArea = FindOrCreateChild(sliderBgObj, "HandleArea");
-                PositionRect(handleArea, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f));
+                // Handle Slide Area - full area with padding so handle stays inside
+                GameObject handleArea = FindOrCreateChild(sliderBgObj, "Handle Slide Area");
+                RectTransform handleAreaRect = EnsureRectTransform(handleArea);
+                handleAreaRect.anchorMin = Vector2.zero;
+                handleAreaRect.anchorMax = Vector2.one;
+                handleAreaRect.offsetMin = new Vector2(10, 0);
+                handleAreaRect.offsetMax = new Vector2(-10, 0);
 
-                // Handle
+                // Handle - the Slider component drives anchorMin.x and anchorMax.x on this
+                // It stretches vertically within the slide area
                 GameObject handle = FindOrCreateChild(handleArea, "Handle");
                 RectTransform handleRect = EnsureRectTransform(handle);
-                handleRect.sizeDelta = new Vector2(16, 0);
+                handleRect.anchorMin = new Vector2(0f, 0f);
+                handleRect.anchorMax = new Vector2(0f, 1f); // Stretch vertically
+                handleRect.pivot = new Vector2(0.5f, 0.5f);
+                handleRect.sizeDelta = new Vector2(20, 0);  // 20px wide, full height
+                handleRect.anchoredPosition = Vector2.zero;
                 Image handleImg = handle.GetComponent<Image>();
                 if (handleImg == null) handleImg = handle.AddComponent<Image>();
                 handleImg.color = new Color(0.8f, 0.8f, 0.9f, 1f);
 
+                // Create the Slider component and wire everything up
                 slider = sliderBgObj.AddComponent<Slider>();
                 slider.targetGraphic = handleImg;
-                slider.fillRect = fill.GetComponent<RectTransform>();
-                slider.handleRect = handle.GetComponent<RectTransform>();
+                slider.fillRect = fillRect;
+                slider.handleRect = handleRect;
                 slider.direction = Slider.Direction.LeftToRight;
                 slider.minValue = 0f;
                 slider.maxValue = 1f;
                 slider.wholeNumbers = false;
+                slider.value = 0.5f; // Default to middle
             }
 
             sliders[i] = slider;
