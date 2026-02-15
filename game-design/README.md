@@ -66,6 +66,7 @@ A simple room as per our design aesthetic, door doesn't directly open but instea
 #### Requirements: 
 - Mesh level
 - Setup clipping rules for Main Camera/Pawn
+- Narration trying to excuse the mistake
 
 ## LEVEL4
 Dumb NPC, an unnecessary and long NPC conversation
@@ -83,3 +84,7 @@ Quitime event level, forces the user to do timed key based quicktime events in a
 - Animations for responses?
 
 ## LEVEL6
+A door with a code that is only obtained by emailing a support email, EC2 instance will generate door codes server side and respond to the email with the new code that only lasts 15 seconds.
+
+#### Requirements:
+- 
