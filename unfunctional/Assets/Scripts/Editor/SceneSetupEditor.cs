@@ -20,7 +20,8 @@ public class SceneSetupEditor : EditorWindow
             "2. Set up the GLOBAL scene with GameManager, InputManager, PauseMenu Canvas, EventSystem\n" +
             "3. Set up LEVEL1 scene with confusing menu UI\n" +
             "4. Set up LEVEL2 scene with settings puzzle UI\n" +
-            "5. Set up LEVEL3 scene with wall-clip room\n\n" +
+            "5. Set up LEVEL3 scene with wall-clip room\n" +
+            "6. Set up LEVEL4 scene with keypad puzzle room\n\n" +
             "Existing objects in those scenes will be preserved. Continue?",
             "Yes, set it up", "Cancel"))
         {
@@ -32,6 +33,7 @@ public class SceneSetupEditor : EditorWindow
         SetupLevel1Scene();
         SetupLevel2Scene();
         SetupLevel3Scene();
+        SetupLevel4Scene();
 
         Debug.Log("[SceneSetup] All scenes set up successfully!");
         EditorUtility.DisplayDialog("Done", "All scenes and prefabs have been set up.", "OK");
@@ -687,6 +689,206 @@ public class SceneSetupEditor : EditorWindow
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[SceneSetup] LEVEL3 scene set up with room geometry and wall-clip puzzle");
+    }
+
+    [MenuItem("Unfunctional/6. Setup LEVEL4 Scene")]
+    public static void SetupLevel4Scene()
+    {
+        // Open LEVEL4 scene
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL4.unity", OpenSceneMode.Single);
+
+        // Clean up default camera
+        GameObject defaultCam = GameObject.FindGameObjectWithTag("MainCamera");
+        if (defaultCam != null && defaultCam.name == "Main Camera")
+        {
+            Object.DestroyImmediate(defaultCam);
+        }
+
+        // =====================================================================
+        // Lighting
+        // =====================================================================
+
+        Light dirLight = Object.FindAnyObjectByType<Light>();
+        if (dirLight == null)
+        {
+            GameObject lightObj = new GameObject("Directional Light");
+            dirLight = lightObj.AddComponent<Light>();
+            dirLight.type = LightType.Directional;
+            lightObj.transform.eulerAngles = new Vector3(50f, -30f, 0f);
+        }
+        dirLight.color = new Color(0.75f, 0.8f, 0.9f, 1f);
+        dirLight.intensity = 0.4f;
+
+        // =====================================================================
+        // Room Geometry
+        // =====================================================================
+        // Room is 8x4x8. North wall has a sliding door with keypad + sticky notes.
+
+        float roomW = 8f;
+        float roomH = 4f;
+        float roomD = 8f;
+        float wallThickness = 0.2f;
+
+        // Floor
+        GameObject floor = CreateOrFindPrimitive("Floor", PrimitiveType.Cube);
+        floor.transform.position = new Vector3(0f, -wallThickness / 2f, 0f);
+        floor.transform.localScale = new Vector3(roomW, wallThickness, roomD);
+        SetColor(floor, new Color(0.3f, 0.3f, 0.32f));
+
+        // Ceiling
+        GameObject ceiling = CreateOrFindPrimitive("Ceiling", PrimitiveType.Cube);
+        ceiling.transform.position = new Vector3(0f, roomH + wallThickness / 2f, 0f);
+        ceiling.transform.localScale = new Vector3(roomW, wallThickness, roomD);
+        SetColor(ceiling, new Color(0.45f, 0.45f, 0.48f));
+
+        // South wall (behind player)
+        GameObject wallSouth = CreateOrFindPrimitive("WallSouth", PrimitiveType.Cube);
+        wallSouth.transform.position = new Vector3(0f, roomH / 2f, -roomD / 2f);
+        wallSouth.transform.localScale = new Vector3(roomW, roomH, wallThickness);
+        SetColor(wallSouth, new Color(0.5f, 0.5f, 0.52f));
+
+        // West wall
+        GameObject wallWest = CreateOrFindPrimitive("WallWest", PrimitiveType.Cube);
+        wallWest.transform.position = new Vector3(-roomW / 2f, roomH / 2f, 0f);
+        wallWest.transform.localScale = new Vector3(wallThickness, roomH, roomD);
+        SetColor(wallWest, new Color(0.5f, 0.5f, 0.52f));
+
+        // East wall
+        GameObject wallEast = CreateOrFindPrimitive("WallEast", PrimitiveType.Cube);
+        wallEast.transform.position = new Vector3(roomW / 2f, roomH / 2f, 0f);
+        wallEast.transform.localScale = new Vector3(wallThickness, roomH, roomD);
+        SetColor(wallEast, new Color(0.5f, 0.5f, 0.52f));
+
+        // North wall -- split around the door
+        float doorWidth = 1.6f;
+        float doorHeight = 2.6f;
+        float northSolidW = (roomW - doorWidth) / 2f;
+
+        // North left
+        GameObject wallNL = CreateOrFindPrimitive("WallNorthLeft", PrimitiveType.Cube);
+        wallNL.transform.position = new Vector3(-(doorWidth / 2f + northSolidW / 2f), roomH / 2f, roomD / 2f);
+        wallNL.transform.localScale = new Vector3(northSolidW, roomH, wallThickness);
+        SetColor(wallNL, new Color(0.5f, 0.5f, 0.52f));
+
+        // North right
+        GameObject wallNR = CreateOrFindPrimitive("WallNorthRight", PrimitiveType.Cube);
+        wallNR.transform.position = new Vector3(doorWidth / 2f + northSolidW / 2f, roomH / 2f, roomD / 2f);
+        wallNR.transform.localScale = new Vector3(northSolidW, roomH, wallThickness);
+        SetColor(wallNR, new Color(0.5f, 0.5f, 0.52f));
+
+        // North above door
+        GameObject wallNA = CreateOrFindPrimitive("WallNorthAbove", PrimitiveType.Cube);
+        float aboveDoorH = roomH - doorHeight;
+        wallNA.transform.position = new Vector3(0f, doorHeight + aboveDoorH / 2f, roomD / 2f);
+        wallNA.transform.localScale = new Vector3(doorWidth, aboveDoorH, wallThickness);
+        SetColor(wallNA, new Color(0.5f, 0.5f, 0.52f));
+
+        // The door (slides up when unlocked)
+        GameObject door = CreateOrFindPrimitive("Door4", PrimitiveType.Cube);
+        door.transform.position = new Vector3(0f, doorHeight / 2f, roomD / 2f);
+        door.transform.localScale = new Vector3(doorWidth - 0.05f, doorHeight, wallThickness * 0.6f);
+        SetColor(door, new Color(0.35f, 0.35f, 0.4f)); // metallic gray
+
+        // =====================================================================
+        // Keypad (small box on the wall to the right of the door)
+        // =====================================================================
+        GameObject keypad = CreateOrFindPrimitive("Keypad", PrimitiveType.Cube);
+        float keypadX = doorWidth / 2f + 0.5f;
+        keypad.transform.position = new Vector3(keypadX, 1.3f, roomD / 2f - 0.05f);
+        keypad.transform.localScale = new Vector3(0.4f, 0.5f, 0.08f);
+        SetColor(keypad, new Color(0.15f, 0.15f, 0.2f)); // dark panel
+
+        // =====================================================================
+        // Sticky Notes (small quads above the keypad)
+        // =====================================================================
+
+        // Sticky note 1: email address
+        GameObject sticky1 = CreateOrFindPrimitive("StickyNote_Email", PrimitiveType.Quad);
+        sticky1.transform.position = new Vector3(keypadX - 0.15f, 1.85f, roomD / 2f - 0.05f);
+        sticky1.transform.localScale = new Vector3(0.35f, 0.2f, 1f);
+        sticky1.transform.rotation = Quaternion.Euler(0f, 0f, -5f);
+        SetColor(sticky1, new Color(1f, 1f, 0.5f)); // yellow sticky
+        // Remove collider from quad (the keypad handles interaction)
+        MeshCollider stickyCol1 = sticky1.GetComponent<MeshCollider>();
+        if (stickyCol1 != null) Object.DestroyImmediate(stickyCol1);
+
+        // Sticky note 2: warning
+        GameObject sticky2 = CreateOrFindPrimitive("StickyNote_Warning", PrimitiveType.Quad);
+        sticky2.transform.position = new Vector3(keypadX + 0.18f, 1.9f, roomD / 2f - 0.05f);
+        sticky2.transform.localScale = new Vector3(0.32f, 0.18f, 1f);
+        sticky2.transform.rotation = Quaternion.Euler(0f, 0f, 3f);
+        SetColor(sticky2, new Color(1f, 0.7f, 0.5f)); // orange sticky
+        MeshCollider stickyCol2 = sticky2.GetComponent<MeshCollider>();
+        if (stickyCol2 != null) Object.DestroyImmediate(stickyCol2);
+
+        // Sticky note area point (for interaction detection)
+        GameObject stickyPoint = GameObject.Find("StickyNotePoint");
+        if (stickyPoint == null) stickyPoint = new GameObject("StickyNotePoint");
+        stickyPoint.transform.position = new Vector3(keypadX, 1.7f, roomD / 2f - 0.1f);
+
+        // =====================================================================
+        // Room light
+        // =====================================================================
+        GameObject pointLightObj = GameObject.Find("RoomLight");
+        if (pointLightObj == null) pointLightObj = new GameObject("RoomLight");
+        Light pointLight = pointLightObj.GetComponent<Light>();
+        if (pointLight == null) pointLight = pointLightObj.AddComponent<Light>();
+        pointLight.type = LightType.Point;
+        pointLight.range = 12f;
+        pointLight.intensity = 1.0f;
+        pointLight.color = new Color(0.9f, 0.95f, 1f);
+        pointLightObj.transform.position = new Vector3(0f, 3.5f, 0f);
+
+        // A small spot light aimed at the keypad/sticky notes
+        GameObject spotObj = GameObject.Find("KeypadSpotlight");
+        if (spotObj == null) spotObj = new GameObject("KeypadSpotlight");
+        Light spotLight = spotObj.GetComponent<Light>();
+        if (spotLight == null) spotLight = spotObj.AddComponent<Light>();
+        spotLight.type = LightType.Spot;
+        spotLight.range = 5f;
+        spotLight.spotAngle = 50f;
+        spotLight.intensity = 2f;
+        spotLight.color = new Color(1f, 0.95f, 0.85f);
+        spotObj.transform.position = new Vector3(keypadX, 2.8f, roomD / 2f - 0.8f);
+        spotObj.transform.rotation = Quaternion.LookRotation(
+            new Vector3(keypadX, 1.5f, roomD / 2f) - spotObj.transform.position);
+
+        // =====================================================================
+        // Spawn point
+        // =====================================================================
+        GameObject spawnPoint = GameObject.Find("PlayerSpawnPoint");
+        if (spawnPoint == null) spawnPoint = new GameObject("PlayerSpawnPoint");
+        spawnPoint.transform.position = new Vector3(0f, 1f, -2.5f);
+        spawnPoint.transform.rotation = Quaternion.identity;
+
+        // =====================================================================
+        // Level Manager
+        // =====================================================================
+        GameObject levelRoot = GameObject.Find("Level4Manager");
+        if (levelRoot == null) levelRoot = new GameObject("Level4Manager");
+        Level4_KeypadPuzzle kpScript = levelRoot.GetComponent<Level4_KeypadPuzzle>();
+        if (kpScript == null) kpScript = levelRoot.AddComponent<Level4_KeypadPuzzle>();
+
+        // Wire references
+        kpScript.doorObject = door;
+        kpScript.keypadObject = keypad;
+        kpScript.stickyNotePoint = stickyPoint.transform;
+        kpScript.playerSpawnPoint = spawnPoint.transform;
+        kpScript.needsPlayer = true;
+        kpScript.wantsCursorLocked = true;
+
+        // EventSystem
+        if (Object.FindAnyObjectByType<EventSystem>() == null)
+        {
+            GameObject esObj = new GameObject("EventSystem");
+            esObj.AddComponent<EventSystem>();
+            esObj.AddComponent<StandaloneInputModule>();
+        }
+
+        // Save
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL4 scene set up with keypad puzzle room");
     }
 
     /// <summary>
