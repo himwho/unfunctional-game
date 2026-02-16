@@ -29,7 +29,8 @@ public class Level4_KeypadPuzzle : LevelManager
     public float interactRange = 3f;
 
     [Header("Server")]
-    [Tooltip("URL to request a code. POST to this endpoint to simulate emailing Rodney. " +
+    [Tooltip("Base URL of the email support server, e.g. http://your-ec2:3000 " +
+             "Endpoints used: POST /api/request-code, POST /api/validate. " +
              "Leave empty to use offline/debug mode.")]
     public string codeServerUrl = "";
 
@@ -60,8 +61,9 @@ public class Level4_KeypadPuzzle : LevelManager
 
     // State
     private string enteredCode = "";
-    private string currentValidCode = "";
+    private string currentValidCode = "";  // Used in offline mode and as server-mode fallback
     private float codeExpiryTime = -1f;
+    private bool codeRequested = false;    // True after any code request (server or offline)
     private bool keypadOpen = false;
     private bool doorOpening = false;
     private int failedAttempts = 0;
@@ -271,7 +273,14 @@ public class Level4_KeypadPuzzle : LevelManager
             return;
         }
 
-        // Check if there's a valid code and it hasn't expired
+        // Server mode: validate against the remote code store
+        if (!string.IsNullOrEmpty(codeServerUrl) && !offlineMode)
+        {
+            StartCoroutine(ValidateCodeOnServer(enteredCode));
+            return;
+        }
+
+        // Offline mode: validate locally
         if (string.IsNullOrEmpty(currentValidCode))
         {
             SetKeypadStatus("No code requested yet. Email Rodney first!");
@@ -291,20 +300,85 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (enteredCode == currentValidCode)
         {
-            // Success
-            SetKeypadStatus("ACCESS GRANTED");
-            if (statusText != null) statusText.color = new Color(0.2f, 1f, 0.2f);
-            ShowNarration("The code worked. Wait, how did you get that so fast?", 3f);
-            StartCoroutine(DoorOpenSequence());
+            OnCodeAccepted();
         }
         else
         {
-            SetKeypadStatus("WRONG CODE");
-            if (statusText != null) statusText.color = new Color(1f, 0.2f, 0.2f);
-            failedAttempts++;
-            ShowFailNarration();
-            enteredCode = "";
-            UpdateCodeDisplay();
+            OnCodeRejected("WRONG CODE");
+        }
+    }
+
+    private void OnCodeAccepted()
+    {
+        SetKeypadStatus("ACCESS GRANTED");
+        if (statusText != null) statusText.color = new Color(0.2f, 1f, 0.2f);
+        ShowNarration("The code worked. Wait, how did you get that so fast?", 3f);
+        StartCoroutine(DoorOpenSequence());
+    }
+
+    private void OnCodeRejected(string reason)
+    {
+        SetKeypadStatus(reason);
+        if (statusText != null) statusText.color = new Color(1f, 0.2f, 0.2f);
+        failedAttempts++;
+        ShowFailNarration();
+        enteredCode = "";
+        UpdateCodeDisplay();
+    }
+
+    private IEnumerator ValidateCodeOnServer(string code)
+    {
+        SetKeypadStatus("Validating...");
+
+        string url = codeServerUrl.TrimEnd('/') + "/api/validate";
+        string jsonBody = "{\"code\":\"" + code + "\"}";
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+        UnityWebRequest req = new UnityWebRequest(url, "POST");
+        req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        req.downloadHandler = new DownloadHandlerBuffer();
+        req.SetRequestHeader("Content-Type", "application/json");
+        req.timeout = 10;
+
+        yield return req.SendWebRequest();
+
+        if (req.result == UnityWebRequest.Result.Success)
+        {
+            string response = req.downloadHandler.text;
+
+            // Parse {"valid":true/false,"message":"..."}
+            bool valid = response.Contains("\"valid\":true") ||
+                         response.Contains("\"valid\": true");
+
+            if (valid)
+            {
+                OnCodeAccepted();
+            }
+            else
+            {
+                // Try to extract the message
+                string msg = ParseJsonStringField(response, "message");
+                OnCodeRejected(string.IsNullOrEmpty(msg) ? "WRONG CODE" : msg);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[Level4] Server validation failed: {req.error}");
+            SetKeypadStatus("Server unreachable. Trying offline...");
+
+            // Fallback: attempt offline validation if we have a local code
+            yield return new WaitForSeconds(0.5f);
+
+            if (!string.IsNullOrEmpty(currentValidCode) &&
+                Time.time <= codeExpiryTime &&
+                code == currentValidCode)
+            {
+                OnCodeAccepted();
+            }
+            else
+            {
+                OnCodeRejected("Could not validate. Try again.");
+            }
         }
     }
 
@@ -336,6 +410,7 @@ public class Level4_KeypadPuzzle : LevelManager
         }
 
         codeExpiryTime = Time.time + codeValiditySeconds;
+        codeRequested = true;
 
         SetKeypadStatus($"Code sent! Check console.\nExpires in {codeValiditySeconds}s");
         if (statusText != null) statusText.color = new Color(1f, 0.9f, 0.3f);
@@ -353,7 +428,13 @@ public class Level4_KeypadPuzzle : LevelManager
     {
         SetKeypadStatus("Contacting Rodney...");
 
-        UnityWebRequest req = UnityWebRequest.PostWwwForm(codeServerUrl, "{}");
+        string url = codeServerUrl.TrimEnd('/') + "/api/request-code";
+        string jsonBody = "{}"; // No email needed for in-game shortcut
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+        UnityWebRequest req = new UnityWebRequest(url, "POST");
+        req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
         req.timeout = 10;
 
@@ -361,40 +442,52 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (req.result == UnityWebRequest.Result.Success)
         {
-            // Expect the response body to be a JSON like {"code":"123456789"}
-            // or just the plain 9-digit string
             string response = req.downloadHandler.text;
 
-            // Try to parse as JSON
-            string code = ParseCodeFromResponse(response);
+            // Server responds with {"message":"...","expiresIn":15}
+            // In debug mode, also {"code":"123456789"}
+            string code = ParseJsonStringField(response, "code");
+            string message = ParseJsonStringField(response, "message");
+
+            // Start the expiry timer display (even though validation is server-side,
+            // the player needs to know there's a time limit)
+            codeExpiryTime = Time.time + codeValiditySeconds;
+            codeRequested = true;
+
             if (!string.IsNullOrEmpty(code) && code.Length == 9)
             {
-                currentValidCode = code;
-                codeExpiryTime = Time.time + codeValiditySeconds;
-                SetKeypadStatus($"Rodney replied! Code expires in {codeValiditySeconds}s");
+                // Debug mode: server returned the code directly
+                currentValidCode = code; // Keep for offline fallback
+                SetKeypadStatus($"Code: {code.Substring(0, 3)} {code.Substring(3, 3)} {code.Substring(6, 3)} -- expires in {codeValiditySeconds}s");
                 if (statusText != null) statusText.color = new Color(0.3f, 1f, 0.3f);
-                ShowNarration("Check your email. Rodney sent the code.", 3f);
+                Debug.Log($"[Level4] Server debug code: {code}");
+                ShowNarration("Rodney sent the code. It's on screen (debug mode).", 3f);
             }
             else
             {
-                SetKeypadStatus("Rodney's reply was... unhelpful.");
-                ShowNarration("Something went wrong with Rodney's response.", 3f);
+                // Production mode: code was emailed, not returned
+                SetKeypadStatus(message ?? $"Rodney replied! Code expires in {codeValiditySeconds}s");
+                if (statusText != null) statusText.color = new Color(0.3f, 1f, 0.3f);
+                ShowNarration("Check your email. Rodney sent the code.", 3f);
             }
         }
         else
         {
             SetKeypadStatus("Rodney isn't responding.");
-            ShowNarration("Can't reach the server. Try offline mode or check the URL.", 3f);
+            ShowNarration("Can't reach the server. Generating code locally...", 3f);
 
             // Fallback to offline
             GenerateOfflineCode();
         }
     }
 
-    private string ParseCodeFromResponse(string json)
+    /// <summary>
+    /// Minimal JSON string field parser. Extracts the value for a given key
+    /// from a flat JSON object, e.g. ParseJsonStringField('{"code":"123"}', "code") => "123"
+    /// </summary>
+    private string ParseJsonStringField(string json, string fieldName)
     {
-        // Minimal JSON parsing for {"code":"123456789"}
-        string key = "\"code\"";
+        string key = "\"" + fieldName + "\"";
         int idx = json.IndexOf(key);
         if (idx >= 0)
         {
@@ -409,14 +502,6 @@ public class Level4_KeypadPuzzle : LevelManager
                 }
             }
         }
-
-        // Maybe it's just the raw digits
-        string trimmed = json.Trim().Trim('"');
-        if (trimmed.Length == 9 && long.TryParse(trimmed, out _))
-        {
-            return trimmed;
-        }
-
         return null;
     }
 
@@ -424,7 +509,7 @@ public class Level4_KeypadPuzzle : LevelManager
     {
         if (timerText == null) return;
 
-        if (!string.IsNullOrEmpty(currentValidCode) && codeExpiryTime > 0f)
+        if (codeRequested && codeExpiryTime > 0f)
         {
             float remaining = codeExpiryTime - Time.time;
             if (remaining > 0f)
@@ -439,6 +524,7 @@ public class Level4_KeypadPuzzle : LevelManager
                 timerText.text = "Code EXPIRED";
                 timerText.color = new Color(0.5f, 0.2f, 0.2f);
                 currentValidCode = "";
+                codeRequested = false;
             }
         }
         else
