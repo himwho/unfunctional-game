@@ -1747,6 +1747,9 @@ MonoBehaviour:
   levelDisplayName: Unnamed Level
   levelDescription: 
   levelBuildIndex: -1
+  wantsCursorLocked: 0
+  needsPlayer: 0
+  playerSpawnPoint: {fileID: 0}
   levelComplete: 0
   settingsCanvas: {fileID: 366258291}
 --- !u!4 &486792136

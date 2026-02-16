@@ -44,7 +44,9 @@ public class Level3_WallClip : LevelManager
 
     protected override void Start()
     {
-        base.Start();
+        wantsCursorLocked = true; // 3D FPS level
+        needsPlayer = true;      // Spawn the player prefab
+        base.Start(); // calls ApplyCursorState()
         levelDisplayName = "The Room";
         levelDescription = "A simple room. Find a way through.";
 

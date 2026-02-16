@@ -24,6 +24,10 @@ public class GameManager : MonoBehaviour
         "LEVEL6"
     };
 
+    [Header("Player")]
+    [Tooltip("Player prefab to instantiate for 3D levels. Loaded from Resources/Player if null.")]
+    public GameObject playerPrefab;
+
     [Header("Transition")]
     public float fadeOutDuration = 0.5f;
     public float fadeInDuration = 0.5f;
@@ -35,6 +39,7 @@ public class GameManager : MonoBehaviour
 
     public int CurrentLevelIndex => currentLevelIndex;
     public GameState CurrentState => currentState;
+    public GameObject CurrentPlayer => currentPlayerInstance;
 
     public enum GameState
     {
@@ -57,6 +62,9 @@ public class GameManager : MonoBehaviour
     private Image fadeOverlay;
     private CanvasGroup fadeCanvasGroup;
 
+    // Player instance management
+    private GameObject currentPlayerInstance;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -69,6 +77,7 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         CreateTransitionOverlay();
+        LoadPlayerPrefab();
     }
 
     private void Start()
@@ -150,6 +159,9 @@ public class GameManager : MonoBehaviour
         // Fade out
         yield return StartCoroutine(Fade(0f, 1f, fadeOutDuration));
 
+        // Despawn current player if it exists
+        DespawnPlayer();
+
         // Unload current level if one is loaded
         if (currentLevelIndex >= 0 && currentLevelIndex < levelSceneNames.Length)
         {
@@ -184,6 +196,16 @@ public class GameManager : MonoBehaviour
             SceneManager.SetActiveScene(loadedScene);
         }
 
+        // Find the level manager and handle player spawning
+        // Wait one frame so all Start() methods have run
+        yield return null;
+
+        LevelManager lm = FindAnyObjectByType<LevelManager>();
+        if (lm != null && lm.needsPlayer)
+        {
+            SpawnPlayer(lm.GetSpawnPosition(), lm.GetSpawnRotation());
+        }
+
         // Determine state based on level
         if (levelIndex == 0)
         {
@@ -199,6 +221,57 @@ public class GameManager : MonoBehaviour
 
         // Fade in
         yield return StartCoroutine(Fade(1f, 0f, fadeInDuration));
+    }
+
+    // =========================================================================
+    // Player Spawning
+    // =========================================================================
+
+    private void LoadPlayerPrefab()
+    {
+        if (playerPrefab != null) return;
+
+        // Try to load from Resources folder
+        playerPrefab = Resources.Load<GameObject>("Player");
+
+        if (playerPrefab == null)
+        {
+            Debug.LogWarning("[GameManager] No player prefab assigned and none found in Resources/. " +
+                "3D levels will have no player. Assign the prefab on the GameManager or place it in Assets/Resources/.");
+        }
+    }
+
+    private void SpawnPlayer(Vector3 position, Quaternion rotation)
+    {
+        if (playerPrefab == null)
+        {
+            Debug.LogError("[GameManager] Cannot spawn player: no prefab assigned.");
+            return;
+        }
+
+        if (currentPlayerInstance != null)
+        {
+            Debug.LogWarning("[GameManager] Player already exists, despawning old one first.");
+            DespawnPlayer();
+        }
+
+        currentPlayerInstance = Instantiate(playerPrefab, position, rotation);
+        currentPlayerInstance.name = "Player";
+
+        // Move the player to the GLOBAL scene so it persists if needed,
+        // but actually for per-level spawning it should stay in the level scene.
+        // We keep it in the level scene so it gets cleaned up on unload.
+        Debug.Log($"[GameManager] Player spawned at {position}");
+    }
+
+    private void DespawnPlayer()
+    {
+        if (currentPlayerInstance != null)
+        {
+            Destroy(currentPlayerInstance);
+            currentPlayerInstance = null;
+            Debug.Log("[GameManager] Player despawned.");
+        }
     }
 
     // =========================================================================

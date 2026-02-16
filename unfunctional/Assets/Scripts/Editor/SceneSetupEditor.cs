@@ -19,7 +19,8 @@ public class SceneSetupEditor : EditorWindow
             "1. Create the Player prefab in Assets/Prefabs/\n" +
             "2. Set up the GLOBAL scene with GameManager, InputManager, PauseMenu Canvas, EventSystem\n" +
             "3. Set up LEVEL1 scene with confusing menu UI\n" +
-            "4. Set up LEVEL2 scene with settings puzzle UI\n\n" +
+            "4. Set up LEVEL2 scene with settings puzzle UI\n" +
+            "5. Set up LEVEL3 scene with wall-clip room\n\n" +
             "Existing objects in those scenes will be preserved. Continue?",
             "Yes, set it up", "Cancel"))
         {
@@ -30,6 +31,7 @@ public class SceneSetupEditor : EditorWindow
         SetupGlobalScene();
         SetupLevel1Scene();
         SetupLevel2Scene();
+        SetupLevel3Scene();
 
         Debug.Log("[SceneSetup] All scenes set up successfully!");
         EditorUtility.DisplayDialog("Done", "All scenes and prefabs have been set up.", "OK");
@@ -137,9 +139,22 @@ public class SceneSetupEditor : EditorWindow
         {
             gmObj = new GameObject("GameManager");
         }
-        if (gmObj.GetComponent<GameManager>() == null)
+        GameManager gm = gmObj.GetComponent<GameManager>();
+        if (gm == null)
         {
-            gmObj.AddComponent<GameManager>();
+            gm = gmObj.AddComponent<GameManager>();
+        }
+
+        // Wire up the Player prefab reference so GameManager can spawn it for 3D levels
+        GameObject playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
+        if (playerPrefab != null)
+        {
+            gm.playerPrefab = playerPrefab;
+            Debug.Log("[SceneSetup] Player prefab wired on GameManager.");
+        }
+        else
+        {
+            Debug.LogWarning("[SceneSetup] Player prefab not found at Assets/Prefabs/Player.prefab. Run 'Create Player Prefab' first.");
         }
 
         // --- InputManager ---
@@ -463,6 +478,246 @@ public class SceneSetupEditor : EditorWindow
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[SceneSetup] LEVEL2 scene set up (UI built at runtime by Level2_SettingsPuzzle)");
+    }
+
+    [MenuItem("Unfunctional/5. Setup LEVEL3 Scene")]
+    public static void SetupLevel3Scene()
+    {
+        // Open LEVEL3 scene
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL3.unity", OpenSceneMode.Single);
+
+        // Clean up default camera if present (player prefab provides the camera)
+        GameObject defaultCam = GameObject.FindGameObjectWithTag("MainCamera");
+        if (defaultCam != null && defaultCam.name == "Main Camera")
+        {
+            Object.DestroyImmediate(defaultCam);
+        }
+
+        // =====================================================================
+        // Lighting
+        // =====================================================================
+
+        // Ensure a directional light exists for ambient illumination
+        Light dirLight = Object.FindAnyObjectByType<Light>();
+        if (dirLight == null)
+        {
+            GameObject lightObj = new GameObject("Directional Light");
+            dirLight = lightObj.AddComponent<Light>();
+            dirLight.type = LightType.Directional;
+            lightObj.transform.eulerAngles = new Vector3(50f, -30f, 0f);
+        }
+        dirLight.color = new Color(0.85f, 0.85f, 0.9f, 1f);
+        dirLight.intensity = 0.6f;
+
+        // =====================================================================
+        // Room Geometry
+        // =====================================================================
+        // Room is 10x4x10 units. Player starts inside.
+        // North wall has a door that won't open. East wall has a clippable section.
+        // Exit trigger is outside the east wall.
+
+        float roomW = 10f;  // X
+        float roomH = 4f;   // Y
+        float roomD = 10f;  // Z
+        float wallThickness = 0.2f;
+
+        // --- Floor ---
+        GameObject floor = CreateOrFindPrimitive("Floor", PrimitiveType.Cube);
+        floor.transform.position = new Vector3(0f, -wallThickness / 2f, 0f);
+        floor.transform.localScale = new Vector3(roomW, wallThickness, roomD);
+        SetColor(floor, new Color(0.35f, 0.35f, 0.35f));
+
+        // --- Ceiling ---
+        GameObject ceiling = CreateOrFindPrimitive("Ceiling", PrimitiveType.Cube);
+        ceiling.transform.position = new Vector3(0f, roomH + wallThickness / 2f, 0f);
+        ceiling.transform.localScale = new Vector3(roomW, wallThickness, roomD);
+        SetColor(ceiling, new Color(0.5f, 0.5f, 0.5f));
+
+        // --- South Wall (behind player start) ---
+        GameObject wallSouth = CreateOrFindPrimitive("WallSouth", PrimitiveType.Cube);
+        wallSouth.transform.position = new Vector3(0f, roomH / 2f, -roomD / 2f);
+        wallSouth.transform.localScale = new Vector3(roomW, roomH, wallThickness);
+        SetColor(wallSouth, new Color(0.55f, 0.55f, 0.5f));
+
+        // --- North Wall (has the locked door) ---
+        // Left part
+        GameObject wallNorthLeft = CreateOrFindPrimitive("WallNorthLeft", PrimitiveType.Cube);
+        float doorWidth = 1.5f;
+        float northLeftW = (roomW - doorWidth) / 2f;
+        wallNorthLeft.transform.position = new Vector3(-(doorWidth / 2f + northLeftW / 2f), roomH / 2f, roomD / 2f);
+        wallNorthLeft.transform.localScale = new Vector3(northLeftW, roomH, wallThickness);
+        SetColor(wallNorthLeft, new Color(0.55f, 0.55f, 0.5f));
+
+        // Right part
+        GameObject wallNorthRight = CreateOrFindPrimitive("WallNorthRight", PrimitiveType.Cube);
+        wallNorthRight.transform.position = new Vector3(doorWidth / 2f + northLeftW / 2f, roomH / 2f, roomD / 2f);
+        wallNorthRight.transform.localScale = new Vector3(northLeftW, roomH, wallThickness);
+        SetColor(wallNorthRight, new Color(0.55f, 0.55f, 0.5f));
+
+        // Door frame top
+        GameObject doorFrameTop = CreateOrFindPrimitive("DoorFrameTop", PrimitiveType.Cube);
+        float doorHeight = 2.5f;
+        doorFrameTop.transform.position = new Vector3(0f, doorHeight + (roomH - doorHeight) / 2f, roomD / 2f);
+        doorFrameTop.transform.localScale = new Vector3(doorWidth, roomH - doorHeight, wallThickness);
+        SetColor(doorFrameTop, new Color(0.55f, 0.55f, 0.5f));
+
+        // The door itself (visual only, solid collider, won't open)
+        GameObject door = CreateOrFindPrimitive("Door", PrimitiveType.Cube);
+        door.transform.position = new Vector3(0f, doorHeight / 2f, roomD / 2f);
+        door.transform.localScale = new Vector3(doorWidth - 0.1f, doorHeight, wallThickness * 0.5f);
+        SetColor(door, new Color(0.4f, 0.25f, 0.15f)); // brown wood color
+
+        // --- West Wall (solid) ---
+        GameObject wallWest = CreateOrFindPrimitive("WallWest", PrimitiveType.Cube);
+        wallWest.transform.position = new Vector3(-roomW / 2f, roomH / 2f, 0f);
+        wallWest.transform.localScale = new Vector3(wallThickness, roomH, roomD);
+        SetColor(wallWest, new Color(0.55f, 0.55f, 0.5f));
+
+        // --- East Wall (has clippable section) ---
+        // The east wall is split into solid sections + one clippable section
+        float clipSectionWidth = 2f;
+        float clipSectionHeight = 2.5f;
+        float clipSectionZ = 0f; // center of east wall
+
+        // East wall - bottom solid
+        // (we tile around the clip hole)
+
+        // Left of clip section
+        float eastSolidLeftW = (roomD - clipSectionWidth) / 2f;
+        GameObject wallEastLeft = CreateOrFindPrimitive("WallEastLeft", PrimitiveType.Cube);
+        wallEastLeft.transform.position = new Vector3(roomW / 2f, roomH / 2f, -(clipSectionWidth / 2f + eastSolidLeftW / 2f));
+        wallEastLeft.transform.localScale = new Vector3(wallThickness, roomH, eastSolidLeftW);
+        SetColor(wallEastLeft, new Color(0.55f, 0.55f, 0.5f));
+
+        // Right of clip section
+        GameObject wallEastRight = CreateOrFindPrimitive("WallEastRight", PrimitiveType.Cube);
+        wallEastRight.transform.position = new Vector3(roomW / 2f, roomH / 2f, clipSectionWidth / 2f + eastSolidLeftW / 2f);
+        wallEastRight.transform.localScale = new Vector3(wallThickness, roomH, eastSolidLeftW);
+        SetColor(wallEastRight, new Color(0.55f, 0.55f, 0.5f));
+
+        // Above clip section
+        GameObject wallEastTop = CreateOrFindPrimitive("WallEastTop", PrimitiveType.Cube);
+        float aboveClipH = roomH - clipSectionHeight;
+        wallEastTop.transform.position = new Vector3(roomW / 2f, clipSectionHeight + aboveClipH / 2f, clipSectionZ);
+        wallEastTop.transform.localScale = new Vector3(wallThickness, aboveClipH, clipSectionWidth);
+        SetColor(wallEastTop, new Color(0.55f, 0.55f, 0.5f));
+
+        // --- Clippable Wall Section ---
+        // Looks like a wall but the collider is set to trigger so player walks through
+        GameObject clippableWall = CreateOrFindPrimitive("ClippableWall", PrimitiveType.Cube);
+        clippableWall.transform.position = new Vector3(roomW / 2f, clipSectionHeight / 2f, clipSectionZ);
+        clippableWall.transform.localScale = new Vector3(wallThickness, clipSectionHeight, clipSectionWidth);
+        // Slightly different color to give a subtle visual hint
+        SetColor(clippableWall, new Color(0.53f, 0.54f, 0.48f));
+
+        // Make the collider a trigger (the Level3 script also does this, but set it here too)
+        BoxCollider clippableCol = clippableWall.GetComponent<BoxCollider>();
+        if (clippableCol == null) clippableCol = clippableWall.AddComponent<BoxCollider>();
+        clippableCol.isTrigger = true;
+
+        // --- Exit Trigger Zone (outside east wall) ---
+        GameObject exitZone = GameObject.Find("ExitZone");
+        if (exitZone == null)
+        {
+            exitZone = new GameObject("ExitZone");
+        }
+        exitZone.transform.position = new Vector3(roomW / 2f + 1.5f, 1f, clipSectionZ);
+        BoxCollider exitCol = exitZone.GetComponent<BoxCollider>();
+        if (exitCol == null) exitCol = exitZone.AddComponent<BoxCollider>();
+        exitCol.size = new Vector3(2f, 3f, 3f);
+        exitCol.isTrigger = true;
+
+        // --- Player Spawn Point ---
+        GameObject spawnPoint = GameObject.Find("PlayerSpawnPoint");
+        if (spawnPoint == null)
+        {
+            spawnPoint = new GameObject("PlayerSpawnPoint");
+        }
+        spawnPoint.transform.position = new Vector3(0f, 1f, -3f); // Center-south of room, facing north
+        spawnPoint.transform.rotation = Quaternion.identity; // Looking towards +Z (north wall / door)
+
+        // --- Point Light (inside the room for atmosphere) ---
+        GameObject pointLightObj = GameObject.Find("RoomLight");
+        if (pointLightObj == null)
+        {
+            pointLightObj = new GameObject("RoomLight");
+        }
+        Light pointLight = pointLightObj.GetComponent<Light>();
+        if (pointLight == null) pointLight = pointLightObj.AddComponent<Light>();
+        pointLight.type = LightType.Point;
+        pointLight.range = 15f;
+        pointLight.intensity = 1.2f;
+        pointLight.color = new Color(1f, 0.95f, 0.8f);
+        pointLightObj.transform.position = new Vector3(0f, 3.5f, 0f);
+
+        // =====================================================================
+        // Level Manager
+        // =====================================================================
+
+        GameObject levelRoot = GameObject.Find("Level3Manager");
+        if (levelRoot == null)
+        {
+            levelRoot = new GameObject("Level3Manager");
+        }
+        Level3_WallClip wallClipScript = levelRoot.GetComponent<Level3_WallClip>();
+        if (wallClipScript == null)
+        {
+            wallClipScript = levelRoot.AddComponent<Level3_WallClip>();
+        }
+
+        // Wire references
+        wallClipScript.normalDoor = door;
+        wallClipScript.clippableWallSection = clippableWall;
+        wallClipScript.clippableCollider = clippableCol;
+        wallClipScript.exitTriggerPoint = exitZone.transform;
+        wallClipScript.exitZoneTrigger = exitCol;
+        wallClipScript.playerSpawnPoint = spawnPoint.transform;
+        wallClipScript.needsPlayer = true;
+        wallClipScript.wantsCursorLocked = true;
+
+        // --- EventSystem for standalone testing ---
+        if (Object.FindAnyObjectByType<EventSystem>() == null)
+        {
+            GameObject esObj = new GameObject("EventSystem");
+            esObj.AddComponent<EventSystem>();
+            esObj.AddComponent<StandaloneInputModule>();
+        }
+
+        // Save
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL3 scene set up with room geometry and wall-clip puzzle");
+    }
+
+    /// <summary>
+    /// Find an existing named GameObject or create a new primitive.
+    /// </summary>
+    private static GameObject CreateOrFindPrimitive(string name, PrimitiveType type)
+    {
+        GameObject obj = GameObject.Find(name);
+        if (obj != null) return obj;
+
+        obj = GameObject.CreatePrimitive(type);
+        obj.name = name;
+        return obj;
+    }
+
+    /// <summary>
+    /// Set a solid color on a renderer via a simple material.
+    /// </summary>
+    private static void SetColor(GameObject obj, Color color)
+    {
+        Renderer rend = obj.GetComponent<Renderer>();
+        if (rend == null) return;
+
+        // Use the URP Lit shader if available, otherwise Standard
+        Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        if (mat.shader == null || mat.shader.name == "Hidden/InternalErrorShader")
+        {
+            mat = new Material(Shader.Find("Standard"));
+        }
+        mat.color = color;
+        rend.sharedMaterial = mat;
     }
 
     // =========================================================================

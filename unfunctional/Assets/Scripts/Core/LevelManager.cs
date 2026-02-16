@@ -15,6 +15,12 @@ public class LevelManager : MonoBehaviour
     [Tooltip("True for 3D/FPS levels, false for UI-based levels")]
     public bool wantsCursorLocked = false;
 
+    [Header("Player")]
+    [Tooltip("True for 3D levels that need the Player prefab spawned")]
+    public bool needsPlayer = false;
+    [Tooltip("Where to spawn the player. If null, spawns at origin.")]
+    public Transform playerSpawnPoint;
+
     [Header("Level Complete")]
     [SerializeField] protected bool levelComplete = false;
 
@@ -44,6 +50,26 @@ public class LevelManager : MonoBehaviour
             Cursor.lockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !wantsCursorLocked;
         }
+    }
+
+    /// <summary>
+    /// Returns the world position where the player should spawn.
+    /// </summary>
+    public Vector3 GetSpawnPosition()
+    {
+        if (playerSpawnPoint != null)
+            return playerSpawnPoint.position;
+        return new Vector3(0f, 1f, 0f); // Default: slightly above origin
+    }
+
+    /// <summary>
+    /// Returns the spawn rotation.
+    /// </summary>
+    public Quaternion GetSpawnRotation()
+    {
+        if (playerSpawnPoint != null)
+            return playerSpawnPoint.rotation;
+        return Quaternion.identity;
     }
 
     /// <summary>

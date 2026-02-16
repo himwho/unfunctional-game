@@ -770,6 +770,9 @@ MonoBehaviour:
   levelDisplayName: Unnamed Level
   levelDescription: 
   levelBuildIndex: -1
+  wantsCursorLocked: 0
+  needsPlayer: 0
+  playerSpawnPoint: {fileID: 0}
   levelComplete: 0
   menuCanvas: {fileID: 632190648}
   mainPanel: {fileID: 576551792}
