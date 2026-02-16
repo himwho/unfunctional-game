@@ -165,9 +165,9 @@ public class Level3_WallClip : LevelManager
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, doorInteractRange))
+        if (Physics.Raycast(ray, out hit, doorInteractRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (normalDoor != null && hit.collider.gameObject == normalDoor)
+            if (normalDoor != null && IsHitOnDoor(hit))
             {
                 doorInteractCount++;
 
@@ -208,15 +208,32 @@ public class Level3_WallClip : LevelManager
         RaycastHit hit;
 
         bool showPrompt = false;
-        if (Physics.Raycast(ray, out hit, doorInteractRange))
+        if (Physics.Raycast(ray, out hit, doorInteractRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (normalDoor != null && hit.collider.gameObject == normalDoor)
+            if (normalDoor != null && IsHitOnDoor(hit))
             {
                 showPrompt = true;
             }
         }
 
         interactPromptText.enabled = showPrompt;
+    }
+
+    /// <summary>
+    /// Returns true if the raycast hit the door object or any of its children/parent.
+    /// Handles imported meshes (LEVEL_DOOR prefab) where colliders may be on sub-objects.
+    /// </summary>
+    private bool IsHitOnDoor(RaycastHit hit)
+    {
+        // Direct match on the assigned normalDoor
+        if (hit.collider.transform.IsChildOf(normalDoor.transform))
+            return true;
+
+        // Also check if the DoorController root was hit (trigger collider on root)
+        if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
+            return true;
+
+        return false;
     }
 
     private IEnumerator ShakeDoor()

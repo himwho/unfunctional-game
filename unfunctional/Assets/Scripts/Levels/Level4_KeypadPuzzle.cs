@@ -142,13 +142,13 @@ public class Level4_KeypadPuzzle : LevelManager
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, interactRange))
+        if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (keypadObject != null && hit.collider.gameObject == keypadObject)
+            if (keypadObject != null && IsHitOnTarget(hit, keypadObject))
             {
                 OpenKeypad();
             }
-            else if (doorObject != null && hit.collider.gameObject == doorObject)
+            else if (doorObject != null && IsHitOnTarget(hit, doorObject))
             {
                 ShowNarration("The door is locked. Use the keypad.", 2.5f);
             }
@@ -182,14 +182,14 @@ public class Level4_KeypadPuzzle : LevelManager
         bool show = false;
         string prompt = "[E] Interact";
 
-        if (Physics.Raycast(ray, out hit, interactRange))
+        if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (keypadObject != null && hit.collider.gameObject == keypadObject)
+            if (keypadObject != null && IsHitOnTarget(hit, keypadObject))
             {
                 show = true;
                 prompt = "[E] Use Keypad";
             }
-            else if (doorObject != null && hit.collider.gameObject == doorObject)
+            else if (doorObject != null && IsHitOnTarget(hit, doorObject))
             {
                 show = true;
                 prompt = "[E] Try Door";
@@ -218,6 +218,24 @@ public class Level4_KeypadPuzzle : LevelManager
         {
             ShowNarration("rodney@please.nyc -- email him for the code.\nHurry, it only lasts 15 seconds.", 4f);
         }
+    }
+
+    /// <summary>
+    /// Returns true if the raycast hit the target object, any of its children,
+    /// or the DoorController root (when target is the door).
+    /// Handles imported meshes (LEVEL_DOOR prefab) where colliders may be on sub-objects.
+    /// </summary>
+    private bool IsHitOnTarget(RaycastHit hit, GameObject target)
+    {
+        if (target == null) return false;
+        // Direct match or hit is a child of target
+        if (hit.collider.transform.IsChildOf(target.transform))
+            return true;
+        // For the door: also check if we hit the DoorController root (trigger collider)
+        if (target == doorObject && doorController != null &&
+            hit.collider.transform.IsChildOf(doorController.transform))
+            return true;
+        return false;
     }
 
     // =========================================================================
