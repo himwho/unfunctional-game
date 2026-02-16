@@ -50,8 +50,11 @@ public class Level2_SettingsPuzzle : LevelManager
     private Slider step2Slider;
     private Image step2Overlay;
     private Button step2Next;
+    private Image step2NextImage;
     private Text step2Warning;
     private readonly float step2MaxSafe = 0.78f;
+    private readonly float step2VisibleMin = 0.03f; // NEXT visible from 3%
+    private readonly float step2VisibleMax = 0.11f; // NEXT visible to 11%
     private bool step2Warned = false;
 
     // -- Step 3 --
@@ -292,10 +295,13 @@ public class Level2_SettingsPuzzle : LevelManager
         step1Overlay = ovlObj.GetComponent<Image>();
         step1Overlay.raycastTarget = false;
 
-        // NEXT button -- its color blends with the overlay
+        // NEXT button -- grey tone that blends with the overlay at most brightness levels
         step1Next = MakeButton(panel, "NEXT", new Vector2(0.5f, 0.15f), new Vector2(180, 50),
-            new Color(0.2f, 0.2f, 0.2f, 1f));
+            new Color(0.15f, 0.15f, 0.15f, 1f));
         step1NextImage = step1Next.GetComponent<Image>();
+        // Make the button text also grey so it's truly hidden
+        Text step1BtnText = step1Next.GetComponentInChildren<Text>();
+        if (step1BtnText != null) step1BtnText.color = new Color(0.15f, 0.15f, 0.15f, 1f);
         step1Next.onClick.AddListener(() => { if (CanAdvanceStep1()) GoToStep(1); });
     }
 
@@ -317,7 +323,11 @@ public class Level2_SettingsPuzzle : LevelManager
         step2Warning.gameObject.SetActive(false);
 
         step2Next = MakeButton(panel, "NEXT", new Vector2(0.5f, 0.1f), new Vector2(180, 50),
-            new Color(0.2f, 0.45f, 0.2f, 1f));
+            new Color(0.2f, 0.45f, 0.2f, 0f)); // start fully transparent
+        step2NextImage = step2Next.GetComponent<Image>();
+        // Hide button text initially too
+        Text step2BtnText = step2Next.GetComponentInChildren<Text>();
+        if (step2BtnText != null) step2BtnText.color = new Color(1f, 1f, 1f, 0f);
         step2Next.onClick.AddListener(() => { if (CanAdvanceStep2()) GoToStep(2); });
     }
 
@@ -708,20 +718,46 @@ public class Level2_SettingsPuzzle : LevelManager
     private void UpdateStep1()
     {
         float v = step1Slider.value;
-        // Overlay darkens at low brightness
-        float overlayAlpha = Mathf.Clamp01((1f - v) * 0.92f);
-        step1Overlay.color = new Color(0, 0, 0, overlayAlpha);
 
-        // NEXT button blends with background: only visible near target brightness
-        float proximity = 1f - Mathf.Clamp01(Mathf.Abs(v - step1Target) * 4f);
-        Color btnColor = new Color(0.15f + proximity * 0.3f, 0.15f + proximity * 0.55f,
-            0.15f + proximity * 0.15f, 0.3f + proximity * 0.7f);
-        step1NextImage.color = btnColor;
+        // Overlay goes from completely dark (v=0) to completely light (v=1).
+        // At v=0 the screen is pitch black; at v=1 it's blinding white.
+        if (v <= 0.5f)
+        {
+            // Dark overlay fades out as brightness increases
+            float darkAlpha = 1f - (v / 0.5f); // 1 at v=0, 0 at v=0.5
+            step1Overlay.color = new Color(0f, 0f, 0f, darkAlpha);
+        }
+        else
+        {
+            // White overlay fades in as brightness goes past midpoint
+            float lightAlpha = (v - 0.5f) / 0.5f; // 0 at v=0.5, 1 at v=1
+            step1Overlay.color = new Color(1f, 1f, 1f, lightAlpha);
+        }
+
+        // NEXT button is grey and blends into the background at most brightness.
+        // It only becomes distinguishable near the target (~85%).
+        // At 85% the overlay is white with alpha ~0.7, so the button needs to
+        // match that exact shade to be clickable but nearly invisible elsewhere.
+        float dist = Mathf.Abs(v - step1Target);
+        float visibility = 1f - Mathf.Clamp01(dist / 0.04f); // visible within ±4% of target
+
+        // Background at ~85%: mix of panel dark + white overlay ≈ bright grey
+        // Button transitions from dark grey (invisible when dark) to matching bright grey
+        float grey = Mathf.Lerp(0.12f, 0.55f, visibility);
+        step1NextImage.color = new Color(grey, grey, grey, 0.3f + visibility * 0.7f);
+
+        // Also adjust the button text visibility
+        Text btnText = step1Next.GetComponentInChildren<Text>();
+        if (btnText != null)
+        {
+            float textGrey = Mathf.Lerp(0.12f, 0.9f, visibility);
+            btnText.color = new Color(textGrey, textGrey, textGrey, visibility);
+        }
     }
 
     private bool CanAdvanceStep1()
     {
-        return Mathf.Abs(step1Slider.value - step1Target) < 0.06f;
+        return Mathf.Abs(step1Slider.value - step1Target) < 0.04f;
     }
 
     private void UpdateStep2()
@@ -742,6 +778,24 @@ public class Level2_SettingsPuzzle : LevelManager
         }
         step2Overlay.color = c;
 
+        // NEXT button only visible when contrast is in 3%-11% range
+        float visibility = 0f;
+        if (v >= step2VisibleMin && v <= step2VisibleMax)
+        {
+            // Full visibility when in the sweet spot center
+            float center = (step2VisibleMin + step2VisibleMax) / 2f;
+            float halfRange = (step2VisibleMax - step2VisibleMin) / 2f;
+            float dist = Mathf.Abs(v - center);
+            visibility = 1f - Mathf.Clamp01(dist / halfRange * 0.5f); // softer falloff within range
+        }
+
+        if (step2NextImage != null)
+            step2NextImage.color = new Color(0.2f, 0.45f, 0.2f, visibility);
+
+        Text btnText = step2Next.GetComponentInChildren<Text>();
+        if (btnText != null)
+            btnText.color = new Color(1f, 1f, 1f, visibility);
+
         // If too high, warn and reset
         if (v > step2MaxSafe && !step2Warned)
         {
@@ -755,7 +809,7 @@ public class Level2_SettingsPuzzle : LevelManager
     private bool CanAdvanceStep2()
     {
         float v = step2Slider.value;
-        return v >= 0.35f && v <= step2MaxSafe;
+        return v >= step2VisibleMin && v <= step2VisibleMax;
     }
 
     private IEnumerator ResetToStep1()
@@ -809,8 +863,8 @@ public class Level2_SettingsPuzzle : LevelManager
         step7Timer += Time.deltaTime;
 
         // Show skip after 10 seconds
-        if (step7Timer > 10f && !step7Skip.gameObject.activeSelf)
-            step7Skip.gameObject.SetActive(true);
+        //if (step7Timer > 10f && !step7Skip.gameObject.activeSelf)
+        //    step7Skip.gameObject.SetActive(true);
 
         if (!micAvailable) return;
 
@@ -842,8 +896,8 @@ public class Level2_SettingsPuzzle : LevelManager
                 if (avg > micPeakAvg)
                     micPeakAvg = avg;
 
-                // Can proceed once we have a reading
-                if (!step7Next.gameObject.activeSelf)
+                // NEXT only appears once mic level hits ~90%
+                if (!step7Next.gameObject.activeSelf && micPeakAvg >= 0.90f)
                     step7Next.gameObject.SetActive(true);
             }
         }
