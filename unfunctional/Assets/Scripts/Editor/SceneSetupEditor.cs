@@ -185,10 +185,16 @@ public class SceneSetupEditor : EditorWindow
             pauseCanvasObj = CreatePauseMenuCanvas();
         }
 
+        // --- Debug Panel (dev tool for skipping levels, toggled with F1) ---
+        if (gmObj.GetComponent<DebugPanel>() == null)
+        {
+            gmObj.AddComponent<DebugPanel>();
+        }
+
         // Mark scene dirty and save
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[SceneSetup] GLOBAL scene set up with GameManager, InputManager, EventSystem, PauseCanvas");
+        Debug.Log("[SceneSetup] GLOBAL scene set up with GameManager, InputManager, EventSystem, PauseCanvas, DebugPanel");
     }
 
     [MenuItem("Unfunctional/3. Setup LEVEL1 Scene")]

@@ -78,6 +78,7 @@ public class GameManager : MonoBehaviour
 
         CreateTransitionOverlay();
         LoadPlayerPrefab();
+        EnsureDebugPanel();
     }
 
     private void Start()
@@ -328,6 +329,18 @@ public class GameManager : MonoBehaviour
 
         fadeCanvasGroup.alpha = to;
         fadeCanvasGroup.blocksRaycasts = (to > 0.01f);
+    }
+
+    // =========================================================================
+    // Debug Panel
+    // =========================================================================
+
+    private void EnsureDebugPanel()
+    {
+        if (GetComponent<DebugPanel>() == null)
+        {
+            gameObject.AddComponent<DebugPanel>();
+        }
     }
 
     private void OnDestroy()
