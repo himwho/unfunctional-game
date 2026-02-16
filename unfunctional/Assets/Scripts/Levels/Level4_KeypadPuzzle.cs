@@ -22,6 +22,8 @@ public class Level4_KeypadPuzzle : LevelManager
     public GameObject keypadObject;     // The visual keypad panel on the wall
     public Transform stickyNotePoint;   // Where the sticky notes are (for interact prompt)
     public Transform playerSpawnTransform; // re-exposed for clarity (base class has playerSpawnPoint)
+    [Tooltip("Optional reference to the door prefab's DoorController")]
+    public DoorController doorController;
 
     [Header("Keypad Settings")]
     public float codeValiditySeconds = 15f;
@@ -567,8 +569,15 @@ public class Level4_KeypadPuzzle : LevelManager
         yield return new WaitForSeconds(0.5f);
         CloseKeypad();
 
-        // Slide door up
-        if (doorObject != null)
+        // Slide door up using DoorController if available, otherwise manual
+        if (doorController != null)
+        {
+            doorController.OpenDoor();
+            // Wait for the animation to finish
+            while (doorController.IsAnimating)
+                yield return null;
+        }
+        else if (doorObject != null)
         {
             float t = 0f;
             while (t < 1f)

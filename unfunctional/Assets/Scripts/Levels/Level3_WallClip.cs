@@ -14,6 +14,8 @@ public class Level3_WallClip : LevelManager
 {
     [Header("Level 3 - Wall Clip")]
     public GameObject normalDoor;
+    [Tooltip("Optional reference to the door prefab's DoorController")]
+    public DoorController doorController;
     public GameObject clippableWallSection;
     public Collider clippableCollider;
     public Transform exitTriggerPoint;
@@ -183,7 +185,10 @@ public class Level3_WallClip : LevelManager
                 }
 
                 // Shake the door slightly for feedback
-                StartCoroutine(ShakeDoor());
+                if (doorController != null)
+                    doorController.ShakeDoor();
+                else
+                    StartCoroutine(ShakeDoor());
             }
         }
     }
