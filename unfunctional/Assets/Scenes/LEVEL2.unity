@@ -1749,57 +1749,6 @@ MonoBehaviour:
   levelBuildIndex: -1
   levelComplete: 0
   settingsCanvas: {fileID: 366258291}
-  brightnessSlider: {fileID: 102140555}
-  contrastSlider: {fileID: 337344928}
-  leftScreenTearSlider: {fileID: 864476572}
-  rightScreenTearSlider: {fileID: 1449415930}
-  topScreenTearSlider: {fileID: 2063624235}
-  bottomScreenTearSlider: {fileID: 1308554103}
-  leftChannelAudioSlider: {fileID: 746463947}
-  rightChannelAudioSlider: {fileID: 1237699960}
-  compressionThresholdSlider: {fileID: 1069181365}
-  particleFogSlider: {fileID: 1027879251}
-  sliderStatusIcons:
-  - {fileID: 562579919}
-  - {fileID: 335070781}
-  - {fileID: 449092458}
-  - {fileID: 1011397307}
-  - {fileID: 1602962173}
-  - {fileID: 1007094360}
-  - {fileID: 1428022580}
-  - {fileID: 1491562235}
-  - {fileID: 1544991438}
-  - {fileID: 1414413020}
-  targetBrightness: 0.73
-  targetContrast: 0.41
-  targetLeftTear: 0.12
-  targetRightTear: 0.88
-  targetTopTear: 0.55
-  targetBottomTear: 0.33
-  targetLeftAudio: 0.67
-  targetRightAudio: 0.29
-  targetCompression: 0.95
-  targetParticleFog: 0.08
-  tolerance: 0.03
-  brightnessOverlay: {fileID: 528334902}
-  contrastOverlay: {fileID: 986722010}
-  leftTearPanel: {fileID: 812770521}
-  rightTearPanel: {fileID: 5655435}
-  topTearPanel: {fileID: 323410392}
-  bottomTearPanel: {fileID: 198193002}
-  leftAudioSource: {fileID: 0}
-  rightAudioSource: {fileID: 0}
-  fogParticles: {fileID: 0}
-  feedbackText: {fileID: 67153796}
-  progressText: {fileID: 1738889456}
-  titleText: {fileID: 1364279812}
-  instructionText: {fileID: 347110675}
-  confirmButton: {fileID: 313369632}
-  confirmButtonText: {fileID: 759550540}
-  sliderDriftSpeed: 0.008
-  driftInterval: 4
-  enableSliderDrift: 1
-  instructionChangeInterval: 12
 --- !u!4 &486792136
 Transform:
   m_ObjectHideFlags: 0

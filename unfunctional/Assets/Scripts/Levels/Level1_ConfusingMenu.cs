@@ -41,20 +41,10 @@ public class Level1_ConfusingMenu : LevelManager
 
     protected override void Start()
     {
-        base.Start();
+        wantsCursorLocked = false; // UI level
+        base.Start(); // calls ApplyCursorState()
         levelDisplayName = "Main Menu";
         levelDescription = "Find the Start Game button. Good luck.";
-
-        // Unlock cursor for menu interaction
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.UnlockCursor();
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
 
         SetupFakeButtons();
         SetupRealButton();

@@ -11,6 +11,10 @@ public class LevelManager : MonoBehaviour
     public string levelDescription = "";
     public int levelBuildIndex = -1;
 
+    [Header("Cursor")]
+    [Tooltip("True for 3D/FPS levels, false for UI-based levels")]
+    public bool wantsCursorLocked = false;
+
     [Header("Level Complete")]
     [SerializeField] protected bool levelComplete = false;
 
@@ -19,6 +23,27 @@ public class LevelManager : MonoBehaviour
     protected virtual void Start()
     {
         Debug.Log($"[LevelManager] Initialized: {levelDisplayName}");
+        ApplyCursorState();
+    }
+
+    /// <summary>
+    /// Applies this level's cursor preference. Called on Start and when
+    /// resuming from pause so the correct cursor state is restored.
+    /// </summary>
+    public void ApplyCursorState()
+    {
+        if (InputManager.Instance != null)
+        {
+            if (wantsCursorLocked)
+                InputManager.Instance.LockCursor();
+            else
+                InputManager.Instance.UnlockCursor();
+        }
+        else
+        {
+            Cursor.lockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !wantsCursorLocked;
+        }
     }
 
     /// <summary>

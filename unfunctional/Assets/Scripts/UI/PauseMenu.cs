@@ -59,14 +59,21 @@ public class GamePauseMenu : MonoBehaviour
 
         if (showPause)
         {
+            // Unlock cursor so the player can click pause menu buttons
             if (InputManager.Instance != null)
                 InputManager.Instance.UnlockCursor();
         }
-        else
+        else if (newState == GameManager.GameState.Playing ||
+                 newState == GameManager.GameState.MainMenu)
         {
-            // Re-lock cursor if going back to gameplay (not main menu)
-            if (newState == GameManager.GameState.Playing && InputManager.Instance != null)
-                InputManager.Instance.LockCursor();
+            // Restore the active level's cursor preference instead of
+            // blindly locking. UI levels need the cursor free; 3D levels
+            // need it locked. The LevelManager knows which.
+            LevelManager lm = FindAnyObjectByType<LevelManager>();
+            if (lm != null)
+            {
+                lm.ApplyCursorState();
+            }
         }
     }
 
