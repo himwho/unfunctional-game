@@ -53,7 +53,10 @@ public class Level5_DumbNPC : LevelManager
         levelDescription = "Talk to the NPC. All of it.";
 
         if (npcObject != null)
+        {
             npcAnimator = npcObject.GetComponentInChildren<Animator>();
+            EnsureNpcCollider();
+        }
 
         if (dialogueLines.Count == 0)
             BuildDefaultDialogue();
@@ -193,6 +196,26 @@ public class Level5_DumbNPC : LevelManager
 
         Debug.Log($"[Level5] Dialogue ended after {dialogueLines.Count} lines.");
         CompleteLevel();
+    }
+
+    // =========================================================================
+    // NPC Collision
+    // =========================================================================
+
+    /// <summary>
+    /// Ensures the NPC has a collider so the player's CharacterController
+    /// cannot walk through it.
+    /// </summary>
+    private void EnsureNpcCollider()
+    {
+        Collider existingCollider = npcObject.GetComponentInChildren<Collider>();
+        if (existingCollider != null && !existingCollider.isTrigger)
+            return;
+
+        CapsuleCollider col = npcObject.AddComponent<CapsuleCollider>();
+        col.center = new Vector3(0f, 1f, 0f);
+        col.radius = 0.5f;
+        col.height = 2f;
     }
 
     // =========================================================================
