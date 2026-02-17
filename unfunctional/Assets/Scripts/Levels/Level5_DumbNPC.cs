@@ -48,6 +48,7 @@ public class Level5_DumbNPC : LevelManager
     private bool wasPlayerNear = false;
     private bool isReversing = false;
     private bool npcReadyToInteract = false;
+    private Coroutine reverseCoroutine;
 
     // Base font sizes (set during HUD creation, used for distance scaling)
     private int baseFontSizeDialogue;
@@ -125,7 +126,17 @@ public class Level5_DumbNPC : LevelManager
                     npcReadyToInteract = false;
                     npcAnimator.SetFloat("AnimSpeed", 1f);
                     npcAnimator.SetTrigger("Reverse");
-                    StartCoroutine(ResetAnimatorAfterReverse());
+                    reverseCoroutine = StartCoroutine(ResetAnimatorAfterReverse());
+                }
+                else if (isReversing && nearNpc)
+                {
+                    if (reverseCoroutine != null)
+                        StopCoroutine(reverseCoroutine);
+                    reverseCoroutine = null;
+                    isReversing = false;
+                    npcAnimator.ResetTrigger("Reverse");
+                    npcAnimator.Play("idle 3", 0);
+                    npcReadyToInteract = true;
                 }
                 else if (!isReversing)
                 {
