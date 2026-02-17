@@ -1582,7 +1582,7 @@ MonoBehaviour:
   playerSpawnPoint: {fileID: 916945061}
   levelComplete: 0
   npcObject: {fileID: 1130440689}
-  interactRange: 3
+  interactRange: 8
   npcName: Gorp
   typingSpeed: 0.04
   enableTypingEffect: 1

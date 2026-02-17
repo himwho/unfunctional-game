@@ -15,7 +15,7 @@ public class Level5_DumbNPC : LevelManager
 {
     [Header("NPC")]
     public GameObject npcObject;
-    public float interactRange = 3f;
+    public float interactRange = 5f;
     public string npcName = "Gorp";
 
     [Header("Typing Effect")]
@@ -45,6 +45,8 @@ public class Level5_DumbNPC : LevelManager
     private bool waitingForInput = false;
     private float inputCooldown = 0f;
     private Coroutine typingCoroutine;
+    private bool wasPlayerNear = false;
+    private bool isReversing = false;
 
     protected override void Start()
     {
@@ -83,7 +85,21 @@ public class Level5_DumbNPC : LevelManager
             interactPromptCanvas.gameObject.SetActive(nearNpc);
 
             if (npcAnimator != null)
-                npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
+            {
+                if (wasPlayerNear && !nearNpc && !isReversing)
+                {
+                    isReversing = true;
+                    npcAnimator.SetFloat("AnimSpeed", 1f);
+                    npcAnimator.SetTrigger("Reverse");
+                    StartCoroutine(ResetAnimatorAfterReverse());
+                }
+                else if (!isReversing)
+                {
+                    npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
+                }
+            }
+
+            wasPlayerNear = nearNpc;
 
             if (ePressed)
                 TryStartDialogue();
@@ -92,6 +108,31 @@ public class Level5_DumbNPC : LevelManager
         {
             AdvanceDialogue();
         }
+    }
+
+    private IEnumerator ResetAnimatorAfterReverse()
+    {
+        yield return null;
+
+        while (true)
+        {
+            AnimatorStateInfo state = npcAnimator.GetCurrentAnimatorStateInfo(0);
+            if (npcAnimator.IsInTransition(0))
+            {
+                yield return null;
+                continue;
+            }
+            if (state.normalizedTime < 1f)
+            {
+                yield return null;
+                continue;
+            }
+            break;
+        }
+
+        isReversing = false;
+        npcAnimator.Rebind();
+        npcAnimator.Update(0f);
     }
 
     private bool IsPlayerNearNPC()
