@@ -118,6 +118,29 @@ public class Level2_SettingsPuzzle : LevelManager
     private List<RectTransform> particles = new List<RectTransform>();
     private Button step10Next;
 
+    // -- Persistent camera overlays (brightness + contrast persist across all later steps) --
+    private Image persistentBrightnessOverlay;
+    private Image persistentContrastOverlay;
+
+    // -- Saved step values for summary --
+    private float savedStep1;  // brightness
+    private float savedStep2;  // contrast
+    private float savedStep3L, savedStep3T, savedStep3B; // edges L/T/B
+    private float savedStep4;  // edge R
+    private float savedStep5;  // left audio
+    private float savedStep6;  // right audio
+    private float savedStep7;  // mic gain (micPeakAvg)
+    private float savedStep9;  // compression
+    private float savedStep10; // particle density
+
+    // -- Syllable detection for Step 8 --
+    private int[] expectedSyllablesPerLang;
+    private int detectedSyllables;
+    private float syllableThreshold = 0.06f;
+    private bool wasAboveSyllableThreshold;
+    private float syllableCooldown;
+    private const float SYLLABLE_COOLDOWN_TIME = 0.12f;
+
     // Audio clips
     private AudioClip leftTone;
     private AudioClip rightTone;
@@ -152,8 +175,19 @@ public class Level2_SettingsPuzzle : LevelManager
         };
         langTotalPairs = langNames.Length;
 
+        // Expected syllable counts per language (both words combined)
+        expectedSyllablesPerLang = new int[] { 5, 3, 4, 3, 3, 4, 4 };
+        // Arabic: mar-ha-ba(3) + a-lam(2) = 5
+        // English: hel-lo(2) + world(1) = 3
+        // Spanish: ho-la(2) + mun-do(2) = 4
+        // French: bon-jour(2) + monde(1) = 3
+        // German: hal-lo(2) + welt(1) = 3
+        // Mandarin: ni-hao(2) + shi-jie(2) = 4
+        // Fuzhou: ru-ho(2) + se-gai(2) = 4
+
         EnsureCanvas();
         BuildAllSteps();
+        CreatePersistentOverlays();
         GoToStep(0);
     }
 
@@ -192,6 +226,111 @@ public class Level2_SettingsPuzzle : LevelManager
     }
 
     // =====================================================================
+    // Persistent Camera Overlays
+    // =====================================================================
+
+    /// <summary>
+    /// Creates two full-screen overlay images on the canvas that persist
+    /// across all steps — simulating brightness/contrast applied at the
+    /// camera level so subsequent steps are affected.
+    /// </summary>
+    private void CreatePersistentOverlays()
+    {
+        // Brightness overlay
+        GameObject bObj = new GameObject("PersistentBrightnessOverlay");
+        bObj.transform.SetParent(settingsCanvas.transform, false);
+        RectTransform brt = bObj.AddComponent<RectTransform>();
+        brt.anchorMin = Vector2.zero;
+        brt.anchorMax = Vector2.one;
+        brt.offsetMin = Vector2.zero;
+        brt.offsetMax = Vector2.zero;
+        persistentBrightnessOverlay = bObj.AddComponent<Image>();
+        persistentBrightnessOverlay.color = new Color(0, 0, 0, 0);
+        persistentBrightnessOverlay.raycastTarget = false;
+        bObj.SetActive(false);
+
+        // Contrast overlay
+        GameObject cObj = new GameObject("PersistentContrastOverlay");
+        cObj.transform.SetParent(settingsCanvas.transform, false);
+        RectTransform crt = cObj.AddComponent<RectTransform>();
+        crt.anchorMin = Vector2.zero;
+        crt.anchorMax = Vector2.one;
+        crt.offsetMin = Vector2.zero;
+        crt.offsetMax = Vector2.zero;
+        persistentContrastOverlay = cObj.AddComponent<Image>();
+        persistentContrastOverlay.color = new Color(0, 0, 0, 0);
+        persistentContrastOverlay.raycastTarget = false;
+        cObj.SetActive(false);
+    }
+
+    private void SaveStepValue(int step)
+    {
+        switch (step)
+        {
+            case 0: savedStep1 = step1Slider != null ? step1Slider.value : 0; break;
+            case 1: savedStep2 = step2Slider != null ? step2Slider.value : 0; break;
+            case 2:
+                savedStep3L = step3Left != null ? step3Left.value : 0;
+                savedStep3T = step3Top != null ? step3Top.value : 0;
+                savedStep3B = step3Bottom != null ? step3Bottom.value : 0;
+                break;
+            case 3: savedStep4 = step4Right != null ? step4Right.value : 0; break;
+            case 4: savedStep5 = step5Slider != null ? step5Slider.value : 0; break;
+            case 5: savedStep6 = step6Slider != null ? step6Slider.value : 0; break;
+            case 6: savedStep7 = micPeakAvg; break;
+            // step 7 = language (no slider value)
+            case 8: savedStep9 = step9Slider != null ? step9Slider.value : 0; break;
+            case 9: savedStep10 = step10Slider != null ? step10Slider.value : 0; break;
+        }
+    }
+
+    private void ApplyPersistentBrightness()
+    {
+        if (persistentBrightnessOverlay == null) return;
+
+        float v = savedStep1;
+        persistentBrightnessOverlay.gameObject.SetActive(true);
+
+        // Same colour logic as step 1's overlay
+        if (v <= 0.5f)
+        {
+            float darkAlpha = 1f - (v / 0.5f);
+            persistentBrightnessOverlay.color = new Color(0f, 0f, 0f, darkAlpha);
+        }
+        else
+        {
+            float lightAlpha = (v - 0.5f) / 0.5f;
+            persistentBrightnessOverlay.color = new Color(1f, 1f, 1f, lightAlpha);
+        }
+
+        // Keep overlays on top
+        persistentBrightnessOverlay.transform.SetAsLastSibling();
+        if (persistentContrastOverlay != null && persistentContrastOverlay.gameObject.activeSelf)
+            persistentContrastOverlay.transform.SetAsLastSibling();
+    }
+
+    private void ApplyPersistentContrast()
+    {
+        if (persistentContrastOverlay == null) return;
+
+        float v = savedStep2;
+        persistentContrastOverlay.gameObject.SetActive(true);
+
+        if (v < 0.5f)
+        {
+            float alpha = (0.5f - v) * 1.2f;
+            persistentContrastOverlay.color = new Color(0.5f, 0.5f, 0.5f, alpha);
+        }
+        else
+        {
+            float alpha = (v - 0.5f) * 0.6f;
+            persistentContrastOverlay.color = new Color(0f, 0f, 0f, alpha);
+        }
+
+        persistentContrastOverlay.transform.SetAsLastSibling();
+    }
+
+    // =====================================================================
     // Step Management
     // =====================================================================
 
@@ -202,6 +341,20 @@ public class Level2_SettingsPuzzle : LevelManager
         if (currentStep == 5) { if (step6Audio) step6Audio.Stop(); }
         if (currentStep == 6) StopMic();
         if (currentStep == 7) StopMic();
+
+        // Save the slider value from the step we're leaving
+        SaveStepValue(currentStep);
+
+        // Apply persistent camera-level overlays when leaving brightness / contrast
+        if (currentStep == 0 && step > 0) ApplyPersistentBrightness();
+        if (currentStep == 1 && step > 1) ApplyPersistentContrast();
+
+        // If we're being sent back to step 0 or 1, disable the persistent overlays
+        // (player is re-doing those settings)
+        if (step <= 0 && persistentBrightnessOverlay != null)
+            persistentBrightnessOverlay.gameObject.SetActive(false);
+        if (step <= 1 && persistentContrastOverlay != null)
+            persistentContrastOverlay.gameObject.SetActive(false);
 
         for (int i = 0; i < TOTAL_STEPS; i++)
             if (stepPanels[i] != null) stepPanels[i].SetActive(false);
@@ -214,6 +367,13 @@ public class Level2_SettingsPuzzle : LevelManager
         }
 
         stepPanels[currentStep].SetActive(true);
+
+        // Ensure persistent overlays render on top of step panels
+        if (persistentBrightnessOverlay != null && persistentBrightnessOverlay.gameObject.activeSelf)
+            persistentBrightnessOverlay.transform.SetAsLastSibling();
+        if (persistentContrastOverlay != null && persistentContrastOverlay.gameObject.activeSelf)
+            persistentContrastOverlay.transform.SetAsLastSibling();
+
         SetupCurrentStep();
     }
 
@@ -256,7 +416,98 @@ public class Level2_SettingsPuzzle : LevelManager
         // Apply the output volume set by step 7
         AudioListener.volume = outputVolume;
         Debug.Log($"[Level2] All settings done. Output volume = {outputVolume:P0}");
-        yield return new WaitForSeconds(1f);
+
+        // Save step 10 value (we just left it)
+        SaveStepValue(9);
+
+        // ── Build summary panel ──────────────────────────────────────────
+        GameObject summaryPanel = MakeChild(settingsCanvas.gameObject, "SummaryPanel");
+        Pos(summaryPanel, Vector2.zero, Vector2.one);
+        summaryPanel.transform.SetAsLastSibling(); // on top of persistent overlays
+        Image summaryBg = summaryPanel.AddComponent<Image>();
+        summaryBg.color = new Color(0.04f, 0.04f, 0.08f, 0.95f);
+
+        MakeText(summaryPanel, "SETTINGS SUMMARY", 36, TextAnchor.MiddleCenter,
+            new Color(0.9f, 0.9f, 0.3f),
+            new Vector2(0.1f, 0.88f), new Vector2(0.9f, 0.95f));
+
+        MakeText(summaryPanel, "Your calibration results:", 18, TextAnchor.MiddleCenter,
+            new Color(0.6f, 0.6f, 0.6f),
+            new Vector2(0.2f, 0.83f), new Vector2(0.8f, 0.88f));
+
+        string[] labels = {
+            "Brightness", "Contrast",
+            "Left Edge", "Top Edge", "Bottom Edge", "Right Edge",
+            "Left Audio", "Right Audio",
+            "Mic Input Gain", "Language",
+            "Resolution Quality", "Particle Density"
+        };
+        float[] values = {
+            savedStep1, savedStep2,
+            savedStep3L, savedStep3T, savedStep3B, savedStep4,
+            savedStep5, savedStep6,
+            savedStep7, 1f, // language always "complete"
+            savedStep9, savedStep10
+        };
+
+        float startY = 0.81f;
+        float rowH = 0.048f;
+
+        for (int i = 0; i < labels.Length; i++)
+        {
+            float y = startY - i * rowH;
+
+            // Label
+            MakeText(summaryPanel, labels[i], 15, TextAnchor.MiddleRight,
+                new Color(0.7f, 0.7f, 0.7f),
+                new Vector2(0.05f, y - rowH * 0.45f), new Vector2(0.33f, y + rowH * 0.45f));
+
+            // Bar background
+            GameObject barBg = MakeChild(summaryPanel, $"SumBar_{i}");
+            Pos(barBg, new Vector2(0.35f, y - rowH * 0.3f), new Vector2(0.78f, y + rowH * 0.3f));
+            barBg.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.18f);
+
+            // Bar fill
+            GameObject barFill = MakeChild(barBg, "Fill");
+            RectTransform fillRt = barFill.GetComponent<RectTransform>();
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = new Vector2(Mathf.Clamp01(values[i]), 1f);
+            fillRt.offsetMin = Vector2.zero;
+            fillRt.offsetMax = Vector2.zero;
+            Image fillImg = barFill.AddComponent<Image>();
+            fillImg.color = (i == 9)
+                ? new Color(0.3f, 0.8f, 0.3f)    // green for language
+                : new Color(0.3f, 0.5f, 0.8f, 0.8f);
+
+            // Percentage text
+            string valStr = (i == 9)
+                ? "\u2713 Complete"
+                : $"{Mathf.RoundToInt(values[i] * 100)}%";
+            MakeText(summaryPanel, valStr, 15, TextAnchor.MiddleLeft,
+                Color.white,
+                new Vector2(0.80f, y - rowH * 0.45f), new Vector2(0.96f, y + rowH * 0.45f));
+        }
+
+        // "Apply Settings" button
+        bool applied = false;
+        Button applyBtn = MakeButton(summaryPanel, "APPLY SETTINGS",
+            new Vector2(0.5f, 0.06f), new Vector2(240, 50),
+            new Color(0.2f, 0.5f, 0.2f, 1f));
+        applyBtn.onClick.AddListener(() => applied = true);
+
+        // Wait for the player to click
+        while (!applied)
+            yield return null;
+
+        // Flash transition
+        GameObject flashObj = MakeFullOverlay(summaryPanel, "Flash", Color.white);
+        flashObj.transform.SetAsLastSibling();
+        yield return new WaitForSeconds(0.15f);
+        flashObj.GetComponent<Image>().color = Color.black;
+        yield return new WaitForSeconds(0.5f);
+
+        Destroy(summaryPanel);
+        yield return new WaitForSeconds(0.3f);
         CompleteLevel();
     }
 
@@ -691,6 +942,10 @@ public class Level2_SettingsPuzzle : LevelManager
         langIdx = 0;
         langSpeakTimer = 0f;
         langWordDone = false;
+        step7Timer = 0f; // reset skip timer
+        detectedSyllables = 0;
+        wasAboveSyllableThreshold = false;
+        syllableCooldown = 0f;
         step8Next.gameObject.SetActive(false);
         step8Skip.gameObject.SetActive(false);
         StartMic();
@@ -896,8 +1151,8 @@ public class Level2_SettingsPuzzle : LevelManager
                 if (avg > micPeakAvg)
                     micPeakAvg = avg;
 
-                // NEXT only appears once mic level hits ~90%
-                if (!step7Next.gameObject.activeSelf && micPeakAvg >= 0.90f)
+                // NEXT only appears once mic level average hits ~70%
+                if (!step7Next.gameObject.activeSelf && micPeakAvg >= 0.70f)
                     step7Next.gameObject.SetActive(true);
             }
         }
@@ -907,7 +1162,7 @@ public class Level2_SettingsPuzzle : LevelManager
     {
         step7Timer += Time.deltaTime; // reuse timer for skip
 
-        if (step7Timer > 10f && !step8Skip.gameObject.activeSelf)
+        if (step7Timer > 15f && !step8Skip.gameObject.activeSelf)
             step8Skip.gameObject.SetActive(true);
 
         if (langIdx >= langTotalPairs)
@@ -923,12 +1178,10 @@ public class Level2_SettingsPuzzle : LevelManager
 
         if (!micAvailable)
         {
-            // Auto-advance without mic after a pause
+            // Auto-advance without mic after a pause (fallback)
             langSpeakTimer += Time.deltaTime;
             if (langSpeakTimer > 3f)
-            {
                 AdvanceLanguage();
-            }
             return;
         }
 
@@ -938,18 +1191,33 @@ public class Level2_SettingsPuzzle : LevelManager
         float dotAlpha = (Mathf.Sin(Time.time * 4f) * 0.3f + 0.5f);
         step8Dot.color = new Color(0.9f, 0.1f, 0.1f, dotAlpha);
 
-        if (level > 0.05f) // Any detectable speech
+        // ── Syllable detection via mic gain peaks ──
+        int expected = (langIdx < expectedSyllablesPerLang.Length)
+            ? expectedSyllablesPerLang[langIdx] : 3;
+
+        syllableCooldown -= Time.deltaTime;
+
+        if (level > syllableThreshold && !wasAboveSyllableThreshold && syllableCooldown <= 0f)
         {
-            langSpeakTimer += Time.deltaTime;
-            step8Prompt.text = "Listening... keep speaking.";
+            // Rising edge — voice onset
+            wasAboveSyllableThreshold = true;
         }
-        else
+        else if (level < syllableThreshold * 0.6f && wasAboveSyllableThreshold)
         {
-            step8Prompt.text = "Speak the words now.";
+            // Falling edge — syllable ended
+            wasAboveSyllableThreshold = false;
+            detectedSyllables++;
+            syllableCooldown = SYLLABLE_COOLDOWN_TIME;
         }
 
-        // Accept after 1.5 seconds of sustained input
-        if (langSpeakTimer >= 1.5f && !langWordDone)
+        // Visual feedback
+        if (level > syllableThreshold)
+            step8Prompt.text = $"Hearing you... syllables: {detectedSyllables} / {expected}";
+        else
+            step8Prompt.text = $"Speak the words now.  ({detectedSyllables} / {expected} syllables)";
+
+        // Advance when all syllables detected
+        if (detectedSyllables >= expected)
         {
             AdvanceLanguage();
         }
@@ -964,9 +1232,12 @@ public class Level2_SettingsPuzzle : LevelManager
             return;
         }
 
+        int expected = (langIdx < expectedSyllablesPerLang.Length)
+            ? expectedSyllablesPerLang[langIdx] : 3;
+
         step8LangName.text = $"Language {langIdx + 1} of {langTotalPairs}: {langNames[langIdx]}";
         step8Words.text = $"{langWords[langIdx][0]}  {langWords[langIdx][1]}";
-        step8Prompt.text = "Speak the words now.";
+        step8Prompt.text = $"Speak the words now.  ({expected} syllables)";
         langSpeakTimer = 0f;
     }
 
@@ -974,6 +1245,9 @@ public class Level2_SettingsPuzzle : LevelManager
     {
         langIdx++;
         langSpeakTimer = 0f;
+        detectedSyllables = 0;
+        wasAboveSyllableThreshold = false;
+        syllableCooldown = 0f;
         ShowCurrentLanguage();
     }
 
