@@ -128,7 +128,12 @@ public class Level5_DumbNPC : LevelManager
         isTyping = false;
 
         if (npcAnimator != null)
-            npcAnimator.SetInteger("IdleIndex", currentLine % IDLE_ANIM_COUNT);
+        {
+            int current = npcAnimator.GetInteger("IdleIndex");
+            int next = Random.Range(0, IDLE_ANIM_COUNT - 1);
+            if (next >= current) next++;
+            npcAnimator.SetInteger("IdleIndex", next);
+        }
 
         npcNameText.text = npcName;
         promptText.gameObject.SetActive(false);
