@@ -5,45 +5,43 @@ using System.Collections.Generic;
 
 /// <summary>
 /// LEVEL 5: Dumb NPC with an unnecessarily long conversation.
-/// A dialogue system with branching options that all lead to more talking.
+/// Press E near the NPC to start talking. Press E to advance each line.
 /// The NPC says nothing useful but the player must exhaust all dialogue to proceed.
 /// 
+/// Builds its own dialogue HUD at runtime (same style as Level 3).
 /// Attach to a root GameObject in the LEVEL5 scene.
 /// </summary>
 public class Level5_DumbNPC : LevelManager
 {
-    [Header("Level 5 - Dumb NPC Dialogue")]
-    public Canvas dialogueCanvas;
-    public Text npcNameText;
-    public Text dialogueText;
-    public Button[] optionButtons;          // Usually 2-3 dialogue option buttons
-    public Text[] optionTexts;              // Text components on the option buttons
-
     [Header("NPC")]
     public GameObject npcObject;
     public float interactRange = 3f;
-    public string npcName = "Gerald the Helpful";
+    public string npcName = "Gorp";
 
     [Header("Typing Effect")]
-    public float typingSpeed = 0.04f;       // Seconds per character
+    public float typingSpeed = 0.04f;
     public bool enableTypingEffect = true;
 
-    [System.Serializable]
-    public class DialogueNode
-    {
-        public string npcText;
-        public string[] options;            // Player response options
-        public int[] nextNodeIndices;       // Where each option leads (-1 = end)
-    }
+    [Header("Dialogue Lines")]
+    public List<string> dialogueLines = new List<string>();
 
-    [Header("Dialogue Tree")]
-    public List<DialogueNode> dialogueTree = new List<DialogueNode>();
+    // Runtime UI references (built in code)
+    private Canvas dialogueCanvas;
+    private Text npcNameText;
+    private Text dialogueText;
+    private Text promptText;
+    private CanvasGroup dialogueCanvasGroup;
 
-    private int currentNodeIndex = 0;
+    // Interact prompt (shown when near NPC but not yet talking)
+    private Canvas interactPromptCanvas;
+    private Text interactPromptText;
+
+    private int currentLine = 0;
     private bool inDialogue = false;
     private bool isTyping = false;
+    private bool waitingForInput = false;
+    private float inputCooldown = 0f;
     private Coroutine typingCoroutine;
-    private int nodesVisited = 0;
 
     protected override void Start()
     {
@@ -51,263 +49,276 @@ public class Level5_DumbNPC : LevelManager
         levelDisplayName = "NPC Conversation";
         levelDescription = "Talk to the NPC. All of it.";
 
-        if (dialogueCanvas != null)
-            dialogueCanvas.gameObject.SetActive(false);
-
-        // Build default dialogue tree if none assigned
-        if (dialogueTree.Count == 0)
-        {
+        if (dialogueLines.Count == 0)
             BuildDefaultDialogue();
-        }
 
-        HideOptions();
+        CreateDialogueHUD();
+        CreateInteractPrompt();
+
+        dialogueCanvas.gameObject.SetActive(false);
+        interactPromptCanvas.gameObject.SetActive(false);
     }
 
     private void Update()
     {
         if (levelComplete) return;
 
-        // Check for NPC interaction
-        if (!inDialogue && InputManager.Instance != null && InputManager.Instance.InteractPressed)
+        if (inputCooldown > 0f)
+            inputCooldown -= Time.deltaTime;
+
+        bool ePressed = Input.GetKeyDown(KeyCode.E);
+
+        if (!inDialogue)
         {
-            TryStartDialogue();
+            bool nearNpc = IsPlayerNearNPC();
+            interactPromptCanvas.gameObject.SetActive(nearNpc);
+
+            if (ePressed)
+                TryStartDialogue();
         }
+        else if (ePressed && waitingForInput && !isTyping && inputCooldown <= 0f)
+        {
+            AdvanceDialogue();
+        }
+    }
+
+    private bool IsPlayerNearNPC()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || npcObject == null) return false;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+        return dist <= interactRange;
     }
 
     private void TryStartDialogue()
     {
-        Camera cam = Camera.main;
-        if (cam == null || npcObject == null) return;
-
-        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
-        if (dist <= interactRange)
+        if (IsPlayerNearNPC())
         {
             StartDialogue();
         }
     }
 
-    public void StartDialogue()
+    private void StartDialogue()
     {
         inDialogue = true;
-        currentNodeIndex = 0;
-        nodesVisited = 0;
+        currentLine = 0;
 
-        if (dialogueCanvas != null)
-            dialogueCanvas.gameObject.SetActive(true);
+        interactPromptCanvas.gameObject.SetActive(false);
+        dialogueCanvas.gameObject.SetActive(true);
 
-        if (InputManager.Instance != null)
-            InputManager.Instance.UnlockCursor();
-
-        ShowCurrentNode();
+        ShowCurrentLine();
     }
 
-    private void ShowCurrentNode()
+    private void ShowCurrentLine()
     {
-        if (currentNodeIndex < 0 || currentNodeIndex >= dialogueTree.Count)
+        if (currentLine >= dialogueLines.Count)
         {
             EndDialogue();
             return;
         }
 
-        DialogueNode node = dialogueTree[currentNodeIndex];
-        nodesVisited++;
+        waitingForInput = false;
+        isTyping = false;
 
-        if (npcNameText != null)
-            npcNameText.text = npcName;
+        npcNameText.text = npcName;
+        promptText.gameObject.SetActive(false);
 
-        // Show NPC text with typing effect
+        string line = dialogueLines[currentLine];
+
         if (enableTypingEffect)
         {
             if (typingCoroutine != null)
                 StopCoroutine(typingCoroutine);
-            typingCoroutine = StartCoroutine(TypeText(node.npcText, node));
+            typingCoroutine = StartCoroutine(TypeText(line));
         }
         else
         {
-            if (dialogueText != null)
-                dialogueText.text = node.npcText;
-            ShowOptions(node);
+            dialogueText.text = line;
+            OnLineFinished();
         }
     }
 
-    private IEnumerator TypeText(string text, DialogueNode node)
+    private IEnumerator TypeText(string text)
     {
         isTyping = true;
-        HideOptions();
+        dialogueText.text = "";
 
-        if (dialogueText != null)
+        foreach (char c in text)
         {
-            dialogueText.text = "";
-            foreach (char c in text)
-            {
-                dialogueText.text += c;
-                yield return new WaitForSeconds(typingSpeed);
-            }
+            dialogueText.text += c;
+            yield return new WaitForSeconds(typingSpeed);
         }
 
         isTyping = false;
-        ShowOptions(node);
+        OnLineFinished();
     }
 
-    private void ShowOptions(DialogueNode node)
+    private void OnLineFinished()
     {
-        if (node.options == null) return;
-
-        for (int i = 0; i < optionButtons.Length; i++)
-        {
-            if (i < node.options.Length)
-            {
-                optionButtons[i].gameObject.SetActive(true);
-                if (i < optionTexts.Length && optionTexts[i] != null)
-                    optionTexts[i].text = node.options[i];
-
-                int capturedIndex = i;
-                optionButtons[i].onClick.RemoveAllListeners();
-                optionButtons[i].onClick.AddListener(() => OnOptionSelected(capturedIndex, node));
-            }
-            else
-            {
-                optionButtons[i].gameObject.SetActive(false);
-            }
-        }
+        waitingForInput = true;
+        inputCooldown = 0.15f;
+        promptText.gameObject.SetActive(true);
+        promptText.text = currentLine < dialogueLines.Count - 1
+            ? "[E] Continue"
+            : "[E] End";
     }
 
-    private void HideOptions()
+    private void AdvanceDialogue()
     {
-        if (optionButtons == null) return;
-        foreach (Button btn in optionButtons)
-        {
-            if (btn != null)
-                btn.gameObject.SetActive(false);
-        }
-    }
-
-    private void OnOptionSelected(int optionIndex, DialogueNode node)
-    {
-        if (node.nextNodeIndices != null && optionIndex < node.nextNodeIndices.Length)
-        {
-            currentNodeIndex = node.nextNodeIndices[optionIndex];
-        }
-        else
-        {
-            currentNodeIndex = -1;
-        }
-
-        ShowCurrentNode();
+        currentLine++;
+        ShowCurrentLine();
     }
 
     private void EndDialogue()
     {
         inDialogue = false;
+        waitingForInput = false;
 
-        if (dialogueCanvas != null)
-            dialogueCanvas.gameObject.SetActive(false);
+        dialogueCanvas.gameObject.SetActive(false);
 
-        if (InputManager.Instance != null)
-            InputManager.Instance.LockCursor();
-
-        Debug.Log($"[Level4] Dialogue ended. Visited {nodesVisited} nodes.");
+        Debug.Log($"[Level5] Dialogue ended after {dialogueLines.Count} lines.");
         CompleteLevel();
     }
 
-    /// <summary>
-    /// Builds a default annoying dialogue tree if none is assigned in the inspector.
-    /// </summary>
+    // =========================================================================
+    // Interact Prompt (shown when near NPC, before dialogue starts)
+    // =========================================================================
+
+    private void CreateInteractPrompt()
+    {
+        GameObject canvasObj = new GameObject("InteractPromptHUD");
+        canvasObj.transform.SetParent(transform);
+        interactPromptCanvas = canvasObj.AddComponent<Canvas>();
+        interactPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        interactPromptCanvas.sortingOrder = 20;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        GameObject textObj = new GameObject("InteractPromptText");
+        textObj.transform.SetParent(canvasObj.transform, false);
+
+        interactPromptText = textObj.AddComponent<Text>();
+        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.fontSize = 24;
+        interactPromptText.fontStyle = FontStyle.BoldAndItalic;
+        interactPromptText.alignment = TextAnchor.MiddleCenter;
+        interactPromptText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
+        interactPromptText.raycastTarget = false;
+        interactPromptText.text = "Press [E] to interact";
+
+        RectTransform rect = textObj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.3f, 0.45f);
+        rect.anchorMax = new Vector2(0.7f, 0.55f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    // =========================================================================
+    // HUD Creation (matches Level 3 style)
+    // =========================================================================
+
+    private void CreateDialogueHUD()
+    {
+        // Canvas
+        GameObject canvasObj = new GameObject("DialogueHUD");
+        canvasObj.transform.SetParent(transform);
+        dialogueCanvas = canvasObj.AddComponent<Canvas>();
+        dialogueCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        dialogueCanvas.sortingOrder = 25;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        // NPC Name (bottom of screen, above dialogue text)
+        GameObject nameObj = new GameObject("NpcNameText");
+        nameObj.transform.SetParent(canvasObj.transform, false);
+
+        npcNameText = nameObj.AddComponent<Text>();
+        npcNameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        npcNameText.fontSize = 24;
+        npcNameText.fontStyle = FontStyle.BoldAndItalic;
+        npcNameText.alignment = TextAnchor.MiddleCenter;
+        npcNameText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
+        npcNameText.raycastTarget = false;
+
+        RectTransform nameRect = nameObj.GetComponent<RectTransform>();
+        nameRect.anchorMin = new Vector2(0.1f, 0.18f);
+        nameRect.anchorMax = new Vector2(0.9f, 0.22f);
+        nameRect.offsetMin = Vector2.zero;
+        nameRect.offsetMax = Vector2.zero;
+
+        // Dialogue Text (bottom of screen, italic, like Level 3 narration)
+        GameObject textObj = new GameObject("DialogueText");
+        textObj.transform.SetParent(canvasObj.transform, false);
+
+        dialogueText = textObj.AddComponent<Text>();
+        dialogueText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueText.fontSize = 24;
+        dialogueText.fontStyle = FontStyle.Italic;
+        dialogueText.alignment = TextAnchor.MiddleCenter;
+        dialogueText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        dialogueText.raycastTarget = false;
+        dialogueText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        dialogueText.verticalOverflow = VerticalWrapMode.Overflow;
+
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0.1f, 0.10f);
+        textRect.anchorMax = new Vector2(0.9f, 0.18f);
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        // Prompt Text (below dialogue, only shown on last line)
+        GameObject promptObj = new GameObject("PromptText");
+        promptObj.transform.SetParent(canvasObj.transform, false);
+
+        promptText = promptObj.AddComponent<Text>();
+        promptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        promptText.fontSize = 20;
+        promptText.fontStyle = FontStyle.Italic;
+        promptText.alignment = TextAnchor.MiddleCenter;
+        promptText.color = new Color(0.75f, 0.85f, 1f, 0.7f);
+        promptText.raycastTarget = false;
+
+        RectTransform promptRect = promptObj.GetComponent<RectTransform>();
+        promptRect.anchorMin = new Vector2(0.1f, 0.06f);
+        promptRect.anchorMax = new Vector2(0.9f, 0.10f);
+        promptRect.offsetMin = Vector2.zero;
+        promptRect.offsetMax = Vector2.zero;
+    }
+
+    // =========================================================================
+    // Default Dialogue
+    // =========================================================================
+
     private void BuildDefaultDialogue()
     {
-        dialogueTree = new List<DialogueNode>
+        dialogueLines = new List<string>
         {
-            // Node 0 - Greeting
-            new DialogueNode
-            {
-                npcText = "Oh! A visitor! I haven't had a visitor in... well, I've never had a visitor actually. This is quite exciting. Let me tell you about my day. So I woke up this morning and—",
-                options = new string[] { "I just need to get through the door.", "Tell me about your day." },
-                nextNodeIndices = new int[] { 1, 2 }
-            },
-            // Node 1 - Door question redirect
-            new DialogueNode
-            {
-                npcText = "Door? What door? Oh THAT door. Yes, yes. I know about the door. But first, have I told you about my collection of vintage spoons? I have over 300.",
-                options = new string[] { "No, please just the door.", "Tell me about the spoons." },
-                nextNodeIndices = new int[] { 3, 4 }
-            },
-            // Node 2 - Day story
-            new DialogueNode
-            {
-                npcText = "So I woke up and my pillow was slightly to the left of where I usually put it. Can you believe that? Anyway, then I spent about 45 minutes deciding what to have for breakfast. I went with toast. Actually no, I had cereal. Wait, was it toast? Let me think...",
-                options = new string[] { "It doesn't matter.", "Was it toast or cereal?" },
-                nextNodeIndices = new int[] { 1, 5 }
-            },
-            // Node 3 - Insist about door
-            new DialogueNode
-            {
-                npcText = "You're very focused. I admire that. Reminds me of my uncle. He was focused too. Focused on collecting bottle caps. He had 12,000 of them. Would you like to hear about each one?",
-                options = new string[] { "PLEASE just tell me about the door.", "Actually, yes." },
-                nextNodeIndices = new int[] { 6, 7 }
-            },
-            // Node 4 - Spoon story
-            new DialogueNode
-            {
-                npcText = "My favorite spoon is number 47. It has a slight bend in the handle from when I used it to dig a very small hole in my garden. I was planting a seed. The seed never grew. I think about that seed sometimes.",
-                options = new string[] { "Can we talk about the door now?", "What kind of seed?" },
-                nextNodeIndices = new int[] { 6, 8 }
-            },
-            // Node 5 - Breakfast debate
-            new DialogueNode
-            {
-                npcText = "You know what, I think it was actually a toast-cereal hybrid. I put the cereal on the toast. Revolutionary, right? I should patent that. Do you know how patents work? Because I don't.",
-                options = new string[] { "About that door...", "That sounds terrible." },
-                nextNodeIndices = new int[] { 6, 9 }
-            },
-            // Node 6 - Finally about the door
-            new DialogueNode
-            {
-                npcText = "Fine, fine. The door. You want to know about the door. Here's the thing about the door: it's a door. It has hinges. And a handle. You push it or pull it. Actually, I forget which one. Maybe it slides? No wait, I think you have to say a password.",
-                options = new string[] { "What's the password?", "I'll just try the handle." },
-                nextNodeIndices = new int[] { 10, 11 }
-            },
-            // Node 7 - Bottle caps
-            new DialogueNode
-            {
-                npcText = "Bottle cap number 1 was a Coca-Cola cap from 1987. It was red. Bottle cap number 2 was also a Coca-Cola cap from 1987. Also red. Bottle cap number 3— you know what, this might take a while. Let's skip to cap 11,999.",
-                options = new string[] { "Please, the door.", "What about cap 12,000?" },
-                nextNodeIndices = new int[] { 6, 6 }
-            },
-            // Node 8 - Seed story
-            new DialogueNode
-            {
-                npcText = "It was a mystery seed. Found it in my pocket. Could have been anything. A tree, a flower, a small civilization. We'll never know. Anyway, that's unrelated to anything. What were we talking about?",
-                options = new string[] { "The door.", "Your spoons." },
-                nextNodeIndices = new int[] { 6, 4 }
-            },
-            // Node 9 - Toast cereal reaction
-            new DialogueNode
-            {
-                npcText = "Terrible?! TERRIBLE?! It was the greatest culinary invention since... since regular toast! And regular cereal! Combined! I'll have you know three people have tried it and only two of them were hospitalized.",
-                options = new string[] { "I need to go through that door.", "Are they okay?" },
-                nextNodeIndices = new int[] { 6, 6 }
-            },
-            // Node 10 - Password
-            new DialogueNode
-            {
-                npcText = "The password is... hmm. I wrote it down somewhere. On my hand I think. Let me check. No, that's my grocery list. Eggs, milk, more spoons... Oh! I remember now! The password is 'please'. Or 'open sesame'. Or 'Gerald is the best'. One of those three.",
-                options = new string[] { "Please.", "Open sesame.", "Gerald is the best." },
-                nextNodeIndices = new int[] { 12, 12, 12 }
-            },
-            // Node 11 - Try handle
-            new DialogueNode
-            {
-                npcText = "Good luck with that. The handle has been broken since before I got here. I've been meaning to fix it but I've been busy cataloguing my spoon collection. And my bottle cap collection. And my collection of collections.",
-                options = new string[] { "So what DO I do?", "A collection of collections?" },
-                nextNodeIndices = new int[] { 10, 10 }
-            },
-            // Node 12 - Final
-            new DialogueNode
-            {
-                npcText = "It worked! Or maybe the door was never actually locked. I honestly don't remember. Anyway, it was lovely chatting with you. If you ever want to hear about my spoons in more detail, you know where to find me. Actually, you don't. I move around a lot. Goodbye!",
-                options = new string[] { "Goodbye, Gerald." },
-                nextNodeIndices = new int[] { -1 }
-            }
+            "Oh! A visitor! I haven't had a visitor in... well, I've never had a visitor actually. This is quite exciting.",
+            "Let me tell you about my day. So I woke up this morning and my pillow was slightly to the left of where I usually put it. Can you believe that?",
+            "Anyway, then I spent about 45 minutes deciding what to have for breakfast. I went with toast. Actually no, I had cereal. Wait, was it toast?",
+            "You know what, I think it was actually a toast-cereal hybrid. I put the cereal on the toast. Revolutionary, right? I should patent that.",
+            "But enough about breakfast. Have I told you about my collection of vintage spoons? I have over 300.",
+            "My favorite spoon is number 47. It has a slight bend in the handle from when I used it to dig a very small hole in my garden.",
+            "I was planting a seed. The seed never grew. I think about that seed sometimes. It was a mystery seed. Found it in my pocket.",
+            "Could have been anything. A tree, a flower, a small civilization. We'll never know.",
+            "Oh! That reminds me of my uncle. He collected bottle caps. Had 12,000 of them. Bottle cap number 1 was a Coca-Cola cap from 1987. It was red.",
+            "Bottle cap number 2 was also a Coca-Cola cap from 1987. Also red. Bottle cap number 3— you know what, this might take a while.",
+            "Anyway, you probably want to know about the door, right? Everyone always asks about the door.",
+            "Here's the thing about the door: it's a door. It has hinges. And a handle. You push it or pull it. Actually, I forget which one.",
+            "Maybe it slides? No wait, I think you have to say a password. The password is... hmm. I wrote it down somewhere.",
+            "On my hand I think. Let me check. No, that's my grocery list. Eggs, milk, more spoons...",
+            "Oh! I remember now! The password is 'please'. Or 'open sesame'. Or 'Gerald is the best'. One of those three. Try all of them.",
+            "Actually, the door might not even be locked. I honestly don't remember.",
+            "Anyway, it was lovely chatting with you. If you ever want to hear about my spoons in more detail, you know where to find me. Actually, you don't. I move around a lot. Goodbye!"
         };
     }
 }
