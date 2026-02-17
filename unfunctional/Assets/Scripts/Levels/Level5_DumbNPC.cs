@@ -82,6 +82,9 @@ public class Level5_DumbNPC : LevelManager
             bool nearNpc = IsPlayerNearNPC();
             interactPromptCanvas.gameObject.SetActive(nearNpc);
 
+            if (npcAnimator != null)
+                npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
+
             if (ePressed)
                 TryStartDialogue();
         }
