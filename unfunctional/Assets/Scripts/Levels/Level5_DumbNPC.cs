@@ -36,6 +36,9 @@ public class Level5_DumbNPC : LevelManager
     private Canvas interactPromptCanvas;
     private Text interactPromptText;
 
+    private const int IDLE_ANIM_COUNT = 7;
+
+    private Animator npcAnimator;
     private int currentLine = 0;
     private bool inDialogue = false;
     private bool isTyping = false;
@@ -48,6 +51,9 @@ public class Level5_DumbNPC : LevelManager
         base.Start();
         levelDisplayName = "NPC Conversation";
         levelDescription = "Talk to the NPC. All of it.";
+
+        if (npcObject != null)
+            npcAnimator = npcObject.GetComponentInChildren<Animator>();
 
         if (dialogueLines.Count == 0)
             BuildDefaultDialogue();
@@ -120,6 +126,9 @@ public class Level5_DumbNPC : LevelManager
 
         waitingForInput = false;
         isTyping = false;
+
+        if (npcAnimator != null)
+            npcAnimator.SetInteger("IdleIndex", currentLine % IDLE_ANIM_COUNT);
 
         npcNameText.text = npcName;
         promptText.gameObject.SetActive(false);
