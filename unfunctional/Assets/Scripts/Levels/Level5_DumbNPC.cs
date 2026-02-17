@@ -47,6 +47,7 @@ public class Level5_DumbNPC : LevelManager
     private Coroutine typingCoroutine;
     private bool wasPlayerNear = false;
     private bool isReversing = false;
+    private bool npcReadyToInteract = false;
 
     // Base font sizes (set during HUD creation, used for distance scaling)
     private int baseFontSizeDialogue;
@@ -114,13 +115,14 @@ public class Level5_DumbNPC : LevelManager
         if (!inDialogue)
         {
             bool nearNpc = IsPlayerNearNPC();
-            interactPromptCanvas.gameObject.SetActive(nearNpc);
+            interactPromptCanvas.gameObject.SetActive(nearNpc && npcReadyToInteract);
 
             if (npcAnimator != null)
             {
                 if (wasPlayerNear && !nearNpc && !isReversing)
                 {
                     isReversing = true;
+                    npcReadyToInteract = false;
                     npcAnimator.SetFloat("AnimSpeed", 1f);
                     npcAnimator.SetTrigger("Reverse");
                     StartCoroutine(ResetAnimatorAfterReverse());
@@ -128,12 +130,21 @@ public class Level5_DumbNPC : LevelManager
                 else if (!isReversing)
                 {
                     npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
+
+                    if (nearNpc && !wasPlayerNear && !npcReadyToInteract)
+                    {
+                        StartCoroutine(WaitForStandUpAnimation());
+                    }
                 }
+            }
+            else
+            {
+                npcReadyToInteract = nearNpc;
             }
 
             wasPlayerNear = nearNpc;
 
-            if (ePressed)
+            if (ePressed && npcReadyToInteract)
                 TryStartDialogue();
         }
         else if (ePressed && waitingForInput && !isTyping && inputCooldown <= 0f)
@@ -170,6 +181,14 @@ public class Level5_DumbNPC : LevelManager
         isReversing = false;
         npcAnimator.Rebind();
         npcAnimator.Update(0f);
+    }
+
+    private IEnumerator WaitForStandUpAnimation()
+    {
+        yield return new WaitForSeconds(3f);
+
+        if (IsPlayerNearNPC() && !isReversing)
+            npcReadyToInteract = true;
     }
 
     private bool IsPlayerNearNPC()
