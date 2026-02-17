@@ -11,7 +11,7 @@ using System.Collections.Generic;
 /// This is a placeholder scaffold - full implementation when level design is finalized.
 /// Attach to a root GameObject in the LEVEL12 scene.
 /// </summary>
-public class Level6_Achievements : LevelManager
+public class Level12_Achievements : LevelManager
 {
     [Header("Level 12 - Achievement Abuse")]
     public Canvas achievementCanvas;

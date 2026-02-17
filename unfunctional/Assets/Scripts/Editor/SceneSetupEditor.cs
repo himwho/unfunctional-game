@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using System.Collections.Generic;
 
 /// <summary>
 /// Editor utility to set up the game scene hierarchies and create prefabs.
@@ -33,10 +34,7 @@ public class SceneSetupEditor : EditorWindow
             "This will (idempotently):\n" +
             "1. Create the Player prefab (if missing)\n" +
             "2. Set up the GLOBAL scene\n" +
-            "3. Set up LEVEL1 scene with confusing menu UI\n" +
-            "4. Set up LEVEL2 scene with settings puzzle UI\n" +
-            "5. Set up LEVEL3 scene wiring\n" +
-            "6. Set up LEVEL4 scene with keypad puzzle room\n\n" +
+            "3. Set up LEVEL1-LEVEL11 scenes\n\n" +
             "Existing objects will NOT be destroyed. Continue?",
             "Yes, set it up", "Cancel"))
         {
@@ -49,9 +47,58 @@ public class SceneSetupEditor : EditorWindow
         SetupLevel2Scene();
         SetupLevel3Scene();
         SetupLevel4Scene();
+        SetupLevel5Scene();
+        SetupLevel6Scene();
+        SetupLevel7Scene();
+        SetupLevel8Scene();
+        SetupLevel9Scene();
+        SetupLevel10Scene();
+        SetupLevel11Scene();
+        RegisterScenesInBuildSettings();
 
         Debug.Log("[SceneSetup] All scenes set up successfully!");
         EditorUtility.DisplayDialog("Done", "All scenes and prefabs have been set up.", "OK");
+    }
+
+    // =========================================================================
+    // Register Scenes in Build Settings
+    // =========================================================================
+
+    [MenuItem("Unfunctional/Register Scenes in Build Settings")]
+    public static void RegisterScenesInBuildSettings()
+    {
+        string[] scenePaths = new string[]
+        {
+            "Assets/Scenes/GLOBAL.unity",
+            "Assets/Scenes/LEVEL1.unity",
+            "Assets/Scenes/LEVEL2.unity",
+            "Assets/Scenes/LEVEL3.unity",
+            "Assets/Scenes/LEVEL4.unity",
+            "Assets/Scenes/LEVEL5.unity",
+            "Assets/Scenes/LEVEL6.unity",
+            "Assets/Scenes/LEVEL7.unity",
+            "Assets/Scenes/LEVEL8.unity",
+            "Assets/Scenes/LEVEL9.unity",
+            "Assets/Scenes/LEVEL10.unity",
+            "Assets/Scenes/LEVEL11.unity"
+        };
+
+        List<EditorBuildSettingsScene> buildScenes = new List<EditorBuildSettingsScene>();
+
+        foreach (string path in scenePaths)
+        {
+            if (System.IO.File.Exists(path))
+            {
+                buildScenes.Add(new EditorBuildSettingsScene(path, true));
+            }
+            else
+            {
+                Debug.LogWarning($"[SceneSetup] Scene file not found: {path}");
+            }
+        }
+
+        EditorBuildSettings.scenes = buildScenes.ToArray();
+        Debug.Log($"[SceneSetup] Registered {buildScenes.Count} scenes in Build Settings.");
     }
 
     // =========================================================================
@@ -840,6 +887,388 @@ public class SceneSetupEditor : EditorWindow
     }
 
     // =========================================================================
+    // 7. LEVEL5 Scene (Dumb NPC)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/7. Setup LEVEL5 Scene")]
+    public static void SetupLevel5Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL5.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level5Manager");
+        Level5_DumbNPC npcScript = levelRoot.GetComponent<Level5_DumbNPC>();
+        if (npcScript == null) npcScript = levelRoot.AddComponent<Level5_DumbNPC>();
+
+        // If already configured, skip
+        if (npcScript.npcObject != null)
+        {
+            Debug.Log("[SceneSetup] LEVEL5 already configured, skipping.");
+            npcScript.needsPlayer = true;
+            npcScript.wantsCursorLocked = true;
+            if (npcScript.playerSpawnPoint == null)
+            {
+                GameObject sp = GameObject.Find("PlayerSpawnPoint");
+                if (sp != null) npcScript.playerSpawnPoint = sp.transform;
+            }
+            EnsureEventSystem();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            return;
+        }
+
+        // --- Room geometry ---
+        float roomW = 10f, roomH = 4f, roomD = 10f, wt = 0.2f;
+
+        CreateOrFindPrimitive("Floor", PrimitiveType.Cube);
+        GameObject floor = GameObject.Find("Floor");
+        floor.transform.position = new Vector3(0, -wt / 2f, 0);
+        floor.transform.localScale = new Vector3(roomW, wt, roomD);
+        SetColor(floor, new Color(0.35f, 0.35f, 0.35f));
+
+        CreateOrFindPrimitive("Ceiling", PrimitiveType.Cube);
+        GameObject ceiling = GameObject.Find("Ceiling");
+        ceiling.transform.position = new Vector3(0, roomH + wt / 2f, 0);
+        ceiling.transform.localScale = new Vector3(roomW, wt, roomD);
+        SetColor(ceiling, new Color(0.5f, 0.5f, 0.5f));
+
+        CreateBoxWalls(roomW, roomH, roomD, wt);
+
+        // --- NPC ---
+        GameObject npc = CreateOrFindPrimitive("NPC_Gorp", PrimitiveType.Capsule);
+        npc.transform.position = new Vector3(0, 1f, 2.5f);
+        npc.transform.rotation = Quaternion.Euler(0, 180, 0);
+        SetColor(npc, new Color(0.6f, 0.4f, 0.3f));
+
+        // --- Door (LEVEL_DOOR prefab, unlock = None, NPC script opens it) ---
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance == null)
+        {
+            doorInstance = InstantiateDoorPrefab("LEVEL_DOOR",
+                new Vector3(0, 0, roomD / 2f), Quaternion.identity);
+        }
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (doorCtrl != null)
+            {
+                doorCtrl.unlockMethod = DoorController.UnlockMethod.None;
+                doorCtrl.ApplyUnlockMethod();
+            }
+        }
+
+        // Spawn
+        GameObject spawnPoint = FindOrCreateEmpty("PlayerSpawnPoint");
+        spawnPoint.transform.position = new Vector3(0, 1f, -3f);
+        spawnPoint.transform.rotation = Quaternion.identity;
+
+        // Light
+        GameObject lightObj = FindOrCreateEmpty("RoomLight");
+        Light pointLight = lightObj.GetComponent<Light>();
+        if (pointLight == null) pointLight = lightObj.AddComponent<Light>();
+        pointLight.type = LightType.Point;
+        pointLight.range = 15f;
+        pointLight.intensity = 1.2f;
+        pointLight.color = new Color(1f, 0.95f, 0.8f);
+        lightObj.transform.position = new Vector3(0, 3.5f, 0);
+
+        // Wire references
+        npcScript.npcObject = npc;
+        npcScript.playerSpawnPoint = spawnPoint.transform;
+        npcScript.needsPlayer = true;
+        npcScript.wantsCursorLocked = true;
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL5 scene set up.");
+    }
+
+    // =========================================================================
+    // 8. LEVEL6 Scene (Quicktime Events)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/8. Setup LEVEL6 Scene")]
+    public static void SetupLevel6Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL6.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level6Manager");
+        Level6_QuicktimeEvents qteScript = levelRoot.GetComponent<Level6_QuicktimeEvents>();
+        if (qteScript == null) qteScript = levelRoot.AddComponent<Level6_QuicktimeEvents>();
+
+        // If already configured, skip
+        if (qteScript.qteCanvas != null)
+        {
+            Debug.Log("[SceneSetup] LEVEL6 already configured, skipping.");
+            qteScript.needsPlayer = true;
+            qteScript.wantsCursorLocked = true;
+            if (qteScript.playerSpawnPoint == null)
+            {
+                GameObject sp = GameObject.Find("PlayerSpawnPoint");
+                if (sp != null) qteScript.playerSpawnPoint = sp.transform;
+            }
+            EnsureEventSystem();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            return;
+        }
+
+        // --- Hallway geometry (simple corridor) ---
+        float hallW = 4f, hallH = 3.5f, hallL = 30f, wt = 0.2f;
+
+        CreateOrFindPrimitive("Floor", PrimitiveType.Cube);
+        GameObject floor = GameObject.Find("Floor");
+        floor.transform.position = new Vector3(0, -wt / 2f, hallL / 2f);
+        floor.transform.localScale = new Vector3(hallW, wt, hallL + 2f);
+        SetColor(floor, new Color(0.3f, 0.3f, 0.32f));
+
+        CreateOrFindPrimitive("Ceiling", PrimitiveType.Cube);
+        GameObject ceiling = GameObject.Find("Ceiling");
+        ceiling.transform.position = new Vector3(0, hallH + wt / 2f, hallL / 2f);
+        ceiling.transform.localScale = new Vector3(hallW, wt, hallL + 2f);
+        SetColor(ceiling, new Color(0.48f, 0.48f, 0.45f));
+
+        CreateOrFindPrimitive("WallLeft", PrimitiveType.Cube);
+        GameObject wallLeft = GameObject.Find("WallLeft");
+        wallLeft.transform.position = new Vector3(-hallW / 2f - wt / 2f, hallH / 2f, hallL / 2f);
+        wallLeft.transform.localScale = new Vector3(wt, hallH, hallL + 2f);
+        SetColor(wallLeft, new Color(0.42f, 0.42f, 0.4f));
+
+        CreateOrFindPrimitive("WallRight", PrimitiveType.Cube);
+        GameObject wallRight = GameObject.Find("WallRight");
+        wallRight.transform.position = new Vector3(hallW / 2f + wt / 2f, hallH / 2f, hallL / 2f);
+        wallRight.transform.localScale = new Vector3(wt, hallH, hallL + 2f);
+        SetColor(wallRight, new Color(0.42f, 0.42f, 0.4f));
+
+        // Back wall
+        CreateOrFindPrimitive("WallBack", PrimitiveType.Cube);
+        GameObject wallBack = GameObject.Find("WallBack");
+        wallBack.transform.position = new Vector3(0, hallH / 2f, -1f);
+        wallBack.transform.localScale = new Vector3(hallW, hallH, wt);
+        SetColor(wallBack, new Color(0.42f, 0.42f, 0.4f));
+
+        // Door at end
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance == null)
+        {
+            doorInstance = InstantiateDoorPrefab("LEVEL_DOOR",
+                new Vector3(0, 0, hallL), Quaternion.identity);
+        }
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (doorCtrl != null)
+            {
+                doorCtrl.unlockMethod = DoorController.UnlockMethod.None;
+                doorCtrl.ApplyUnlockMethod();
+            }
+        }
+
+        // QTE Canvas
+        GameObject canvasObj = FindOrCreateEmpty("QTECanvas");
+        Canvas canvas = canvasObj.GetComponent<Canvas>();
+        if (canvas == null)
+        {
+            canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 20;
+            CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            canvasObj.AddComponent<GraphicRaycaster>();
+        }
+        qteScript.qteCanvas = canvas;
+
+        // Spawn
+        GameObject spawnPoint = FindOrCreateEmpty("PlayerSpawnPoint");
+        spawnPoint.transform.position = new Vector3(0, 1f, 1f);
+        spawnPoint.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+
+        // Light
+        GameObject lightObj = FindOrCreateEmpty("HallLight");
+        Light hallLight = lightObj.GetComponent<Light>();
+        if (hallLight == null) hallLight = lightObj.AddComponent<Light>();
+        hallLight.type = LightType.Point;
+        hallLight.range = 20f;
+        hallLight.intensity = 1f;
+        hallLight.color = new Color(1f, 0.95f, 0.85f);
+        lightObj.transform.position = new Vector3(0, 3f, hallL / 2f);
+
+        qteScript.playerSpawnPoint = spawnPoint.transform;
+        qteScript.needsPlayer = true;
+        qteScript.wantsCursorLocked = true;
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL6 scene set up.");
+    }
+
+    // =========================================================================
+    // 9. LEVEL7 Scene (Compass Hallways)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/9. Setup LEVEL7 Scene")]
+    public static void SetupLevel7Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL7.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level7Manager");
+        Level7_CompassHallways compassScript = levelRoot.GetComponent<Level7_CompassHallways>();
+        if (compassScript == null) compassScript = levelRoot.AddComponent<Level7_CompassHallways>();
+
+        // Level7 builds all geometry at runtime -- just set flags
+        compassScript.needsPlayer = true;
+        compassScript.wantsCursorLocked = true;
+
+        // Try to wire door if one exists
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (compassScript.doorController == null)
+                compassScript.doorController = doorCtrl;
+        }
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL7 scene set up.");
+    }
+
+    // =========================================================================
+    // 10. LEVEL8 Scene (DLC Door)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/10. Setup LEVEL8 Scene")]
+    public static void SetupLevel8Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL8.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level8Manager");
+        Level8_DLCDoor dlcScript = levelRoot.GetComponent<Level8_DLCDoor>();
+        if (dlcScript == null) dlcScript = levelRoot.AddComponent<Level8_DLCDoor>();
+
+        // Level8 builds all geometry at runtime -- just set flags
+        dlcScript.needsPlayer = true;
+        dlcScript.wantsCursorLocked = true;
+
+        // Try to wire door if one exists
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (dlcScript.doorController == null)
+                dlcScript.doorController = doorCtrl;
+        }
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL8 scene set up.");
+    }
+
+    // =========================================================================
+    // 11. LEVEL9 Scene (Walking Simulator)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/11. Setup LEVEL9 Scene")]
+    public static void SetupLevel9Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL9.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level9Manager");
+        Level9_WalkingSimulator walkScript = levelRoot.GetComponent<Level9_WalkingSimulator>();
+        if (walkScript == null) walkScript = levelRoot.AddComponent<Level9_WalkingSimulator>();
+
+        // Level9 builds all geometry at runtime
+        walkScript.needsPlayer = true;
+        walkScript.wantsCursorLocked = true;
+
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (walkScript.doorController == null)
+                walkScript.doorController = doorCtrl;
+        }
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL9 scene set up.");
+    }
+
+    // =========================================================================
+    // 12. LEVEL10 Scene (Item Degradation)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/12. Setup LEVEL10 Scene")]
+    public static void SetupLevel10Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL10.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level10Manager");
+        Level10_ItemDegradation degradeScript = levelRoot.GetComponent<Level10_ItemDegradation>();
+        if (degradeScript == null) degradeScript = levelRoot.AddComponent<Level10_ItemDegradation>();
+
+        // Level10 builds all geometry at runtime
+        degradeScript.needsPlayer = true;
+        degradeScript.wantsCursorLocked = true;
+
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (degradeScript.doorController == null)
+                degradeScript.doorController = doorCtrl;
+        }
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL10 scene set up.");
+    }
+
+    // =========================================================================
+    // 13. LEVEL11 Scene (Bad RNG)
+    // =========================================================================
+
+    [MenuItem("Unfunctional/13. Setup LEVEL11 Scene")]
+    public static void SetupLevel11Scene()
+    {
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/LEVEL11.unity", OpenSceneMode.Single);
+
+        GameObject levelRoot = FindOrCreateEmpty("Level11Manager");
+        Level11_BadRNG rngScript = levelRoot.GetComponent<Level11_BadRNG>();
+        if (rngScript == null) rngScript = levelRoot.AddComponent<Level11_BadRNG>();
+
+        // Level11 builds all geometry at runtime
+        rngScript.needsPlayer = true;
+        rngScript.wantsCursorLocked = true;
+
+        DoorController doorCtrl = null;
+        GameObject doorInstance = FindDoorInstance();
+        if (doorInstance != null)
+        {
+            doorCtrl = doorInstance.GetComponent<DoorController>();
+            if (rngScript.doorController == null)
+                rngScript.doorController = doorCtrl;
+        }
+
+        EnsureEventSystem();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[SceneSetup] LEVEL11 scene set up.");
+    }
+
+    // =========================================================================
     // Helper: Door Prefab
     // =========================================================================
 
@@ -928,6 +1357,32 @@ public class SceneSetupEditor : EditorWindow
         }
         mat.color = color;
         rend.sharedMaterial = mat;
+    }
+
+    /// <summary>
+    /// Creates the four walls (N/S/E/W) for a room.
+    /// </summary>
+    private static void CreateBoxWalls(float roomW, float roomH, float roomD, float wt)
+    {
+        GameObject wallSouth = CreateOrFindPrimitive("WallSouth", PrimitiveType.Cube);
+        wallSouth.transform.position = new Vector3(0, roomH / 2f, -roomD / 2f);
+        wallSouth.transform.localScale = new Vector3(roomW, roomH, wt);
+        SetColor(wallSouth, new Color(0.55f, 0.55f, 0.5f));
+
+        GameObject wallNorth = CreateOrFindPrimitive("WallNorth", PrimitiveType.Cube);
+        wallNorth.transform.position = new Vector3(0, roomH / 2f, roomD / 2f);
+        wallNorth.transform.localScale = new Vector3(roomW, roomH, wt);
+        SetColor(wallNorth, new Color(0.55f, 0.55f, 0.5f));
+
+        GameObject wallWest = CreateOrFindPrimitive("WallWest", PrimitiveType.Cube);
+        wallWest.transform.position = new Vector3(-roomW / 2f, roomH / 2f, 0);
+        wallWest.transform.localScale = new Vector3(wt, roomH, roomD);
+        SetColor(wallWest, new Color(0.55f, 0.55f, 0.5f));
+
+        GameObject wallEast = CreateOrFindPrimitive("WallEast", PrimitiveType.Cube);
+        wallEast.transform.position = new Vector3(roomW / 2f, roomH / 2f, 0);
+        wallEast.transform.localScale = new Vector3(wt, roomH, roomD);
+        SetColor(wallEast, new Color(0.55f, 0.55f, 0.5f));
     }
 
     /// <summary>
