@@ -13,66 +13,61 @@ using UnityEngine.Networking;
 /// The backend is a simple Node.js service that auto-replies with a fresh code.
 /// For offline/testing, a debug mode generates codes locally.
 ///
-/// Builds its own HUD and keypad UI at runtime.
+/// This script no longer builds its own keypad UI. Instead it configures and
+/// subscribes to the reusable KeypadController on the LEVEL_DOOR prefab.
 /// </summary>
 public class Level4_KeypadPuzzle : LevelManager
 {
     [Header("Level 4 - Keypad Puzzle")]
+    [Tooltip("Reference to the door prefab root (for door shake / interaction checks).")]
     public GameObject doorObject;
-    public GameObject keypadObject;     // The visual keypad panel on the wall
-    public Transform stickyNotePoint;   // Where the sticky notes are (for interact prompt)
-    public Transform playerSpawnTransform; // re-exposed for clarity (base class has playerSpawnPoint)
-    [Tooltip("Optional reference to the door prefab's DoorController")]
+
+    [Tooltip("The visual keypad panel on the wall (raycast target for 'Use Keypad').")]
+    public GameObject keypadObject;
+
+    [Tooltip("Transform near the sticky notes (for 'Read Notes' interaction range).")]
+    public Transform stickyNotePoint;
+
+    [Tooltip("Where the player spawns in this level.")]
+    public Transform playerSpawnTransform;
+
+    [Tooltip("DoorController on the LEVEL_DOOR prefab.")]
     public DoorController doorController;
 
     [Header("Keypad Settings")]
     public float codeValiditySeconds = 15f;
-    public float doorOpenSpeed = 2f;
     public float interactRange = 3f;
 
     [Header("Server")]
-    [Tooltip("Base URL of the email support server, e.g. http://your-ec2:3000 " +
-             "Endpoints used: POST /api/request-code, POST /api/validate. " +
+    [Tooltip("Base URL of the email support server, e.g. http://your-ec2:3000. " +
+             "Endpoints: POST /api/request-code, POST /api/validate. " +
              "Leave empty to use offline/debug mode.")]
     public string codeServerUrl = "";
 
     [Header("Debug")]
-    [Tooltip("When true (or when server URL is empty), generate codes locally for testing.")]
+    [Tooltip("When true (or when server URL is empty), generate codes locally.")]
     public bool offlineMode = true;
 
-    // Runtime UI
+    // =========================================================================
+    // Runtime references
+    // =========================================================================
+
+    private KeypadController keypad; // from doorController
+
+    // HUD
     private Canvas hudCanvas;
     private Text interactPromptText;
-    private Text messageText;
     private Text narrationText;
     private Image crosshairImage;
-    private CanvasGroup messageCanvasGroup;
     private CanvasGroup narrationCanvasGroup;
 
-    // Keypad UI (screen-space overlay that appears when interacting)
-    private Canvas keypadCanvas;
-    private GameObject keypadPanel;
-    private Text codeDisplayText;
-    private Text timerText;
-    private Text statusText;
-    private Button[] digitButtons = new Button[10];
-    private Button clearButton;
-    private Button submitButton;
-    private Button requestCodeButton;
-    private Button closeKeypadButton;
-
     // State
-    private string enteredCode = "";
-    private string currentValidCode = "";  // Used in offline mode and as server-mode fallback
+    private string currentValidCode = "";
     private float codeExpiryTime = -1f;
-    private bool codeRequested = false;    // True after any code request (server or offline)
-    private bool keypadOpen = false;
+    private bool codeRequested = false;
     private bool doorOpening = false;
     private int failedAttempts = 0;
-    private Coroutine messageFadeCoroutine;
     private Coroutine narrationFadeCoroutine;
-    private Vector3 doorClosedPos;
-    private Vector3 doorOpenPos;
 
     // Narration lines
     private static readonly string[] stickyNoteNarration = new string[]
@@ -91,6 +86,10 @@ public class Level4_KeypadPuzzle : LevelManager
         "This is the point where you alt-tab and send an email.",
     };
 
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
+
     protected override void Start()
     {
         wantsCursorLocked = true;
@@ -99,16 +98,44 @@ public class Level4_KeypadPuzzle : LevelManager
         levelDisplayName = "The Keypad";
         levelDescription = "A door. A keypad. An email address.";
 
-        if (doorObject != null)
+        // Get the KeypadController from the door prefab
+        if (doorController != null)
+            keypad = doorController.keypadController;
+
+        if (keypad == null)
+            keypad = FindAnyObjectByType<KeypadController>();
+
+        if (keypad != null)
         {
-            doorClosedPos = doorObject.transform.position;
-            doorOpenPos = doorClosedPos + Vector3.up * 3f; // Slide door up to open
+            // Configure the keypad for this level
+            keypad.codeLength = 9;
+            keypad.keypadTitle = "DOOR ACCESS KEYPAD";
+            keypad.hintText = "Sticky Note: \"rodney@please.nyc\"\n\"this guy always changes the code\"";
+            keypad.showRequestCodeButton = true;
+            keypad.requestCodeLabel = "Email Rodney for Code";
+
+            // Subscribe to events
+            keypad.OnCodeSubmitted += HandleCodeSubmitted;
+            keypad.OnCodeRequested += HandleCodeRequested;
+        }
+        else
+        {
+            Debug.LogWarning("[Level4] No KeypadController found! Add one to the LEVEL_DOOR prefab.");
         }
 
         CreateHUD();
-        CreateKeypadUI();
-
         ShowNarration("Another room. This time, there's a keypad.", 4f);
+    }
+
+    protected override void OnDestroy()
+    {
+        // Unsubscribe
+        if (keypad != null)
+        {
+            keypad.OnCodeSubmitted -= HandleCodeSubmitted;
+            keypad.OnCodeRequested -= HandleCodeRequested;
+        }
+        base.OnDestroy();
     }
 
     private void Update()
@@ -118,22 +145,15 @@ public class Level4_KeypadPuzzle : LevelManager
         UpdateInteractPrompt();
         CheckInteraction();
         UpdateKeypadTimer();
-
-        // Close keypad with Escape (but not if pausing)
-        if (keypadOpen && Input.GetKeyDown(KeyCode.Escape))
-        {
-            // Only close keypad, don't trigger pause
-            CloseKeypad();
-        }
     }
 
     // =========================================================================
-    // Interaction
+    // Interaction (raycasting in 3D world)
     // =========================================================================
 
     private void CheckInteraction()
     {
-        if (keypadOpen) return;
+        if (keypad != null && keypad.IsOpen) return;
         if (InputManager.Instance == null || !InputManager.Instance.InteractPressed) return;
 
         Camera cam = Camera.main;
@@ -144,14 +164,19 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (keypadObject != null && IsHitOnTarget(hit, keypadObject))
+            // Check if the player is looking at the keypad
+            if (IsHitOnKeypad(hit))
             {
-                OpenKeypad();
+                if (keypad != null) keypad.Open();
+                else ShowNarration("The keypad seems broken...", 2f);
             }
-            else if (doorObject != null && IsHitOnTarget(hit, doorObject))
+            // Check if looking at the door itself
+            else if (IsHitOnDoor(hit))
             {
                 ShowNarration("The door is locked. Use the keypad.", 2.5f);
+                if (doorController != null) doorController.ShakeDoor();
             }
+            // Check if looking at sticky notes
             else if (stickyNotePoint != null &&
                      Vector3.Distance(hit.point, stickyNotePoint.position) < 1.5f)
             {
@@ -163,7 +188,7 @@ public class Level4_KeypadPuzzle : LevelManager
     private void UpdateInteractPrompt()
     {
         if (interactPromptText == null) return;
-        if (keypadOpen)
+        if (keypad != null && keypad.IsOpen)
         {
             interactPromptText.enabled = false;
             return;
@@ -184,12 +209,12 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (keypadObject != null && IsHitOnTarget(hit, keypadObject))
+            if (IsHitOnKeypad(hit))
             {
                 show = true;
                 prompt = "[E] Use Keypad";
             }
-            else if (doorObject != null && IsHitOnTarget(hit, doorObject))
+            else if (IsHitOnDoor(hit))
             {
                 show = true;
                 prompt = "[E] Try Door";
@@ -206,7 +231,45 @@ public class Level4_KeypadPuzzle : LevelManager
         if (show) interactPromptText.text = prompt;
     }
 
+    // =========================================================================
+    // Hit detection helpers (works with LEVEL_DOOR prefab hierarchy)
+    // =========================================================================
+
+    private bool IsHitOnKeypad(RaycastHit hit)
+    {
+        // Check the explicit keypadObject reference
+        if (keypadObject != null && hit.collider.transform.IsChildOf(keypadObject.transform))
+            return true;
+
+        // Also check DoorController's keypad children
+        if (doorController != null)
+        {
+            if (doorController.keypadMount != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadMount.transform))
+                return true;
+            if (doorController.keypadPanel != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadPanel.transform))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsHitOnDoor(RaycastHit hit)
+    {
+        if (doorObject != null && hit.collider.transform.IsChildOf(doorObject.transform))
+            return true;
+        if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
+            return true;
+        return false;
+    }
+
+    // =========================================================================
+    // Sticky note interaction
+    // =========================================================================
+
     private int stickyNoteReadIndex = 0;
+
     private void ShowStickyNoteInfo()
     {
         if (stickyNoteReadIndex < stickyNoteNarration.Length)
@@ -220,90 +283,23 @@ public class Level4_KeypadPuzzle : LevelManager
         }
     }
 
-    /// <summary>
-    /// Returns true if the raycast hit the target object, any of its children,
-    /// or the DoorController root (when target is the door).
-    /// Handles imported meshes (LEVEL_DOOR prefab) where colliders may be on sub-objects.
-    /// </summary>
-    private bool IsHitOnTarget(RaycastHit hit, GameObject target)
-    {
-        if (target == null) return false;
-        // Direct match or hit is a child of target
-        if (hit.collider.transform.IsChildOf(target.transform))
-            return true;
-        // For the door: also check if we hit the DoorController root (trigger collider)
-        if (target == doorObject && doorController != null &&
-            hit.collider.transform.IsChildOf(doorController.transform))
-            return true;
-        return false;
-    }
-
     // =========================================================================
-    // Keypad Logic
+    // KeypadController event handlers
     // =========================================================================
 
-    private void OpenKeypad()
+    private void HandleCodeSubmitted(string code)
     {
-        keypadOpen = true;
-        keypadPanel.SetActive(true);
-        enteredCode = "";
-        UpdateCodeDisplay();
-
-        // Unlock cursor so the player can click buttons
-        if (InputManager.Instance != null)
-            InputManager.Instance.UnlockCursor();
-
-        // Disable player look/movement
-        PlayerController pc = FindAnyObjectByType<PlayerController>();
-        if (pc != null) pc.enabled = false;
-    }
-
-    private void CloseKeypad()
-    {
-        keypadOpen = false;
-        keypadPanel.SetActive(false);
-
-        // Re-lock cursor for FPS
-        if (InputManager.Instance != null)
-            InputManager.Instance.LockCursor();
-
-        // Re-enable player
-        PlayerController pc = FindAnyObjectByType<PlayerController>();
-        if (pc != null) pc.enabled = true;
-    }
-
-    private void OnDigitPressed(int digit)
-    {
-        if (enteredCode.Length >= 9) return;
-        enteredCode += digit.ToString();
-        UpdateCodeDisplay();
-    }
-
-    private void OnClearPressed()
-    {
-        enteredCode = "";
-        UpdateCodeDisplay();
-    }
-
-    private void OnSubmitPressed()
-    {
-        if (enteredCode.Length != 9)
-        {
-            SetKeypadStatus("Enter all 9 digits");
-            return;
-        }
-
-        // Server mode: validate against the remote code store
+        // Server mode
         if (!string.IsNullOrEmpty(codeServerUrl) && !offlineMode)
         {
-            StartCoroutine(ValidateCodeOnServer(enteredCode));
+            StartCoroutine(ValidateCodeOnServer(code));
             return;
         }
 
-        // Offline mode: validate locally
+        // Offline validation
         if (string.IsNullOrEmpty(currentValidCode))
         {
-            SetKeypadStatus("No code requested yet. Email Rodney first!");
+            if (keypad != null) keypad.RejectCode("No code requested yet. Email Rodney first!");
             failedAttempts++;
             ShowFailNarration();
             return;
@@ -311,14 +307,14 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (Time.time > codeExpiryTime)
         {
-            SetKeypadStatus("Code expired! Request a new one.");
+            if (keypad != null) keypad.RejectCode("Code expired! Request a new one.");
             currentValidCode = "";
             failedAttempts++;
             ShowFailNarration();
             return;
         }
 
-        if (enteredCode == currentValidCode)
+        if (code == currentValidCode)
         {
             OnCodeAccepted();
         }
@@ -328,27 +324,121 @@ public class Level4_KeypadPuzzle : LevelManager
         }
     }
 
+    private void HandleCodeRequested()
+    {
+        if (!string.IsNullOrEmpty(codeServerUrl) && !offlineMode)
+        {
+            StartCoroutine(RequestCodeFromServer());
+        }
+        else
+        {
+            GenerateOfflineCode();
+        }
+    }
+
+    // =========================================================================
+    // Code validation results
+    // =========================================================================
+
     private void OnCodeAccepted()
     {
-        SetKeypadStatus("ACCESS GRANTED");
-        if (statusText != null) statusText.color = new Color(0.2f, 1f, 0.2f);
+        if (keypad != null) keypad.AcceptCode("ACCESS GRANTED");
         ShowNarration("The code worked. Wait, how did you get that so fast?", 3f);
         StartCoroutine(DoorOpenSequence());
     }
 
     private void OnCodeRejected(string reason)
     {
-        SetKeypadStatus(reason);
-        if (statusText != null) statusText.color = new Color(1f, 0.2f, 0.2f);
+        if (keypad != null) keypad.RejectCode(reason);
         failedAttempts++;
         ShowFailNarration();
-        enteredCode = "";
-        UpdateCodeDisplay();
+    }
+
+    private void ShowFailNarration()
+    {
+        int idx = Mathf.Min(failedAttempts - 1, failNarration.Length - 1);
+        ShowNarration(failNarration[idx], 3f);
+    }
+
+    // =========================================================================
+    // Code generation / server interaction
+    // =========================================================================
+
+    private void GenerateOfflineCode()
+    {
+        currentValidCode = "";
+        for (int i = 0; i < 9; i++)
+            currentValidCode += Random.Range(0, 10).ToString();
+
+        codeExpiryTime = Time.time + codeValiditySeconds;
+        codeRequested = true;
+
+        if (keypad != null)
+            keypad.SetStatus("Code sent! Check console.\nExpires in " + codeValiditySeconds + "s",
+                new Color(1f, 0.9f, 0.3f));
+
+        Debug.Log($"[Level4 DEBUG] Rodney's code: {currentValidCode} (expires in {codeValiditySeconds}s)");
+
+        ShowNarration(
+            "DEBUG MODE: Code logged to console.\n" +
+            "In the real game, you'd email rodney@please.nyc and alt-tab back.", 5f);
+    }
+
+    private IEnumerator RequestCodeFromServer()
+    {
+        if (keypad != null) keypad.SetStatus("Contacting Rodney...", Color.white);
+
+        string url = codeServerUrl.TrimEnd('/') + "/api/request-code";
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes("{}");
+
+        UnityWebRequest req = new UnityWebRequest(url, "POST");
+        req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        req.downloadHandler = new DownloadHandlerBuffer();
+        req.SetRequestHeader("Content-Type", "application/json");
+        req.timeout = 10;
+
+        yield return req.SendWebRequest();
+
+        if (req.result == UnityWebRequest.Result.Success)
+        {
+            string response = req.downloadHandler.text;
+            string code = ParseJsonStringField(response, "code");
+            string message = ParseJsonStringField(response, "message");
+
+            codeExpiryTime = Time.time + codeValiditySeconds;
+            codeRequested = true;
+
+            if (!string.IsNullOrEmpty(code) && code.Length == 9)
+            {
+                currentValidCode = code;
+                if (keypad != null)
+                    keypad.SetStatus(
+                        "Code: " + code.Substring(0, 3) + " " + code.Substring(3, 3) + " " +
+                        code.Substring(6, 3) + " -- expires in " + codeValiditySeconds + "s",
+                        new Color(0.3f, 1f, 0.3f));
+                Debug.Log($"[Level4] Server debug code: {code}");
+                ShowNarration("Rodney sent the code. It's on screen (debug mode).", 3f);
+            }
+            else
+            {
+                if (keypad != null)
+                    keypad.SetStatus(message ?? "Rodney replied! Code expires in " + codeValiditySeconds + "s",
+                        new Color(0.3f, 1f, 0.3f));
+                ShowNarration("Check your email. Rodney sent the code.", 3f);
+            }
+        }
+        else
+        {
+            if (keypad != null)
+                keypad.SetStatus("Rodney isn't responding.", new Color(1f, 0.4f, 0.2f));
+            ShowNarration("Can't reach the server. Generating code locally...", 3f);
+            GenerateOfflineCode();
+        }
     }
 
     private IEnumerator ValidateCodeOnServer(string code)
     {
-        SetKeypadStatus("Validating...");
+        if (keypad != null) keypad.SetStatus("Validating...", Color.white);
 
         string url = codeServerUrl.TrimEnd('/') + "/api/validate";
         string jsonBody = "{\"code\":\"" + code + "\"}";
@@ -365,8 +455,6 @@ public class Level4_KeypadPuzzle : LevelManager
         if (req.result == UnityWebRequest.Result.Success)
         {
             string response = req.downloadHandler.text;
-
-            // Parse {"valid":true/false,"message":"..."}
             bool valid = response.Contains("\"valid\":true") ||
                          response.Contains("\"valid\": true");
 
@@ -376,7 +464,6 @@ public class Level4_KeypadPuzzle : LevelManager
             }
             else
             {
-                // Try to extract the message
                 string msg = ParseJsonStringField(response, "message");
                 OnCodeRejected(string.IsNullOrEmpty(msg) ? "WRONG CODE" : msg);
             }
@@ -384,9 +471,8 @@ public class Level4_KeypadPuzzle : LevelManager
         else
         {
             Debug.LogWarning($"[Level4] Server validation failed: {req.error}");
-            SetKeypadStatus("Server unreachable. Trying offline...");
+            if (keypad != null) keypad.SetStatus("Server unreachable. Trying offline...", Color.yellow);
 
-            // Fallback: attempt offline validation if we have a local code
             yield return new WaitForSeconds(0.5f);
 
             if (!string.IsNullOrEmpty(currentValidCode) &&
@@ -402,109 +488,6 @@ public class Level4_KeypadPuzzle : LevelManager
         }
     }
 
-    private void ShowFailNarration()
-    {
-        int idx = Mathf.Min(failedAttempts - 1, failNarration.Length - 1);
-        ShowNarration(failNarration[idx], 3f);
-    }
-
-    private void OnRequestCodePressed()
-    {
-        if (!string.IsNullOrEmpty(codeServerUrl) && !offlineMode)
-        {
-            StartCoroutine(RequestCodeFromServer());
-        }
-        else
-        {
-            GenerateOfflineCode();
-        }
-    }
-
-    private void GenerateOfflineCode()
-    {
-        // Generate a random 9-digit code
-        currentValidCode = "";
-        for (int i = 0; i < 9; i++)
-        {
-            currentValidCode += Random.Range(0, 10).ToString();
-        }
-
-        codeExpiryTime = Time.time + codeValiditySeconds;
-        codeRequested = true;
-
-        SetKeypadStatus($"Code sent! Check console.\nExpires in {codeValiditySeconds}s");
-        if (statusText != null) statusText.color = new Color(1f, 0.9f, 0.3f);
-
-        // In offline mode, log the code to console (simulates receiving the email)
-        Debug.Log($"[Level4 DEBUG] Rodney's code: {currentValidCode} (expires in {codeValiditySeconds}s)");
-
-        ShowNarration(
-            "DEBUG MODE: Code logged to console.\n" +
-            "In the real game, you'd email rodney@please.nyc and alt-tab back.",
-            5f);
-    }
-
-    private IEnumerator RequestCodeFromServer()
-    {
-        SetKeypadStatus("Contacting Rodney...");
-
-        string url = codeServerUrl.TrimEnd('/') + "/api/request-code";
-        string jsonBody = "{}"; // No email needed for in-game shortcut
-        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-
-        UnityWebRequest req = new UnityWebRequest(url, "POST");
-        req.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        req.downloadHandler = new DownloadHandlerBuffer();
-        req.SetRequestHeader("Content-Type", "application/json");
-        req.timeout = 10;
-
-        yield return req.SendWebRequest();
-
-        if (req.result == UnityWebRequest.Result.Success)
-        {
-            string response = req.downloadHandler.text;
-
-            // Server responds with {"message":"...","expiresIn":15}
-            // In debug mode, also {"code":"123456789"}
-            string code = ParseJsonStringField(response, "code");
-            string message = ParseJsonStringField(response, "message");
-
-            // Start the expiry timer display (even though validation is server-side,
-            // the player needs to know there's a time limit)
-            codeExpiryTime = Time.time + codeValiditySeconds;
-            codeRequested = true;
-
-            if (!string.IsNullOrEmpty(code) && code.Length == 9)
-            {
-                // Debug mode: server returned the code directly
-                currentValidCode = code; // Keep for offline fallback
-                SetKeypadStatus($"Code: {code.Substring(0, 3)} {code.Substring(3, 3)} {code.Substring(6, 3)} -- expires in {codeValiditySeconds}s");
-                if (statusText != null) statusText.color = new Color(0.3f, 1f, 0.3f);
-                Debug.Log($"[Level4] Server debug code: {code}");
-                ShowNarration("Rodney sent the code. It's on screen (debug mode).", 3f);
-            }
-            else
-            {
-                // Production mode: code was emailed, not returned
-                SetKeypadStatus(message ?? $"Rodney replied! Code expires in {codeValiditySeconds}s");
-                if (statusText != null) statusText.color = new Color(0.3f, 1f, 0.3f);
-                ShowNarration("Check your email. Rodney sent the code.", 3f);
-            }
-        }
-        else
-        {
-            SetKeypadStatus("Rodney isn't responding.");
-            ShowNarration("Can't reach the server. Generating code locally...", 3f);
-
-            // Fallback to offline
-            GenerateOfflineCode();
-        }
-    }
-
-    /// <summary>
-    /// Minimal JSON string field parser. Extracts the value for a given key
-    /// from a flat JSON object, e.g. ParseJsonStringField('{"code":"123"}', "code") => "123"
-    /// </summary>
     private string ParseJsonStringField(string json, string fieldName)
     {
         string key = "\"" + fieldName + "\"";
@@ -517,62 +500,40 @@ public class Level4_KeypadPuzzle : LevelManager
                 int quoteStart = json.IndexOf('"', colonIdx + 1);
                 int quoteEnd = json.IndexOf('"', quoteStart + 1);
                 if (quoteStart >= 0 && quoteEnd > quoteStart)
-                {
                     return json.Substring(quoteStart + 1, quoteEnd - quoteStart - 1);
-                }
             }
         }
         return null;
     }
 
+    // =========================================================================
+    // Timer display (driven from this level script, displayed on keypad)
+    // =========================================================================
+
     private void UpdateKeypadTimer()
     {
-        if (timerText == null) return;
+        if (keypad == null) return;
 
         if (codeRequested && codeExpiryTime > 0f)
         {
             float remaining = codeExpiryTime - Time.time;
             if (remaining > 0f)
             {
-                timerText.text = $"Code expires: {remaining:F1}s";
-                timerText.color = remaining < 5f ?
-                    new Color(1f, 0.3f, 0.3f) :
-                    new Color(1f, 0.9f, 0.3f);
+                Color timerColor = remaining < 5f
+                    ? new Color(1f, 0.3f, 0.3f)
+                    : new Color(1f, 0.9f, 0.3f);
+                keypad.SetTimer("Code expires: " + remaining.ToString("F1") + "s", timerColor);
             }
             else
             {
-                timerText.text = "Code EXPIRED";
-                timerText.color = new Color(0.5f, 0.2f, 0.2f);
+                keypad.SetTimer("Code EXPIRED", new Color(0.5f, 0.2f, 0.2f));
                 currentValidCode = "";
                 codeRequested = false;
             }
         }
         else
         {
-            timerText.text = "";
-        }
-    }
-
-    private void UpdateCodeDisplay()
-    {
-        if (codeDisplayText == null) return;
-
-        // Show entered digits with underscores for remaining
-        string display = "";
-        for (int i = 0; i < 9; i++)
-        {
-            if (i > 0 && i % 3 == 0) display += " ";
-            display += (i < enteredCode.Length) ? enteredCode[i].ToString() : "_";
-        }
-        codeDisplayText.text = display;
-    }
-
-    private void SetKeypadStatus(string text)
-    {
-        if (statusText != null)
-        {
-            statusText.text = text;
-            statusText.color = Color.white;
+            keypad.SetTimer("", Color.white);
         }
     }
 
@@ -585,25 +546,14 @@ public class Level4_KeypadPuzzle : LevelManager
         doorOpening = true;
 
         yield return new WaitForSeconds(0.5f);
-        CloseKeypad();
+        if (keypad != null) keypad.Close();
 
-        // Slide door up using DoorController if available, otherwise manual
+        // Slide door up using DoorController if available
         if (doorController != null)
         {
             doorController.OpenDoor();
-            // Wait for the animation to finish
             while (doorController.IsAnimating)
                 yield return null;
-        }
-        else if (doorObject != null)
-        {
-            float t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime * doorOpenSpeed;
-                doorObject.transform.position = Vector3.Lerp(doorClosedPos, doorOpenPos, Mathf.SmoothStep(0f, 1f, t));
-                yield return null;
-            }
         }
 
         yield return new WaitForSeconds(1f);
@@ -613,11 +563,13 @@ public class Level4_KeypadPuzzle : LevelManager
     }
 
     // =========================================================================
-    // HUD Creation
+    // HUD Creation (crosshair, interact prompt, narration — NOT the keypad)
     // =========================================================================
 
     private void CreateHUD()
     {
+        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
         GameObject canvasObj = new GameObject("Level4HUD");
         canvasObj.transform.SetParent(transform);
         hudCanvas = canvasObj.AddComponent<Canvas>();
@@ -644,7 +596,7 @@ public class Level4_KeypadPuzzle : LevelManager
         GameObject promptObj = new GameObject("InteractPrompt");
         promptObj.transform.SetParent(canvasObj.transform, false);
         interactPromptText = promptObj.AddComponent<Text>();
-        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.font = font;
         interactPromptText.fontSize = 22;
         interactPromptText.alignment = TextAnchor.MiddleCenter;
         interactPromptText.color = new Color(1f, 1f, 1f, 0.85f);
@@ -655,29 +607,13 @@ public class Level4_KeypadPuzzle : LevelManager
         promptRect.anchorMax = new Vector2(0.65f, 0.46f);
         promptRect.offsetMin = promptRect.offsetMax = Vector2.zero;
 
-        // Message text
-        GameObject msgObj = new GameObject("MessageText");
-        msgObj.transform.SetParent(canvasObj.transform, false);
-        messageCanvasGroup = msgObj.AddComponent<CanvasGroup>();
-        messageCanvasGroup.alpha = 0f;
-        messageText = msgObj.AddComponent<Text>();
-        messageText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        messageText.fontSize = 32;
-        messageText.alignment = TextAnchor.MiddleCenter;
-        messageText.color = Color.white;
-        messageText.raycastTarget = false;
-        RectTransform msgRect = msgObj.GetComponent<RectTransform>();
-        msgRect.anchorMin = new Vector2(0.15f, 0.55f);
-        msgRect.anchorMax = new Vector2(0.85f, 0.65f);
-        msgRect.offsetMin = msgRect.offsetMax = Vector2.zero;
-
         // Narration text
         GameObject narObj = new GameObject("NarrationText");
         narObj.transform.SetParent(canvasObj.transform, false);
         narrationCanvasGroup = narObj.AddComponent<CanvasGroup>();
         narrationCanvasGroup.alpha = 0f;
         narrationText = narObj.AddComponent<Text>();
-        narrationText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        narrationText.font = font;
         narrationText.fontSize = 24;
         narrationText.alignment = TextAnchor.MiddleCenter;
         narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);
@@ -687,198 +623,6 @@ public class Level4_KeypadPuzzle : LevelManager
         narRect.anchorMin = new Vector2(0.1f, 0.05f);
         narRect.anchorMax = new Vector2(0.9f, 0.14f);
         narRect.offsetMin = narRect.offsetMax = Vector2.zero;
-    }
-
-    // =========================================================================
-    // Keypad UI Creation
-    // =========================================================================
-
-    private void CreateKeypadUI()
-    {
-        // Screen-space overlay canvas for the keypad popup
-        GameObject canvasObj = new GameObject("KeypadCanvas");
-        canvasObj.transform.SetParent(transform);
-        keypadCanvas = canvasObj.AddComponent<Canvas>();
-        keypadCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        keypadCanvas.sortingOrder = 50;
-
-        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        canvasObj.AddComponent<GraphicRaycaster>();
-
-        // Dimmed background
-        GameObject dimObj = new GameObject("DimBackground");
-        dimObj.transform.SetParent(canvasObj.transform, false);
-        Image dimImg = dimObj.AddComponent<Image>();
-        dimImg.color = new Color(0, 0, 0, 0.7f);
-        dimImg.raycastTarget = true;
-        RectTransform dimRect = dimObj.GetComponent<RectTransform>();
-        dimRect.anchorMin = Vector2.zero;
-        dimRect.anchorMax = Vector2.one;
-        dimRect.offsetMin = dimRect.offsetMax = Vector2.zero;
-
-        // Main keypad panel
-        keypadPanel = new GameObject("KeypadPanel");
-        keypadPanel.transform.SetParent(canvasObj.transform, false);
-        Image panelBg = keypadPanel.AddComponent<Image>();
-        panelBg.color = new Color(0.08f, 0.08f, 0.12f, 0.95f);
-        RectTransform panelRect = keypadPanel.GetComponent<RectTransform>();
-        panelRect.anchorMin = new Vector2(0.3f, 0.1f);
-        panelRect.anchorMax = new Vector2(0.7f, 0.9f);
-        panelRect.offsetMin = panelRect.offsetMax = Vector2.zero;
-
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        // Title
-        CreateText(keypadPanel, "KeypadTitle", "DOOR ACCESS KEYPAD",
-            new Vector2(0.05f, 0.9f), new Vector2(0.95f, 0.97f),
-            36, new Color(0.9f, 0.9f, 0.9f), font);
-
-        // Sticky note text (email hint)
-        Text stickyText = CreateText(keypadPanel, "StickyNote",
-            "Sticky Note: \"rodney@please.nyc\"\n\"this guy always changes the code\"",
-            new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.9f),
-            18, new Color(1f, 1f, 0.6f), font);
-        stickyText.fontStyle = FontStyle.Italic;
-
-        // Code display
-        codeDisplayText = CreateText(keypadPanel, "CodeDisplay", "___ ___ ___",
-            new Vector2(0.1f, 0.72f), new Vector2(0.9f, 0.82f),
-            48, Color.white, font);
-
-        // Timer
-        timerText = CreateText(keypadPanel, "TimerText", "",
-            new Vector2(0.1f, 0.67f), new Vector2(0.9f, 0.73f),
-            20, new Color(1f, 0.9f, 0.3f), font);
-
-        // Status
-        statusText = CreateText(keypadPanel, "StatusText", "Enter the 9-digit code",
-            new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.68f),
-            18, new Color(0.7f, 0.7f, 0.7f), font);
-
-        // Number pad (3x4 grid: 1-9, then clear/0/submit)
-        float gridLeft = 0.15f;
-        float gridRight = 0.85f;
-        float gridTop = 0.58f;
-        float gridBottom = 0.2f;
-        float cellW = (gridRight - gridLeft) / 3f;
-        float cellH = (gridTop - gridBottom) / 4f;
-        float pad = 0.008f;
-
-        // Rows 1-3 (digits 1-9)
-        for (int row = 0; row < 3; row++)
-        {
-            for (int col = 0; col < 3; col++)
-            {
-                int digit = row * 3 + col + 1;
-                float x0 = gridLeft + col * cellW + pad;
-                float x1 = gridLeft + (col + 1) * cellW - pad;
-                float y1 = gridTop - row * cellH - pad;
-                float y0 = gridTop - (row + 1) * cellH + pad;
-
-                digitButtons[digit] = CreateKeypadButton(keypadPanel, digit.ToString(),
-                    digit.ToString(), new Vector2(x0, y0), new Vector2(x1, y1),
-                    new Color(0.25f, 0.25f, 0.3f), font, 28);
-
-                int d = digit; // capture for closure
-                digitButtons[d].onClick.AddListener(() => OnDigitPressed(d));
-            }
-        }
-
-        // Row 4: Clear, 0, Submit
-        float r4y0 = gridTop - 4 * cellH + pad;
-        float r4y1 = gridTop - 3 * cellH - pad;
-
-        clearButton = CreateKeypadButton(keypadPanel, "Clear", "CLR",
-            new Vector2(gridLeft + pad, r4y0), new Vector2(gridLeft + cellW - pad, r4y1),
-            new Color(0.5f, 0.2f, 0.2f), font, 22);
-        clearButton.onClick.AddListener(OnClearPressed);
-
-        digitButtons[0] = CreateKeypadButton(keypadPanel, "Digit0", "0",
-            new Vector2(gridLeft + cellW + pad, r4y0), new Vector2(gridLeft + 2 * cellW - pad, r4y1),
-            new Color(0.25f, 0.25f, 0.3f), font, 28);
-        digitButtons[0].onClick.AddListener(() => OnDigitPressed(0));
-
-        submitButton = CreateKeypadButton(keypadPanel, "Submit", "OK",
-            new Vector2(gridLeft + 2 * cellW + pad, r4y0), new Vector2(gridRight - pad, r4y1),
-            new Color(0.2f, 0.45f, 0.2f), font, 22);
-        submitButton.onClick.AddListener(OnSubmitPressed);
-
-        // Request code button (simulates emailing Rodney)
-        requestCodeButton = CreateKeypadButton(keypadPanel, "RequestCode",
-            "Email Rodney for Code",
-            new Vector2(0.1f, 0.1f), new Vector2(0.65f, 0.18f),
-            new Color(0.2f, 0.3f, 0.5f), font, 18);
-        requestCodeButton.onClick.AddListener(OnRequestCodePressed);
-
-        // Close button
-        closeKeypadButton = CreateKeypadButton(keypadPanel, "CloseKeypad", "X",
-            new Vector2(0.9f, 0.93f), new Vector2(0.98f, 0.99f),
-            new Color(0.5f, 0.15f, 0.15f), font, 20);
-        closeKeypadButton.onClick.AddListener(CloseKeypad);
-
-        // Start hidden
-        keypadPanel.SetActive(false);
-    }
-
-    private Button CreateKeypadButton(GameObject parent, string name, string label,
-        Vector2 anchorMin, Vector2 anchorMax, Color bgColor, Font font, int fontSize)
-    {
-        GameObject obj = new GameObject(name);
-        obj.transform.SetParent(parent.transform, false);
-
-        Image bg = obj.AddComponent<Image>();
-        bg.color = bgColor;
-
-        Button btn = obj.AddComponent<Button>();
-        ColorBlock colors = btn.colors;
-        colors.highlightedColor = new Color(
-            Mathf.Min(bgColor.r + 0.15f, 1f),
-            Mathf.Min(bgColor.g + 0.15f, 1f),
-            Mathf.Min(bgColor.b + 0.15f, 1f), 1f);
-        colors.pressedColor = new Color(bgColor.r * 0.6f, bgColor.g * 0.6f, bgColor.b * 0.6f, 1f);
-        btn.colors = colors;
-
-        RectTransform rect = obj.GetComponent<RectTransform>();
-        rect.anchorMin = anchorMin;
-        rect.anchorMax = anchorMax;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-
-        // Label
-        GameObject textObj = new GameObject("Text");
-        textObj.transform.SetParent(obj.transform, false);
-        Text txt = textObj.AddComponent<Text>();
-        txt.text = label;
-        txt.font = font;
-        txt.fontSize = fontSize;
-        txt.alignment = TextAnchor.MiddleCenter;
-        txt.color = Color.white;
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = textRect.offsetMax = Vector2.zero;
-
-        return btn;
-    }
-
-    private Text CreateText(GameObject parent, string name, string content,
-        Vector2 anchorMin, Vector2 anchorMax, int fontSize, Color color, Font font)
-    {
-        GameObject obj = new GameObject(name);
-        obj.transform.SetParent(parent.transform, false);
-        Text txt = obj.AddComponent<Text>();
-        txt.text = content;
-        txt.font = font;
-        txt.fontSize = fontSize;
-        txt.alignment = TextAnchor.MiddleCenter;
-        txt.color = color;
-        txt.raycastTarget = false;
-        RectTransform rect = obj.GetComponent<RectTransform>();
-        rect.anchorMin = anchorMin;
-        rect.anchorMax = anchorMax;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        return txt;
     }
 
     // =========================================================================
@@ -892,15 +636,6 @@ public class Level4_KeypadPuzzle : LevelManager
         narrationText.text = text;
         if (narrationFadeCoroutine != null) StopCoroutine(narrationFadeCoroutine);
         narrationFadeCoroutine = StartCoroutine(FadeCanvasGroup(narrationCanvasGroup, duration));
-    }
-
-    private void ShowMessage(string message)
-    {
-        Debug.Log($"[Level4] {message}");
-        if (messageText == null || messageCanvasGroup == null) return;
-        messageText.text = message;
-        if (messageFadeCoroutine != null) StopCoroutine(messageFadeCoroutine);
-        messageFadeCoroutine = StartCoroutine(FadeCanvasGroup(messageCanvasGroup, 3f));
     }
 
     private IEnumerator FadeCanvasGroup(CanvasGroup cg, float holdDuration)
@@ -929,3 +664,4 @@ public class Level4_KeypadPuzzle : LevelManager
         cg.alpha = 0f;
     }
 }
+

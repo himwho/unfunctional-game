@@ -64,6 +64,11 @@ public class DoorController : MonoBehaviour
     public GameObject lockPlate;        // Metal plate
     public GameObject keyholeSlot;      // The keyhole opening
 
+    [Header("Keypad Controller")]
+    [Tooltip("Reusable keypad interaction component. Level scripts configure " +
+             "this and subscribe to its events for code validation.")]
+    public KeypadController keypadController;
+
     // =========================================================================
     // Runtime state
     // =========================================================================
@@ -85,6 +90,10 @@ public class DoorController : MonoBehaviour
 
     private void Awake()
     {
+        // Auto-find KeypadController if not assigned
+        if (keypadController == null)
+            keypadController = GetComponent<KeypadController>();
+
         ApplyUnlockMethod();
 
         if (doorPanel != null)
@@ -97,6 +106,7 @@ public class DoorController : MonoBehaviour
     /// <summary>
     /// Enables/disables the keypad and keyhole mounts based on the current
     /// unlockMethod value. Safe to call at edit-time or runtime.
+    /// Also enables/disables the KeypadController component accordingly.
     /// </summary>
     public void ApplyUnlockMethod()
     {
@@ -105,6 +115,9 @@ public class DoorController : MonoBehaviour
 
         if (keyholeLockMount != null)
             keyholeLockMount.SetActive(unlockMethod == UnlockMethod.Keyhole);
+
+        if (keypadController != null)
+            keypadController.enabled = (unlockMethod == UnlockMethod.Keypad);
     }
 
     // =========================================================================
