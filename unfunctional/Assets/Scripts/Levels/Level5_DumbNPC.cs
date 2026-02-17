@@ -48,6 +48,20 @@ public class Level5_DumbNPC : LevelManager
     private bool wasPlayerNear = false;
     private bool isReversing = false;
 
+    // Base font sizes (set during HUD creation, used for distance scaling)
+    private int baseFontSizeDialogue;
+    private int baseFontSizeName;
+    private int baseFontSizePrompt;
+
+    // RectTransforms & base anchors for distance-based layout collapsing
+    private RectTransform nameRect;
+    private RectTransform dialogueRect;
+    private RectTransform promptRect;
+    private Vector2 baseNameAnchorMin, baseNameAnchorMax;
+    private Vector2 baseDialogueAnchorMin, baseDialogueAnchorMax;
+    private Vector2 basePromptAnchorMin, basePromptAnchorMax;
+    private float anchorCenterY;
+
     protected override void Start()
     {
         base.Start();
@@ -65,6 +79,24 @@ public class Level5_DumbNPC : LevelManager
 
         CreateDialogueHUD();
         CreateInteractPrompt();
+
+        baseFontSizeDialogue = dialogueText.fontSize;
+        baseFontSizeName = npcNameText.fontSize;
+        baseFontSizePrompt = promptText.fontSize;
+
+        nameRect     = npcNameText.GetComponent<RectTransform>();
+        dialogueRect = dialogueText.GetComponent<RectTransform>();
+        promptRect   = promptText.GetComponent<RectTransform>();
+
+        baseNameAnchorMin     = nameRect.anchorMin;
+        baseNameAnchorMax     = nameRect.anchorMax;
+        baseDialogueAnchorMin = dialogueRect.anchorMin;
+        baseDialogueAnchorMax = dialogueRect.anchorMax;
+        basePromptAnchorMin   = promptRect.anchorMin;
+        basePromptAnchorMax   = promptRect.anchorMax;
+
+        // Vertical center of the whole dialogue block (prompt bottom to name top)
+        anchorCenterY = (basePromptAnchorMin.y + baseNameAnchorMax.y) * 0.5f;
 
         dialogueCanvas.gameObject.SetActive(false);
         interactPromptCanvas.gameObject.SetActive(false);
@@ -107,6 +139,11 @@ public class Level5_DumbNPC : LevelManager
         else if (ePressed && waitingForInput && !isTyping && inputCooldown <= 0f)
         {
             AdvanceDialogue();
+        }
+
+        if (inDialogue)
+        {
+            UpdateDialogueFontSize();
         }
     }
 
@@ -156,6 +193,18 @@ public class Level5_DumbNPC : LevelManager
     {
         inDialogue = true;
         currentLine = 0;
+
+        // Reset font sizes and layout to full when starting a fresh conversation
+        dialogueText.fontSize = baseFontSizeDialogue;
+        npcNameText.fontSize  = baseFontSizeName;
+        promptText.fontSize   = baseFontSizePrompt;
+
+        nameRect.anchorMin     = baseNameAnchorMin;
+        nameRect.anchorMax     = baseNameAnchorMax;
+        dialogueRect.anchorMin = baseDialogueAnchorMin;
+        dialogueRect.anchorMax = baseDialogueAnchorMax;
+        promptRect.anchorMin   = basePromptAnchorMin;
+        promptRect.anchorMax   = basePromptAnchorMax;
 
         interactPromptCanvas.gameObject.SetActive(false);
         dialogueCanvas.gameObject.SetActive(true);
@@ -240,6 +289,51 @@ public class Level5_DumbNPC : LevelManager
 
         Debug.Log($"[Level5] Dialogue ended after {dialogueLines.Count} lines.");
         CompleteLevel();
+    }
+
+    // =========================================================================
+    // Distance-based Font Scaling
+    // =========================================================================
+
+    /// <summary>
+    /// Shrinks all dialogue font sizes as the player walks away from the NPC.
+    /// At interact range or closer the text is full-size; beyond that it falls
+    /// off proportionally so the conversation becomes unreadable from a distance.
+    /// </summary>
+    private void UpdateDialogueFontSize()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || npcObject == null) return;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+
+        // Within interact range: full size. Beyond: shrinks with inverse distance.
+        float scale = dist <= interactRange ? 1f : interactRange / dist;
+
+        dialogueText.fontSize = Mathf.Max(1, Mathf.RoundToInt(baseFontSizeDialogue * scale));
+        npcNameText.fontSize  = Mathf.Max(1, Mathf.RoundToInt(baseFontSizeName * scale));
+        promptText.fontSize   = Mathf.Max(1, Mathf.RoundToInt(baseFontSizePrompt * scale));
+
+        // Collapse element anchors towards the vertical center so spacing shrinks too
+        nameRect.anchorMin     = CollapseAnchor(baseNameAnchorMin, scale);
+        nameRect.anchorMax     = CollapseAnchor(baseNameAnchorMax, scale);
+        dialogueRect.anchorMin = CollapseAnchor(baseDialogueAnchorMin, scale);
+        dialogueRect.anchorMax = CollapseAnchor(baseDialogueAnchorMax, scale);
+        promptRect.anchorMin   = CollapseAnchor(basePromptAnchorMin, scale);
+        promptRect.anchorMax   = CollapseAnchor(basePromptAnchorMax, scale);
+    }
+
+    /// <summary>
+    /// Lerps an anchor's Y component towards the shared vertical center.
+    /// At scale 1 the anchor is unchanged; as scale approaches 0 everything
+    /// converges to a single line so the gaps between elements disappear.
+    /// </summary>
+    private Vector2 CollapseAnchor(Vector2 baseAnchor, float scale)
+    {
+        return new Vector2(
+            baseAnchor.x,
+            Mathf.Lerp(anchorCenterY, baseAnchor.y, scale)
+        );
     }
 
     // =========================================================================
