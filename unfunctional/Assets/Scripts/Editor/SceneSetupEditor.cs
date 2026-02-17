@@ -711,6 +711,13 @@ public class SceneSetupEditor : EditorWindow
             if (doorCtrl != null)
             {
                 doorCtrl.unlockMethod = DoorController.UnlockMethod.Keypad;
+
+                // Ensure KeypadController exists on the door for interactive keypad
+                KeypadController kc = doorInstance.GetComponent<KeypadController>();
+                if (kc == null) kc = doorInstance.AddComponent<KeypadController>();
+                if (doorCtrl.keypadController == null)
+                    doorCtrl.keypadController = kc;
+
                 doorCtrl.ApplyUnlockMethod();
             }
 
@@ -791,11 +798,34 @@ public class SceneSetupEditor : EditorWindow
                 kpScript.doorObject = doorCtrl.doorPanel ?? doorInstance;
             if (kpScript.doorController == null)
                 kpScript.doorController = doorCtrl;
+
+            // Use the prefab's keypad visual for the raycast target
+            if (kpScript.keypadObject == null)
+            {
+                if (doorCtrl.keypadPanel != null)
+                    kpScript.keypadObject = doorCtrl.keypadPanel;
+                else if (doorCtrl.keypadMount != null)
+                    kpScript.keypadObject = doorCtrl.keypadMount;
+                else
+                    kpScript.keypadObject = keypadBox; // fallback to editor-created box
+            }
+
+            // Use the prefab's sticky note point if available
+            if (kpScript.stickyNotePoint == null)
+            {
+                if (doorCtrl.stickyNotePoint != null)
+                    kpScript.stickyNotePoint = doorCtrl.stickyNotePoint;
+                else
+                    kpScript.stickyNotePoint = stickyPoint.transform;
+            }
         }
-        if (kpScript.keypadObject == null)
-            kpScript.keypadObject = keypadBox;
-        if (kpScript.stickyNotePoint == null)
-            kpScript.stickyNotePoint = stickyPoint.transform;
+        else
+        {
+            if (kpScript.keypadObject == null)
+                kpScript.keypadObject = keypadBox;
+            if (kpScript.stickyNotePoint == null)
+                kpScript.stickyNotePoint = stickyPoint.transform;
+        }
         if (kpScript.playerSpawnPoint == null)
             kpScript.playerSpawnPoint = spawnPoint.transform;
 

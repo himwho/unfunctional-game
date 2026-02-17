@@ -7,26 +7,21 @@
 - email support door (setup and send an email)
 - dumb NPC conversation
 - Quicktime events to door
-- over achiever, constant achievement abuse level
-- compass following task level (constantly collowing compass and paths)
-- dlc door, open a fake shop page
-- long run distance door (reference all walking simulators), add stamina bar mechanics
-- bad RNG door
-- item degradation level (you use items but they immediately break before you finish each task)
+- compass following task level (constantly collowing compass and paths) all hallways to make the compass redundant mostly
+- dlc door, open a fake shop page, reward the user with store game credits after enough browsing of fake items has occurred
+- long run distance door (reference all walking simulators), add stamina bar mechanics for sprinting that gets repetitive
+- item degradation level (you use items but they immediately break before you finish each task), shovel that breaks while digging
+- bad RNG door (give the player a choice and inform them of the % chance of failure), two options are that the user can either spawn an easy room which has a 25% chance of not including a door which would force the user to quit and restart, or spawn a difficult room but we make this chance a "coming soon with DLC" and not available yet
 - 2nd Person shooter door, fight dumb AI but camera view is from their perspective of you
-- FPS but the every aim gun throws your aim somewhere random
 - Supporters Steam DLC that adds that user's name to a pre-credit roll that is unskippable
+x over achiever, constant achievement abuse level
 
 
 #### TODO
 - game-design: finalize level descriptions and order of levels
-- planning: breakdown development components for first 3 levels
 - design: moodboard and color pallette
 - design: add references and pulls to `reference-design` dir
-- Level3: Build room mesh, door, clippable wall section, exit trigger in LEVEL3 scene
 - Level4: Email support for temp code to unlock door
-- Level5: Place NPC model, wire up dialogue Canvas in LEVEL4 scene
-- Level6: Wire up QTE Canvas UI and test sequence in LEVEL5 scene
 
 
 # LEVEL DESCRIPTIONS
@@ -81,16 +76,16 @@ Dumb NPC, an unnecessary and long NPC conversation
 - NPC Pawn
 - Dialogue script and UI
 - Dialogue Options and scripting for decision tree
+- Restart dialogue when exit nearby distance check
+- Dialogue at the end needs to generate a unique code each level load
 
 ## LEVEL6
-Quitime event level, forces the user to do timed key based quicktime events in a long sequence
+Quitime event level, forces the user to do timed key based quicktime events in a long sequence. Using the hallway design from LEVEL4, there should be a quicktime event keyboard key for each step the character needs to take and eventually for each action of opening the door.
 
 #### Requirements: 
-- Quicktime events script (script attaches to each object to be a quicktime event with public var being correct key and display key (additional puzzle of display key changing or being incorrect?)
-- Animations for responses?
+- Quicktime events are displayed 
 
 ## LEVEL7
-A door with a code that is only obtained by emailing a support email, EC2 instance will generate door codes server side and respond to the email with the new code that only lasts 15 seconds.
 
 #### Requirements:
 - 
