@@ -14952,7 +14952,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _MainTex
-  tiling: {x: 100, y: 50}
+  tiling: {x: 100, y: 100}
   offset: {x: 0, y: 0}
   debugLog: 0
 --- !u!1001 &687688944
@@ -41188,6 +41188,7 @@ GameObject:
   - component: {fileID: 1911606541}
   - component: {fileID: 1911606540}
   - component: {fileID: 1911606539}
+  - component: {fileID: 1911606543}
   m_Layer: 0
   m_Name: Plane (1)
   m_TagString: Untagged
@@ -41242,7 +41243,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f21d9acb4a48bd04a9753ea8ea086659, type: 2}
+  - {fileID: 2100000, guid: 3556f150c4a3eeb41bc4806346451024, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -41288,6 +41289,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
+--- !u!114 &1911606543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911606538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _MainTex
+  tiling: {x: 100, y: 100}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1001 &1914007603
 PrefabInstance:
   m_ObjectHideFlags: 0
