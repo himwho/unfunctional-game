@@ -71,7 +71,7 @@ Level is a room with a door and a keypad next to the door, above the keypad is a
 
 ## LEVEL5
 Dumb NPC, an unnecessary and long NPC conversation
-Add feature where something happens behind the player that encourages them to walk away from gorp thus annoyingly restarting the dialogue
+Add feature where something happens behind the player that encourages them to walk away from gorp thus annoyingly restarting the dialogue. Could be something where the floor is a treadmill and the user has to hold W to run towards gorp and stay within the dialogue proximity but the floor keeps moving faster pushing them away from gorp and thus restaring the dialogue
 
 #### Requirements:
 - NPC Pawn
