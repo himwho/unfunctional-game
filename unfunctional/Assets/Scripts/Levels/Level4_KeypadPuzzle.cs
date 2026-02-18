@@ -142,6 +142,9 @@ public class Level4_KeypadPuzzle : LevelManager
     {
         if (levelComplete || doorOpening) return;
 
+        if (crosshairImage != null)
+            crosshairImage.enabled = keypad != null && keypad.IsOpen;
+
         UpdateInteractPrompt();
         CheckInteraction();
         UpdateKeypadTimer();

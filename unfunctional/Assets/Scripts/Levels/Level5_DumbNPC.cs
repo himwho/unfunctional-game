@@ -173,6 +173,9 @@ public class Level5_DumbNPC : LevelManager
     {
         if (levelComplete || doorOpening) return;
 
+        if (crosshairImage != null)
+            crosshairImage.enabled = keypad != null && keypad.IsOpen;
+
         if (inputCooldown > 0f)
             inputCooldown -= Time.deltaTime;
 
