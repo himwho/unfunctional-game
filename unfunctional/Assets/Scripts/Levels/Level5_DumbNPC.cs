@@ -18,6 +18,11 @@ public class Level5_DumbNPC : LevelManager
     public float interactRange = 5f;
     public string npcName = "Gorp";
 
+    [Header("Walk-Away Detection")]
+    public float maxDialogueRange = 15f;
+    public string comeBackLine = "Hey, come back here!";
+    public string startOverLine = "Let me start over...";
+
     [Header("Typing Effect")]
     public float typingSpeed = 0.04f;
     public bool enableTypingEffect = true;
@@ -49,6 +54,7 @@ public class Level5_DumbNPC : LevelManager
     private bool isReversing = false;
     private bool npcReadyToInteract = false;
     private Coroutine reverseCoroutine;
+    private bool playerTooFar = false;
 
     // Base font sizes (set during HUD creation, used for distance scaling)
     private int baseFontSizeDialogue;
@@ -158,13 +164,14 @@ public class Level5_DumbNPC : LevelManager
             if (ePressed && npcReadyToInteract)
                 TryStartDialogue();
         }
-        else if (ePressed && waitingForInput && !isTyping && inputCooldown <= 0f)
+        else if (ePressed && waitingForInput && !isTyping && !playerTooFar && inputCooldown <= 0f)
         {
             AdvanceDialogue();
         }
 
         if (inDialogue)
         {
+            CheckPlayerDistance();
             UpdateDialogueFontSize();
         }
     }
@@ -211,6 +218,89 @@ public class Level5_DumbNPC : LevelManager
         return dist <= interactRange;
     }
 
+    /// <summary>
+    /// During dialogue, checks if the player has wandered too far from the NPC.
+    /// If so, interrupts the current line and shows a "come back" message.
+    /// When the player returns, the interrupted line replays from the start.
+    /// </summary>
+    private void CheckPlayerDistance()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || npcObject == null) return;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+
+        if (!playerTooFar && dist > maxDialogueRange)
+        {
+            playerTooFar = true;
+
+            if (typingCoroutine != null)
+                StopCoroutine(typingCoroutine);
+            isTyping = false;
+            waitingForInput = false;
+
+            npcNameText.text = npcName;
+            promptText.gameObject.SetActive(false);
+
+            if (enableTypingEffect)
+            {
+                typingCoroutine = StartCoroutine(TypeComeBackLine());
+            }
+            else
+            {
+                dialogueText.text = comeBackLine;
+                promptText.gameObject.SetActive(true);
+                promptText.text = "(walk back to " + npcName + ")";
+            }
+        }
+        else if (playerTooFar && dist <= maxDialogueRange)
+        {
+            playerTooFar = false;
+            currentLine = 0;
+            StartCoroutine(ShowStartOverThenResume());
+        }
+    }
+
+    private IEnumerator TypeComeBackLine()
+    {
+        isTyping = true;
+        dialogueText.text = "";
+        foreach (char c in comeBackLine)
+        {
+            dialogueText.text += c;
+            yield return new WaitForSeconds(typingSpeed);
+        }
+        isTyping = false;
+        promptText.gameObject.SetActive(true);
+        promptText.text = "(walk back to " + npcName + ")";
+    }
+
+    private IEnumerator ShowStartOverThenResume()
+    {
+        waitingForInput = false;
+        promptText.gameObject.SetActive(false);
+
+        if (enableTypingEffect)
+        {
+            isTyping = true;
+            dialogueText.text = "";
+            foreach (char c in startOverLine)
+            {
+                dialogueText.text += c;
+                yield return new WaitForSeconds(typingSpeed);
+            }
+            isTyping = false;
+        }
+        else
+        {
+            dialogueText.text = startOverLine;
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        ShowCurrentLine();
+    }
+
     private void TryStartDialogue()
     {
         if (IsPlayerNearNPC())
@@ -223,6 +313,7 @@ public class Level5_DumbNPC : LevelManager
     {
         inDialogue = true;
         currentLine = 0;
+        playerTooFar = false;
 
         // Reset font sizes and layout to full when starting a fresh conversation
         dialogueText.fontSize = baseFontSizeDialogue;

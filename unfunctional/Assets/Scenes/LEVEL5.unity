@@ -1236,7 +1236,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}
       propertyPath: m_Name
-      value: bridge_model_20260215_215105_f4f33e27
+      value: Gorp
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}

@@ -71,6 +71,7 @@ Level is a room with a door and a keypad next to the door, above the keypad is a
 
 ## LEVEL5
 Dumb NPC, an unnecessary and long NPC conversation
+Add feature where something happens behind the player that encourages them to walk away from gorp thus annoyingly restarting the dialogue
 
 #### Requirements:
 - NPC Pawn
