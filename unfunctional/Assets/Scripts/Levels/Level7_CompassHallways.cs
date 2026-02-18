@@ -109,11 +109,20 @@ public class Level7_CompassHallways : LevelManager
             currentPos += currentDir * segmentLength;
         }
 
-        // Create player spawn point
-        GameObject spawnPoint = new GameObject("PlayerSpawnPoint");
-        spawnPoint.transform.position = new Vector3(0f, 1f, -segmentLength * 0.3f);
-        spawnPoint.transform.rotation = Quaternion.LookRotation(Vector3.forward);
-        playerSpawnPoint = spawnPoint.transform;
+        // Use existing spawn point if assigned in Inspector or found in scene
+        if (playerSpawnPoint == null)
+        {
+            GameObject existing = GameObject.Find("PlayerSpawnPoint");
+            if (existing != null)
+                playerSpawnPoint = existing.transform;
+        }
+        if (playerSpawnPoint == null)
+        {
+            GameObject spawnPoint = new GameObject("PlayerSpawnPoint");
+            spawnPoint.transform.position = new Vector3(0f, 1f, -segmentLength * 0.3f);
+            spawnPoint.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            playerSpawnPoint = spawnPoint.transform;
+        }
 
         // Mark exit
         GameObject exitObj = new GameObject("ExitPoint");
