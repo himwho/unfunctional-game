@@ -44,6 +44,7 @@ public class Level7_CompassHallways : LevelManager
     private bool inDialogue = false;
     private bool hasSpokenToNpc = false;
     private Coroutine typingCoroutine;
+    private Animator npcAnimator;
 
     protected override void Start()
     {
@@ -52,6 +53,9 @@ public class Level7_CompassHallways : LevelManager
         levelDescription = "Follow the compass. It knows the way. Probably.";
         needsPlayer = true;
         wantsCursorLocked = true;
+
+        if (npcObject != null)
+            npcAnimator = npcObject.GetComponentInChildren<Animator>();
 
         CreateCompassHUD();
         CreateInteractPrompt();
@@ -231,6 +235,9 @@ public class Level7_CompassHallways : LevelManager
         hasSpokenToNpc = true;
         interactPromptCanvas.gameObject.SetActive(false);
         dialogueCanvas.gameObject.SetActive(true);
+
+        if (npcAnimator != null)
+            npcAnimator.SetTrigger("Interacted");
 
         dialogueNameText.text = npcName;
         dialogueDismissText.gameObject.SetActive(false);
