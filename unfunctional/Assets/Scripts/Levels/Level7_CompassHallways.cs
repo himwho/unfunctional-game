@@ -25,13 +25,12 @@ public class Level7_CompassHallways : LevelManager
     public float erraticStartDistance = 20f;
     public float erraticIntensity = 180f;
 
-    // Runtime HUD references
+    private static readonly Color FaceNormal = new Color(0.95f, 0.93f, 0.9f);
+    private static readonly Color FaceErratic = new Color(0.6f, 0.25f, 0.2f);
+
     private Canvas compassCanvas;
     private RectTransform compassNeedle;
-    private Text compassLabel;
-    private Text distanceText;
-    private Image compassBg;
-
+    private Image compassFace;
     private bool reachedEnd = false;
 
     protected override void Start()
@@ -58,6 +57,7 @@ public class Level7_CompassHallways : LevelManager
 
     private void CreateCompassHUD()
     {
+        // Canvas
         GameObject canvasObj = new GameObject("CompassHUD");
         canvasObj.transform.SetParent(transform);
         compassCanvas = canvasObj.AddComponent<Canvas>();
@@ -68,61 +68,143 @@ public class Level7_CompassHallways : LevelManager
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // Compass background
-        GameObject bgObj = new GameObject("CompassBG");
-        bgObj.transform.SetParent(canvasObj.transform, false);
-        compassBg = bgObj.AddComponent<Image>();
-        compassBg.color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
-        RectTransform bgRect = bgObj.GetComponent<RectTransform>();
-        bgRect.anchorMin = new Vector2(0.85f, 0.75f);
-        bgRect.anchorMax = new Vector2(0.98f, 0.95f);
-        bgRect.offsetMin = Vector2.zero;
-        bgRect.offsetMax = Vector2.zero;
+        // Outer bezel (gray metallic border)
+        GameObject borderObj = new GameObject("CompassBorder");
+        borderObj.transform.SetParent(canvasObj.transform, false);
+        Image borderImg = borderObj.AddComponent<Image>();
+        borderImg.color = new Color(0.45f, 0.47f, 0.5f);
+        borderImg.raycastTarget = false;
+        RectTransform borderRect = borderObj.GetComponent<RectTransform>();
+        borderRect.anchorMin = new Vector2(0.5f, 0f);
+        borderRect.anchorMax = new Vector2(0.5f, 0f);
+        borderRect.pivot = new Vector2(0.5f, 0f);
+        borderRect.anchoredPosition = new Vector2(0f, 20f);
+        borderRect.sizeDelta = new Vector2(160f, 160f);
 
-        // Compass needle (a thin colored bar that rotates)
-        GameObject needleObj = new GameObject("CompassNeedle");
-        needleObj.transform.SetParent(bgObj.transform, false);
-        Image needleImage = needleObj.AddComponent<Image>();
-        needleImage.color = new Color(0.9f, 0.2f, 0.2f);
-        needleImage.raycastTarget = false;
+        // Inner bezel ring (slightly darker than face)
+        GameObject innerRingObj = new GameObject("InnerRing");
+        innerRingObj.transform.SetParent(borderObj.transform, false);
+        Image innerRingImg = innerRingObj.AddComponent<Image>();
+        innerRingImg.color = new Color(0.55f, 0.56f, 0.58f);
+        innerRingImg.raycastTarget = false;
+        RectTransform innerRingRect = innerRingObj.GetComponent<RectTransform>();
+        innerRingRect.anchorMin = new Vector2(0.05f, 0.05f);
+        innerRingRect.anchorMax = new Vector2(0.95f, 0.95f);
+        innerRingRect.offsetMin = Vector2.zero;
+        innerRingRect.offsetMax = Vector2.zero;
+
+        // Compass face (off-white center)
+        GameObject faceObj = new GameObject("CompassFace");
+        faceObj.transform.SetParent(innerRingObj.transform, false);
+        compassFace = faceObj.AddComponent<Image>();
+        compassFace.color = FaceNormal;
+        compassFace.raycastTarget = false;
+        RectTransform faceRect = faceObj.GetComponent<RectTransform>();
+        faceRect.anchorMin = new Vector2(0.04f, 0.04f);
+        faceRect.anchorMax = new Vector2(0.96f, 0.96f);
+        faceRect.offsetMin = Vector2.zero;
+        faceRect.offsetMax = Vector2.zero;
+
+        // Tick marks around the edge
+        Color tickColor = new Color(0.25f, 0.25f, 0.25f);
+        for (int angle = 0; angle < 360; angle += 15)
+        {
+            bool cardinal = angle % 90 == 0;
+            bool major = angle % 30 == 0;
+            float length = cardinal ? 12f : (major ? 8f : 5f);
+            float width = cardinal ? 2.5f : (major ? 2f : 1f);
+            CreateRadialLine(faceObj.transform, angle, 58f, length, width, tickColor, false);
+        }
+
+        // Compass rose: thin decorative diagonals behind the arrow
+        Color roseColor = new Color(0.6f, 0.58f, 0.55f);
+        for (int a = 45; a < 360; a += 90)
+            CreateRadialLine(faceObj.transform, a, 6f, 24f, 1f, roseColor, true);
+
+        // Arrow container (rotates toward exit)
+        GameObject needleObj = new GameObject("ArrowContainer");
+        needleObj.AddComponent<RectTransform>();
+        needleObj.transform.SetParent(faceObj.transform, false);
         compassNeedle = needleObj.GetComponent<RectTransform>();
-        compassNeedle.anchorMin = new Vector2(0.45f, 0.2f);
-        compassNeedle.anchorMax = new Vector2(0.55f, 0.8f);
-        compassNeedle.offsetMin = Vector2.zero;
-        compassNeedle.offsetMax = Vector2.zero;
-        compassNeedle.pivot = new Vector2(0.5f, 0.5f);
+        compassNeedle.anchorMin = new Vector2(0.5f, 0.5f);
+        compassNeedle.anchorMax = new Vector2(0.5f, 0.5f);
+        compassNeedle.sizeDelta = Vector2.zero;
 
-        // Label
-        GameObject labelObj = new GameObject("CompassLabel");
-        labelObj.transform.SetParent(canvasObj.transform, false);
-        compassLabel = labelObj.AddComponent<Text>();
-        compassLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        compassLabel.fontSize = 16;
-        compassLabel.alignment = TextAnchor.MiddleCenter;
-        compassLabel.color = new Color(0.7f, 0.7f, 0.8f);
-        compassLabel.text = "COMPASS";
-        compassLabel.raycastTarget = false;
-        RectTransform labelRect = labelObj.GetComponent<RectTransform>();
-        labelRect.anchorMin = new Vector2(0.85f, 0.72f);
-        labelRect.anchorMax = new Vector2(0.98f, 0.76f);
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
+        Color arrowColor = new Color(0.85f, 0.2f, 0.15f);
 
-        // Distance indicator
-        GameObject distObj = new GameObject("DistanceText");
-        distObj.transform.SetParent(canvasObj.transform, false);
-        distanceText = distObj.AddComponent<Text>();
-        distanceText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        distanceText.fontSize = 14;
-        distanceText.alignment = TextAnchor.MiddleCenter;
-        distanceText.color = new Color(0.5f, 0.5f, 0.6f);
-        distanceText.raycastTarget = false;
-        RectTransform distRect = distObj.GetComponent<RectTransform>();
-        distRect.anchorMin = new Vector2(0.85f, 0.68f);
-        distRect.anchorMax = new Vector2(0.98f, 0.72f);
-        distRect.offsetMin = Vector2.zero;
-        distRect.offsetMax = Vector2.zero;
+        // Arrow shaft (extends upward from center)
+        CreateArrowPart(needleObj.transform, "Shaft", arrowColor,
+            new Vector2(4f, 42f), new Vector2(0.5f, 0f), Vector2.zero, 0f);
+
+        // Arrow tail (short stub below center)
+        CreateArrowPart(needleObj.transform, "Tail", new Color(0.4f, 0.4f, 0.42f),
+            new Vector2(3f, 16f), new Vector2(0.5f, 1f), Vector2.zero, 0f);
+
+        // Arrowhead left arm
+        CreateArrowPart(needleObj.transform, "HeadLeft", arrowColor,
+            new Vector2(3f, 16f), new Vector2(0.5f, 1f), new Vector2(0f, 40f), 35f);
+
+        // Arrowhead right arm
+        CreateArrowPart(needleObj.transform, "HeadRight", arrowColor,
+            new Vector2(3f, 16f), new Vector2(0.5f, 1f), new Vector2(0f, 40f), -35f);
+
+        // Center pin
+        GameObject pinObj = new GameObject("CenterPin");
+        pinObj.transform.SetParent(faceObj.transform, false);
+        Image pinImg = pinObj.AddComponent<Image>();
+        pinImg.color = new Color(0.35f, 0.28f, 0.22f);
+        pinImg.raycastTarget = false;
+        RectTransform pinRect = pinObj.GetComponent<RectTransform>();
+        pinRect.anchorMin = new Vector2(0.5f, 0.5f);
+        pinRect.anchorMax = new Vector2(0.5f, 0.5f);
+        pinRect.sizeDelta = new Vector2(10f, 10f);
     }
+
+    private void CreateRadialLine(Transform parent, float angleDeg, float distFromCenter,
+        float length, float width, Color color, bool extendsOutward)
+    {
+        GameObject container = new GameObject($"Line_{angleDeg}");
+        container.AddComponent<RectTransform>();
+        container.transform.SetParent(parent, false);
+        RectTransform cRect = container.GetComponent<RectTransform>();
+        cRect.anchorMin = new Vector2(0.5f, 0.5f);
+        cRect.anchorMax = new Vector2(0.5f, 0.5f);
+        cRect.sizeDelta = Vector2.zero;
+        cRect.localRotation = Quaternion.Euler(0, 0, -angleDeg);
+
+        GameObject mark = new GameObject("Mark");
+        mark.transform.SetParent(container.transform, false);
+        Image img = mark.AddComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        RectTransform mRect = mark.GetComponent<RectTransform>();
+        mRect.anchorMin = new Vector2(0.5f, 0.5f);
+        mRect.anchorMax = new Vector2(0.5f, 0.5f);
+        mRect.pivot = extendsOutward ? new Vector2(0.5f, 0f) : new Vector2(0.5f, 1f);
+        mRect.sizeDelta = new Vector2(width, length);
+        mRect.anchoredPosition = new Vector2(0, distFromCenter);
+    }
+
+    private void CreateArrowPart(Transform parent, string name, Color color,
+        Vector2 size, Vector2 pivot, Vector2 position, float rotationZ)
+    {
+        GameObject obj = new GameObject($"Arrow_{name}");
+        obj.transform.SetParent(parent, false);
+        Image img = obj.AddComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        RectTransform rect = obj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = pivot;
+        rect.sizeDelta = size;
+        rect.anchoredPosition = position;
+        rect.localRotation = Quaternion.Euler(0f, 0f, rotationZ);
+    }
+
+    // =========================================================================
+    // Compass Update
+    // =========================================================================
 
     private void UpdateCompass()
     {
@@ -133,7 +215,6 @@ public class Level7_CompassHallways : LevelManager
         toExit.y = 0;
         float dist = toExit.magnitude;
 
-        // Base angle: direction to exit relative to camera forward
         float targetAngle = 0f;
         if (toExit.sqrMagnitude > 0.01f)
         {
@@ -142,23 +223,16 @@ public class Level7_CompassHallways : LevelManager
             targetAngle = worldAngle - camAngle;
         }
 
-        // Near the end, add erratic behavior to cause false panic
         if (dist < erraticStartDistance)
         {
             float erraticAmount = 1f - (dist / erraticStartDistance);
             targetAngle += Mathf.Sin(Time.time * 8f) * erraticIntensity * erraticAmount;
             targetAngle += Mathf.Sin(Time.time * 13f) * erraticIntensity * erraticAmount * 0.5f;
 
-            compassBg.color = Color.Lerp(
-                new Color(0.1f, 0.1f, 0.15f, 0.8f),
-                new Color(0.3f, 0.1f, 0.1f, 0.9f),
-                erraticAmount);
+            compassFace.color = Color.Lerp(FaceNormal, FaceErratic, erraticAmount);
         }
 
         compassNeedle.localRotation = Quaternion.Euler(0, 0, -targetAngle);
-
-        if (distanceText != null)
-            distanceText.text = $"{dist:F0}m to exit";
     }
 
     // =========================================================================
