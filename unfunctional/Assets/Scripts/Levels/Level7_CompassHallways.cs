@@ -22,6 +22,10 @@ public class Level7_CompassHallways : LevelManager
     public float interactRange = 5f;
     public string npcName = "Gorp";
 
+    [Header("NPC Rotation")]
+    [Tooltip("How fast Gorp turns to face the player (degrees/sec).")]
+    public float npcTurnSpeed = 90f;
+
     [Header("Exit")]
     [Tooltip("Transform marking the exit location. The compass needle points here.")]
     public Transform exitPoint;
@@ -72,6 +76,7 @@ public class Level7_CompassHallways : LevelManager
         UpdateCompass();
         CheckExitProximity();
         UpdateNpcInteraction();
+        RotateNPCTowardsPlayer();
     }
 
     // =========================================================================
@@ -271,6 +276,33 @@ public class Level7_CompassHallways : LevelManager
 
         if (!compassCanvas.gameObject.activeSelf)
             compassCanvas.gameObject.SetActive(true);
+    }
+
+    // =========================================================================
+    // NPC Rotation (face the player)
+    // =========================================================================
+
+    private void RotateNPCTowardsPlayer()
+    {
+        if (npcObject == null) return;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+        if (dist > interactRange) return;
+
+        Vector3 dirToPlayer = cam.transform.position - npcObject.transform.position;
+        dirToPlayer.y = 0f;
+
+        if (dirToPlayer.sqrMagnitude < 0.001f) return;
+
+        Quaternion targetRot = Quaternion.LookRotation(dirToPlayer);
+        npcObject.transform.rotation = Quaternion.RotateTowards(
+            npcObject.transform.rotation,
+            targetRot,
+            npcTurnSpeed * Time.deltaTime
+        );
     }
 
     // =========================================================================
