@@ -118,6 +118,9 @@ public class Level8_DLCDoor : LevelManager
     {
         if (levelComplete) return;
 
+        // Don't run interaction while the keypad overlay is active
+        if (keypad != null && keypad.IsOpen) return;
+
         if (!shopOpen)
         {
             UpdateInteraction();
@@ -161,24 +164,18 @@ public class Level8_DLCDoor : LevelManager
             }
         }
 
-        // ── Keypad interaction (available once code is revealed) ──
-        if (lookingAtKeypad && dlcPurchased && codeRevealed)
+        bool lookingAtAnyDoorPart = lookingAtDoor || lookingAtKeypad;
+
+        if (lookingAtAnyDoorPart)
         {
-            hudPromptText.text = "Press [E] to enter door code";
-            hudCanvas.gameObject.SetActive(true);
-            if (Input.GetKeyDown(KeyCode.E) && keypad != null)
-                keypad.Open();
-        }
-        // ── Door body interaction ──
-        else if (lookingAtDoor)
-        {
-            if (!dlcPurchased)
+            if (dlcPurchased && codeRevealed)
             {
-                hudPromptText.text = "Press [E] to open STORE";
-                if (Input.GetKeyDown(KeyCode.E))
-                    OpenShop();
+                // After purchase — any part of the door opens the keypad
+                hudPromptText.text = "Press [E] to enter door code";
+                if (Input.GetKeyDown(KeyCode.E) && keypad != null)
+                    keypad.Open();
             }
-            else if (!codeRevealed)
+            else if (dlcPurchased && !codeRevealed)
             {
                 hudPromptText.text = "Press [E] to view purchase receipt";
                 if (Input.GetKeyDown(KeyCode.E))
@@ -186,7 +183,9 @@ public class Level8_DLCDoor : LevelManager
             }
             else
             {
-                hudPromptText.text = "Use the keypad to enter your code";
+                hudPromptText.text = "Press [E] to open STORE";
+                if (Input.GetKeyDown(KeyCode.E))
+                    OpenShop();
             }
             hudCanvas.gameObject.SetActive(true);
         }

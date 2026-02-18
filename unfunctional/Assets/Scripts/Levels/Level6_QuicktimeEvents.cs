@@ -186,9 +186,10 @@ public class Level6_QuicktimeEvents : LevelManager
         StartCoroutine(BeginSequenceAfterDelay(2f));
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         RestorePlayerMovement();
+        base.OnDestroy();
     }
 
     private void FreezePlayerMovement()

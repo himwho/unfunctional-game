@@ -118,7 +118,6 @@ Walking simulator door level. A very long hallway that references every walking 
 - Very long 3D hallway (200+ units)
 - Stamina bar UI for sprinting (fast drain, slow regen)
 - Sprint speed boost with CharacterController
-- Progress bar that is deceptively slow
 - "Scenic" set pieces along the hallway
 - LEVEL_DOOR at the far end
 
