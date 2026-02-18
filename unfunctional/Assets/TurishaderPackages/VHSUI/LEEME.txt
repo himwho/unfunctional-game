@@ -1,0 +1,57 @@
+VHS UI EFFECT – LEEME
+
+Resumen
+VHS UI EFFECT es un paquete de shaders estilizados que lleva la estética analógica de los VHS a la interfaz de usuario de Unity. Compatible con URP y Built-in, incluye soporte para TextMeshPro, CanvasGroup, tintado de UI, glitch animado, líneas de escaneo y desenfoque basado en mipmaps.
+
+Requisitos
+- Versión de Unity: 2022.3.14 o superior
+- Render Pipeline: URP o Built-in
+- Versión de TextMeshPro: 3.0.9
+- Las texturas deben tener mipmaps habilitados para que el desenfoque funcione
+
+Instalación
+1. Importa el paquete en tu proyecto de Unity.
+2. Arrastra los materiales incluidos a tus elementos UI o asígnalos en el componente CanvasRenderer / TextMeshPro.
+3. Ajusta las propiedades del material según necesites.
+
+Uso
+Utiliza los shaders incluidos para lograr un efecto retro de VHS sobre imágenes y textos de la UI.
+- Usa VHSUI.shader para imágenes, raw images o overlays.
+- Usa VHSUIText.shader para elementos TextMeshPro.
+Ambos shaders permiten modificación en tiempo real mediante script o animator.
+
+Propiedades del Material
+Color
+- ColorMultiplier: Controla el brillo/intensidad del color base.
+- Color bleeding amount: Desfase leve de canales para simular sangrado de color.
+
+Desenfoque por mipmap (requiere mipmaps en la textura)
+- MipLevel: Controla el nivel de mipmap usado. Valores más altos generan más desenfoque.
+- BlurAmount: Multiplicador de intensidad para el desenfoque.
+
+Cuadrícula
+- PixelGridAmount: Número de celdas simulando pixelación.
+- PixelGridSize: Tamaño de los bloques de píxel. Valores bajos = más pixelación.
+
+Scanlines
+- ScanLinesAmount: Opacidad de las líneas de escaneo.
+- ScanLinesFrequency: Cuántas líneas de escaneo se muestran verticalmente.
+- ScanLinesSpeed: Velocidad de animación de las líneas.
+
+Ruido
+- NoiseAmount: Añade ruido dinámico tipo VHS.
+
+Glitch
+- GlitchAmount: Intensidad del glitch.
+- GlitchTiling: Frecuencia del patrón de glitch.
+- GlitchMinOpacity: Opacidad mínima del glitch.
+- GlitchMinColorMultiply: Efecto del glitch sobre el color.
+- DistortionAmount: Intensidad de distorsión durante picos de glitch.
+
+Consejos
+- Usa el alpha de CanvasGroup para transiciones suaves sin perder efectos.
+- Combina scanlines, blur y glitch para un look VHS más realista.
+- Puedes animar GlitchAmount y DistortionAmount para simular fallos de señal.
+
+Soporte
+Para cualquier duda o problema, contáctanos a través de la página del asset en la Unity Asset Store o escribiendo a turishader@gmail.com

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 5fa01a2c9289299419d8d2618f498d0d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 320186
+  packageName: "VHS UI EFFECT \u2013 Stylized Glitch & Scanline Shaders for UI"
+  packageVersion: 1.0
+  assetPath: Assets/TurishaderPackages/VHSUI/Materials/Turishader_UI_VHSUI No blur
+    1.mat
+  uploadId: 756608

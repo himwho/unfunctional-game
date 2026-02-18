@@ -1,0 +1,16 @@
+
+Font: Staatliches
+Author: Brian J. Bonislawsky
+License: SIL Open Font License, Version 1.1
+
+This font is licensed under the SIL Open Font License (OFL) Version 1.1.
+You are allowed to use, study, modify and redistribute this font freely,
+as long as it is not sold by itself.
+
+You may include it in commercial projects, provided you do not resell the font on its own.
+
+Full license text available at:
+https://scripts.sil.org/OFL
+
+Staatliches is available via Google Fonts:
+https://fonts.google.com/specimen/Staatliches

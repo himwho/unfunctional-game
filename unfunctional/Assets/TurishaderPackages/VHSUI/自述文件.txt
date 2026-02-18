@@ -1,0 +1,57 @@
+VHS UI EFFECT – 自述文件
+
+概述
+VHS UI EFFECT 是一个风格化的着色器包，可为 Unity 的 UI 带来模拟 VHS（录像带）视觉效果。支持 URP 和 Built-in 渲染管线，包含 TextMeshPro、CanvasGroup、UI 着色、动态故障、扫描线和基于 mipmap 的模糊。
+
+要求
+- Unity 版本：2022.3.14 或更高
+- 渲染管线：URP 或 Built-in
+- TextMeshPro 版本：3.0.9
+- 纹理需启用 mipmap，模糊功能才能生效
+
+安装
+1. 将此资源包导入 Unity 项目。
+2. 将 VHS 材质拖拽至 UI 元素，或在 CanvasRenderer / TextMeshPro 组件中分配材质。
+3. 根据需要调整材质属性。
+
+使用方法
+使用提供的着色器为 UI 图像与文本添加 VHS 效果。
+- 图像使用 VHSUI.shader
+- TextMeshPro 文本使用 VHSUIText.shader
+支持通过脚本或动画器在运行时控制参数。
+
+材质属性说明
+颜色
+- ColorMultiplier：控制颜色亮度/强度。
+- Color bleeding amount：颜色通道偏移，模拟色彩溢出。
+
+模糊（需启用 mipmap）
+- MipLevel：选择采样的 mipmap 等级，数值越高越模糊。
+- BlurAmount：模糊强度倍增器。
+
+像素网格
+- PixelGridAmount：像素网格的数量，模拟像素化。
+- PixelGridSize：每个像素块的大小。
+
+扫描线
+- ScanLinesAmount：扫描线的不透明度。
+- ScanLinesFrequency：垂直方向上的扫描线数量。
+- ScanLinesSpeed：扫描线滚动速度。
+
+噪点
+- NoiseAmount：添加 VHS 风格的噪点闪烁效果。
+
+故障
+- GlitchAmount：故障效果强度。
+- GlitchTiling：故障图案的频率/缩放。
+- GlitchMinOpacity：故障最小透明度。
+- GlitchMinColorMultiply：故障对颜色的影响程度。
+- DistortionAmount：故障时画面扭曲的强度。
+
+提示
+- 使用 CanvasGroup 的透明度实现淡入淡出，不影响特效。
+- 将扫描线、模糊和故障结合使用，增强 VHS 效果。
+- 可动画控制 GlitchAmount 和 DistortionAmount 模拟信号干扰。
+
+支持
+如有问题，请通过 Unity Asset Store 支持页面或邮件联系：turishader@gmail.com

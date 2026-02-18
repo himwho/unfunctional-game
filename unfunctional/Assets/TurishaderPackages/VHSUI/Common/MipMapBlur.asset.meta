@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: df61e54dd2caea542bed29d717ba7a77
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 320186
+  packageName: "VHS UI EFFECT \u2013 Stylized Glitch & Scanline Shaders for UI"
+  packageVersion: 1.0
+  assetPath: Assets/TurishaderPackages/VHSUI/Common/MipMapBlur.asset
+  uploadId: 756608

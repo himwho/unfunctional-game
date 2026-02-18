@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 55986fb5077d3e3419a832785c7b2d87
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 320186
+  packageName: "VHS UI EFFECT \u2013 Stylized Glitch & Scanline Shaders for UI"
+  packageVersion: 1.0
+  assetPath: Assets/TurishaderPackages/VHSUI/Shaders/VHSUI.shader
+  uploadId: 756608
