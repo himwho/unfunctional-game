@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using System.Collections.Generic;
 
 /// <summary>
 /// LEVEL 7: Compass following task level. A labyrinth of identical hallways with
@@ -9,56 +8,31 @@ using System.Collections.Generic;
 /// straight path with fake branches that loop back -- the compass is completely
 /// redundant. Near the end the compass goes haywire to create false panic.
 ///
-/// Builds the hallway maze and compass HUD at runtime.
+/// The hallways are built manually in the scene. This script creates the compass
+/// HUD at runtime and drives the needle toward the assigned exit point.
 /// Attach to a root GameObject in the LEVEL7 scene.
 /// </summary>
 public class Level7_CompassHallways : LevelManager
 {
-    [Header("Hallway Generation")]
-    public int segmentCount = 16;
-    public float segmentLength = 8f;
-    public float hallwayWidth = 4f;
-    public float hallwayHeight = 3.5f;
-    public float wallThickness = 0.2f;
-
     [Header("Door")]
     public DoorController doorController;
+
+    [Header("Exit")]
+    [Tooltip("Transform marking the exit location. The compass needle points here.")]
+    public Transform exitPoint;
 
     [Header("Compass Behavior")]
     public float erraticStartDistance = 20f;
     public float erraticIntensity = 180f;
 
-    // Runtime references
+    // Runtime HUD references
     private Canvas compassCanvas;
     private RectTransform compassNeedle;
     private Text compassLabel;
     private Text distanceText;
     private Image compassBg;
 
-    private Transform exitPoint;
-    private List<Vector3> segmentCenters = new List<Vector3>();
     private bool reachedEnd = false;
-
-    // Hallway directions
-    private Vector3[] directions = new Vector3[]
-    {
-        Vector3.forward,
-        Vector3.right,
-        Vector3.forward,
-        Vector3.left,
-        Vector3.forward,
-        Vector3.forward,
-        Vector3.right,
-        Vector3.forward,
-        Vector3.left,
-        Vector3.forward,
-        Vector3.right,
-        Vector3.right,
-        Vector3.forward,
-        Vector3.left,
-        Vector3.forward,
-        Vector3.forward
-    };
 
     protected override void Start()
     {
@@ -68,11 +42,7 @@ public class Level7_CompassHallways : LevelManager
         needsPlayer = true;
         wantsCursorLocked = true;
 
-        GenerateHallways();
         CreateCompassHUD();
-        PlaceDoorAtEnd();
-        PlaceHallwayLights();
-        CreateDecoyBranches();
     }
 
     private void Update()
@@ -80,175 +50,6 @@ public class Level7_CompassHallways : LevelManager
         if (levelComplete) return;
         UpdateCompass();
         CheckExitProximity();
-    }
-
-    // =========================================================================
-    // Hallway Generation
-    // =========================================================================
-
-    private void GenerateHallways()
-    {
-        Vector3 currentPos = Vector3.zero;
-        Vector3 currentDir = Vector3.forward;
-
-        // Make sure segmentCount does not exceed directions array
-        int count = Mathf.Min(segmentCount, directions.Length);
-
-        Material wallMat = CreateMaterial(new Color(0.45f, 0.45f, 0.42f));
-        Material floorMat = CreateMaterial(new Color(0.3f, 0.3f, 0.32f));
-        Material ceilingMat = CreateMaterial(new Color(0.5f, 0.5f, 0.48f));
-
-        for (int i = 0; i < count; i++)
-        {
-            currentDir = directions[i];
-            Vector3 segCenter = currentPos + currentDir * (segmentLength / 2f);
-            segmentCenters.Add(segCenter);
-
-            CreateHallwaySegment(i, segCenter, currentDir, wallMat, floorMat, ceilingMat);
-
-            currentPos += currentDir * segmentLength;
-        }
-
-        // Use existing spawn point if assigned in Inspector or found in scene
-        if (playerSpawnPoint == null)
-        {
-            GameObject existing = GameObject.Find("PlayerSpawnPoint");
-            if (existing != null)
-                playerSpawnPoint = existing.transform;
-        }
-        if (playerSpawnPoint == null)
-        {
-            GameObject spawnPoint = new GameObject("PlayerSpawnPoint");
-            spawnPoint.transform.position = new Vector3(0f, 1f, -segmentLength * 0.3f);
-            spawnPoint.transform.rotation = Quaternion.LookRotation(Vector3.forward);
-            playerSpawnPoint = spawnPoint.transform;
-        }
-
-        // Mark exit
-        GameObject exitObj = new GameObject("ExitPoint");
-        exitObj.transform.position = currentPos;
-        exitPoint = exitObj.transform;
-
-        // Exit trigger zone
-        GameObject exitZone = new GameObject("ExitZone");
-        exitZone.transform.position = currentPos;
-        BoxCollider exitCol = exitZone.AddComponent<BoxCollider>();
-        exitCol.size = new Vector3(hallwayWidth, hallwayHeight, 2f);
-        exitCol.isTrigger = true;
-        exitZone.AddComponent<Level7ExitTrigger>().levelManager = this;
-    }
-
-    private void CreateHallwaySegment(int index, Vector3 center, Vector3 direction,
-        Material wallMat, Material floorMat, Material ceilingMat)
-    {
-        // Determine orientation
-        bool isZAxis = Mathf.Abs(direction.z) > 0.5f;
-        float lengthX = isZAxis ? hallwayWidth : segmentLength;
-        float lengthZ = isZAxis ? segmentLength : hallwayWidth;
-
-        string prefix = $"Seg{index}";
-
-        // Floor
-        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        floor.name = $"{prefix}_Floor";
-        floor.transform.position = center + Vector3.down * (wallThickness / 2f);
-        floor.transform.localScale = new Vector3(lengthX + wallThickness * 2, wallThickness, lengthZ + wallThickness * 2);
-        floor.GetComponent<Renderer>().sharedMaterial = floorMat;
-
-        // Ceiling
-        GameObject ceiling = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        ceiling.name = $"{prefix}_Ceiling";
-        ceiling.transform.position = center + Vector3.up * (hallwayHeight + wallThickness / 2f);
-        ceiling.transform.localScale = new Vector3(lengthX + wallThickness * 2, wallThickness, lengthZ + wallThickness * 2);
-        ceiling.GetComponent<Renderer>().sharedMaterial = ceilingMat;
-
-        // Left wall
-        Vector3 leftDir = Vector3.Cross(Vector3.up, direction).normalized;
-        GameObject leftWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        leftWall.name = $"{prefix}_WallLeft";
-        leftWall.transform.position = center + leftDir * (hallwayWidth / 2f) + Vector3.up * (hallwayHeight / 2f);
-        if (isZAxis)
-            leftWall.transform.localScale = new Vector3(wallThickness, hallwayHeight, segmentLength);
-        else
-            leftWall.transform.localScale = new Vector3(segmentLength, hallwayHeight, wallThickness);
-        leftWall.GetComponent<Renderer>().sharedMaterial = wallMat;
-
-        // Right wall
-        GameObject rightWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        rightWall.name = $"{prefix}_WallRight";
-        rightWall.transform.position = center - leftDir * (hallwayWidth / 2f) + Vector3.up * (hallwayHeight / 2f);
-        rightWall.transform.localScale = leftWall.transform.localScale;
-        rightWall.GetComponent<Renderer>().sharedMaterial = wallMat;
-    }
-
-    private void PlaceHallwayLights()
-    {
-        for (int i = 0; i < segmentCenters.Count; i++)
-        {
-            if (i % 2 != 0) continue; // Every other segment
-
-            GameObject lightObj = new GameObject($"HallwayLight_{i}");
-            lightObj.transform.position = segmentCenters[i] + Vector3.up * (hallwayHeight - 0.3f);
-            Light light = lightObj.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.range = segmentLength * 1.2f;
-            light.intensity = 0.8f;
-            light.color = new Color(1f, 0.95f, 0.85f);
-        }
-    }
-
-    private void CreateDecoyBranches()
-    {
-        Material decoyMat = CreateMaterial(new Color(0.4f, 0.4f, 0.38f));
-
-        // Place a few fake branches that are dead-ends (short alcoves)
-        int[] decoySegments = { 3, 7, 11 };
-        foreach (int seg in decoySegments)
-        {
-            if (seg >= segmentCenters.Count) continue;
-
-            Vector3 center = segmentCenters[seg];
-            Vector3 dir = directions[seg];
-            Vector3 leftDir = Vector3.Cross(Vector3.up, dir).normalized;
-
-            // Create a short alcove to the right
-            Vector3 alcoveStart = center + leftDir * (hallwayWidth / 2f + 1f);
-            Vector3 alcoveCenter = alcoveStart + leftDir * 2f;
-
-            GameObject alcoveFloor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            alcoveFloor.name = $"DecoyFloor_{seg}";
-            alcoveFloor.transform.position = alcoveCenter + Vector3.down * (wallThickness / 2f);
-            alcoveFloor.transform.localScale = new Vector3(4f, wallThickness, 3f);
-            alcoveFloor.GetComponent<Renderer>().sharedMaterial = decoyMat;
-
-            // Dead-end wall
-            GameObject deadEnd = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            deadEnd.name = $"DeadEnd_{seg}";
-            deadEnd.transform.position = alcoveCenter + leftDir * 2.5f + Vector3.up * (hallwayHeight / 2f);
-            deadEnd.transform.localScale = new Vector3(wallThickness, hallwayHeight, 3f);
-            deadEnd.GetComponent<Renderer>().sharedMaterial = decoyMat;
-        }
-    }
-
-    private void PlaceDoorAtEnd()
-    {
-        if (exitPoint == null) return;
-
-        // If a door controller is already wired (from scene setup), just reposition it
-        if (doorController != null)
-        {
-            doorController.transform.position = exitPoint.position;
-            doorController.RecalculatePositions();
-            return;
-        }
-
-        // Try to find one in the scene
-        doorController = FindAnyObjectByType<DoorController>();
-        if (doorController != null)
-        {
-            doorController.transform.position = exitPoint.position;
-            doorController.RecalculatePositions();
-        }
     }
 
     // =========================================================================
@@ -267,7 +68,7 @@ public class Level7_CompassHallways : LevelManager
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // Compass background circle
+        // Compass background
         GameObject bgObj = new GameObject("CompassBG");
         bgObj.transform.SetParent(canvasObj.transform, false);
         compassBg = bgObj.AddComponent<Image>();
@@ -278,7 +79,7 @@ public class Level7_CompassHallways : LevelManager
         bgRect.offsetMin = Vector2.zero;
         bgRect.offsetMax = Vector2.zero;
 
-        // Compass needle (a thin colored bar)
+        // Compass needle (a thin colored bar that rotates)
         GameObject needleObj = new GameObject("CompassNeedle");
         needleObj.transform.SetParent(bgObj.transform, false);
         Image needleImage = needleObj.AddComponent<Image>();
@@ -341,7 +142,7 @@ public class Level7_CompassHallways : LevelManager
             targetAngle = worldAngle - camAngle;
         }
 
-        // Near the end, add erratic behavior
+        // Near the end, add erratic behavior to cause false panic
         if (dist < erraticStartDistance)
         {
             float erraticAmount = 1f - (dist / erraticStartDistance);
@@ -359,6 +160,10 @@ public class Level7_CompassHallways : LevelManager
         if (distanceText != null)
             distanceText.text = $"{dist:F0}m to exit";
     }
+
+    // =========================================================================
+    // Exit Detection
+    // =========================================================================
 
     private void CheckExitProximity()
     {
@@ -393,23 +198,11 @@ public class Level7_CompassHallways : LevelManager
         yield return new WaitForSeconds(delay);
         CompleteLevel();
     }
-
-    // =========================================================================
-    // Helpers
-    // =========================================================================
-
-    private Material CreateMaterial(Color color)
-    {
-        Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        if (mat.shader == null || mat.shader.name == "Hidden/InternalErrorShader")
-            mat = new Material(Shader.Find("Standard"));
-        mat.color = color;
-        return mat;
-    }
 }
 
 /// <summary>
-/// Simple trigger for the exit zone.
+/// Trigger collider for the exit zone. Place on a GameObject with a trigger
+/// collider near the exit point in the scene.
 /// </summary>
 public class Level7ExitTrigger : MonoBehaviour
 {
