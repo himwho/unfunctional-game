@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a087260b72d07614ba3339eee952df82
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 320186
+  packageName: "VHS UI EFFECT \u2013 Stylized Glitch & Scanline Shaders for UI"
+  packageVersion: 1.0
+  assetPath: Assets/TurishaderPackages/VHSUI/Materials/Turishader_UI_VHSUI LowerBleeding.mat
+  uploadId: 756608

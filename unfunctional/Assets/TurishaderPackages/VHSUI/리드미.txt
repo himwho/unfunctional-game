@@ -1,0 +1,57 @@
+VHS UI EFFECT – 리드미
+
+개요
+VHS UI EFFECT는 Unity UI에 아날로그 VHS 스타일의 효과를 적용할 수 있는 스타일라이즈 셰이더 패키지입니다. URP와 Built-in 렌더 파이프라인 모두를 지원하며, TextMeshPro, CanvasGroup, UI 틴트, 애니메이션 글리치, 스캔라인, mipmap 기반 블러 기능이 포함되어 있습니다.
+
+요구 사항
+- Unity 버전: 2022.3.14 이상
+- 렌더 파이프라인: URP 또는 Built-in
+- TextMeshPro 버전: 3.0.9
+- 블러 효과를 사용하려면 텍스처에 mipmap이 활성화되어 있어야 합니다
+
+설치 방법
+1. 패키지를 Unity 프로젝트에 임포트합니다.
+2. 포함된 VHS UI 머티리얼을 UI 요소에 드래그하거나 CanvasRenderer / TextMeshPro 컴포넌트에 할당합니다.
+3. 필요에 따라 머티리얼 속성을 조정합니다.
+
+사용법
+제공된 셰이더를 사용하여 UI 이미지 및 텍스트에 VHS 스타일 효과를 적용합니다.
+- VHSUI.shader: 이미지 및 오버레이 용
+- VHSUIText.shader: TextMeshPro 용
+셰이더는 스크립트나 애니메이터를 통해 런타임에서 제어할 수 있습니다.
+
+머티리얼 속성 설명
+색상
+- ColorMultiplier: 기본 색상의 밝기 및 강도 조절
+- Color bleeding amount: 색 번짐 효과를 위한 채널 이동
+
+mipmap 기반 블러
+- MipLevel: 사용할 mipmap 레벨 선택. 수치가 높을수록 더 흐려집니다.
+- BlurAmount: 블러 강도
+
+그리드
+- PixelGridAmount: 픽셀화 효과를 위한 셀 수
+- PixelGridSize: 각 픽셀 블록의 크기
+
+스캔라인
+- ScanLinesAmount: 스캔라인의 불투명도
+- ScanLinesFrequency: 수직 방향 스캔라인 수
+- ScanLinesSpeed: 애니메이션 속도
+
+노이즈
+- NoiseAmount: VHS 스타일의 노이즈 플리커 추가
+
+글리치
+- GlitchAmount: 글리치 효과의 강도
+- GlitchTiling: 글리치 패턴의 반복 수
+- GlitchMinOpacity: 최소 불투명도
+- GlitchMinColorMultiply: 색상에 미치는 영향
+- DistortionAmount: 왜곡 강도
+
+팁
+- CanvasGroup의 alpha를 사용하면 효과를 유지하면서 페이드 인/아웃 가능
+- 스캔라인, 블러, 글리치를 결합하면 VHS 느낌이 극대화됨
+- GlitchAmount와 DistortionAmount를 애니메이션화하여 신호 장애를 표현
+
+지원
+문제나 질문이 있을 경우, Unity Asset Store의 지원 페이지 또는 turishader@gmail.com 으로 문의 바랍니다.

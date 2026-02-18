@@ -1,0 +1,57 @@
+VHS UI EFFECT – リードミー
+
+概要
+VHS UI EFFECT は、Unity の UI に VHS スタイルのアナログ表現を加えるためのスタイライズドシェーダーパックです。URP と Built-in 両方に対応し、TextMeshPro、CanvasGroup、UI のティント、グリッチ、スキャンライン、ミップマップを使ったブラー効果をサポートしています。
+
+必要環境
+- Unity バージョン：2022.3.14 以上
+- レンダーパイプライン：URP または Built-in
+- TextMeshPro バージョン：3.0.9
+- テクスチャはブラー効果を使うために mipmap が有効である必要があります
+
+インストール手順
+1. パッケージを Unity プロジェクトにインポートします。
+2. VHS マテリアルを UI 要素にドラッグするか、CanvasRenderer / TextMeshPro コンポーネントに割り当てます。
+3. マテリアルのプロパティを調整します。
+
+使い方
+同梱されているシェーダーを使用し、UI の画像やテキストに VHS スタイルのルックを適用します。
+- 画像用：VHSUI.shader
+- TextMeshPro 用：VHSUIText.shader
+両方ともスクリプトやアニメーターを使ってランタイムで制御可能です。
+
+マテリアルプロパティの説明
+カラー
+- ColorMultiplier：基本カラーの明るさ／強度を調整します。
+- Color bleeding amount：色のにじみを模したチャンネルのズレ。
+
+ミップレベルブラー（mipmap 有効時のみ）
+- MipLevel：使用する mipmap のレベルを指定。数値が高いほどブラーが強くなります。
+- BlurAmount：ブラーの強さ。
+
+グリッド
+- PixelGridAmount：ピクセル化のためのグリッド数。
+- PixelGridSize：各ピクセルブロックのサイズ。
+
+スキャンライン
+- ScanLinesAmount：スキャンラインの不透明度。
+- ScanLinesFrequency：縦方向に表示されるラインの数。
+- ScanLinesSpeed：ラインのスクロール速度。
+
+ノイズ
+- NoiseAmount：VHS のちらつきノイズを加えます。
+
+グリッチ
+- GlitchAmount：グリッチ効果の強度。
+- GlitchTiling：グリッチパターンの繰り返し数。
+- GlitchMinOpacity：最小透明度。
+- GlitchMinColorMultiply：カラーへの影響度。
+- DistortionAmount：歪みの強さ。
+
+ヒント
+- CanvasGroup の alpha を使ってスムーズなフェードを実現。
+- スキャンライン、ブラー、グリッチを組み合わせることで VHS 感を強化。
+- GlitchAmount や DistortionAmount をアニメーションさせて信号の乱れを表現可能。
+
+サポート
+質問や問題がある場合は、Unity Asset Store のサポートページ、または turishader@gmail.com までご連絡ください。
