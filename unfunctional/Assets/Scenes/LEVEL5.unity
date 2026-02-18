@@ -341,6 +341,21 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1127294887145582950, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: hintText
+      value: Ask GORP!
+      objectReference: {fileID: 0}
+    - target: {fileID: 1127294887145582950, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: codeLength
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621532252513387166, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3491991024644350340, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: m_Name
@@ -1584,6 +1599,9 @@ MonoBehaviour:
   npcObject: {fileID: 1130440689}
   interactRange: 8
   npcName: Gorp
+  maxDialogueRange: 15
+  comeBackLine: Hey, come back here!
+  startOverLine: Let me start over...
   typingSpeed: 0.04
   enableTypingEffect: 1
   dialogueLines: []

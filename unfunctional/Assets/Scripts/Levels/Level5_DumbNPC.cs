@@ -8,6 +8,10 @@ using System.Collections.Generic;
 /// Press E near the NPC to start talking. Press E to advance each line.
 /// The NPC says nothing useful but the player must exhaust all dialogue to proceed.
 /// 
+/// The NPC buries a randomly generated 4-digit door code somewhere deep in the
+/// dialogue. The player must remember it, walk to the LEVEL_DOOR, and enter it
+/// on the keypad to complete the level.
+/// 
 /// Builds its own dialogue HUD at runtime (same style as Level 3).
 /// Attach to a root GameObject in the LEVEL5 scene.
 /// </summary>
@@ -23,12 +27,22 @@ public class Level5_DumbNPC : LevelManager
     public string comeBackLine = "Hey, come back here!";
     public string startOverLine = "Let me start over...";
 
+    [Header("NPC Rotation")]
+    [Tooltip("How fast Gorp turns to face the player (degrees/sec).")]
+    public float npcTurnSpeed = 90f;
+
     [Header("Typing Effect")]
     public float typingSpeed = 0.04f;
     public bool enableTypingEffect = true;
 
     [Header("Dialogue Lines")]
     public List<string> dialogueLines = new List<string>();
+
+    [Header("Door / Keypad")]
+    [Tooltip("DoorController on the LEVEL_DOOR prefab in this scene.")]
+    public DoorController doorController;
+    [Tooltip("How close the player needs to be to interact with door/keypad.")]
+    public float doorInteractRange = 3f;
 
     // Runtime UI references (built in code)
     private Canvas dialogueCanvas;
@@ -40,6 +54,11 @@ public class Level5_DumbNPC : LevelManager
     // Interact prompt (shown when near NPC but not yet talking)
     private Canvas interactPromptCanvas;
     private Text interactPromptText;
+
+    // Door interaction HUD (crosshair + prompt)
+    private Canvas doorHudCanvas;
+    private Text doorInteractPromptText;
+    private Image crosshairImage;
 
     private const int IDLE_ANIM_COUNT = 7;
 
@@ -55,6 +74,12 @@ public class Level5_DumbNPC : LevelManager
     private bool npcReadyToInteract = false;
     private Coroutine reverseCoroutine;
     private bool playerTooFar = false;
+
+    // Door code
+    private string generatedCode = "";
+    private KeypadController keypad;
+    private bool doorOpening = false;
+    private bool dialogueCompleted = false;
 
     // Base font sizes (set during HUD creation, used for distance scaling)
     private int baseFontSizeDialogue;
@@ -82,11 +107,38 @@ public class Level5_DumbNPC : LevelManager
             EnsureNpcCollider();
         }
 
+        // Generate a random 4-digit code for this level load
+        generatedCode = Random.Range(1000, 10000).ToString();
+        Debug.Log($"[Level5] Generated door code: {generatedCode}");
+
+        // Find DoorController if not assigned
+        if (doorController == null)
+            doorController = FindAnyObjectByType<DoorController>();
+
+        // Wire up the keypad
+        if (doorController != null)
+        {
+            keypad = doorController.keypadController;
+            if (keypad == null)
+                keypad = FindAnyObjectByType<KeypadController>();
+
+            if (keypad != null)
+            {
+                keypad.codeLength = 4;
+                keypad.keypadTitle = "DOOR ACCESS KEYPAD";
+                keypad.hintText = "Ask GORP!";
+                keypad.showRequestCodeButton = false;
+
+                keypad.OnCodeSubmitted += HandleCodeSubmitted;
+            }
+        }
+
         if (dialogueLines.Count == 0)
             BuildDefaultDialogue();
 
         CreateDialogueHUD();
         CreateInteractPrompt();
+        CreateDoorHUD();
 
         baseFontSizeDialogue = dialogueText.fontSize;
         baseFontSizeName = npcNameText.fontSize;
@@ -110,70 +162,239 @@ public class Level5_DumbNPC : LevelManager
         interactPromptCanvas.gameObject.SetActive(false);
     }
 
+    protected override void OnDestroy()
+    {
+        if (keypad != null)
+            keypad.OnCodeSubmitted -= HandleCodeSubmitted;
+        base.OnDestroy();
+    }
+
     private void Update()
     {
-        if (levelComplete) return;
+        if (levelComplete || doorOpening) return;
 
         if (inputCooldown > 0f)
             inputCooldown -= Time.deltaTime;
 
         bool ePressed = Input.GetKeyDown(KeyCode.E);
 
+        // Always run NPC animation/proximity logic (stand up, reverse, etc.)
+        // but only when not actively in dialogue
         if (!inDialogue)
-        {
-            bool nearNpc = IsPlayerNearNPC();
-            interactPromptCanvas.gameObject.SetActive(nearNpc && npcReadyToInteract);
+            UpdateNPCProximity();
 
-            if (npcAnimator != null)
-            {
-                if (wasPlayerNear && !nearNpc && !isReversing)
-                {
-                    isReversing = true;
-                    npcReadyToInteract = false;
-                    npcAnimator.SetFloat("AnimSpeed", 1f);
-                    npcAnimator.SetTrigger("Reverse");
-                    reverseCoroutine = StartCoroutine(ResetAnimatorAfterReverse());
-                }
-                else if (isReversing && nearNpc)
-                {
-                    if (reverseCoroutine != null)
-                        StopCoroutine(reverseCoroutine);
-                    reverseCoroutine = null;
-                    isReversing = false;
-                    npcAnimator.ResetTrigger("Reverse");
-                    npcAnimator.Play("idle 3", 0);
-                    npcReadyToInteract = true;
-                }
-                else if (!isReversing)
-                {
-                    npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
-
-                    if (nearNpc && !wasPlayerNear && !npcReadyToInteract)
-                    {
-                        StartCoroutine(WaitForStandUpAnimation());
-                    }
-                }
-            }
-            else
-            {
-                npcReadyToInteract = nearNpc;
-            }
-
-            wasPlayerNear = nearNpc;
-
-            if (ePressed && npcReadyToInteract)
-                TryStartDialogue();
-        }
-        else if (ePressed && waitingForInput && !isTyping && !playerTooFar && inputCooldown <= 0f)
-        {
-            AdvanceDialogue();
-        }
+        // Smoothly rotate Gorp to face the player whenever they're nearby
+        RotateNPCTowardsPlayer();
 
         if (inDialogue)
         {
+            // In dialogue -- only advance lines
+            if (ePressed && waitingForInput && !isTyping && !playerTooFar && inputCooldown <= 0f)
+            {
+                AdvanceDialogue();
+            }
+
             CheckPlayerDistance();
             UpdateDialogueFontSize();
         }
+        else if (keypad != null && keypad.IsOpen)
+        {
+            // Keypad is open -- let KeypadController handle input, hide prompts
+            interactPromptCanvas.gameObject.SetActive(false);
+            doorInteractPromptText.enabled = false;
+        }
+        else
+        {
+            // Free roam -- use gaze raycast for all interactions
+            UpdateGazeInteraction(ePressed);
+        }
+    }
+
+    /// <summary>
+    /// Handles NPC stand-up/reverse animations based on player proximity.
+    /// Does NOT manage the interact prompt -- that is handled by gaze logic.
+    /// </summary>
+    private void UpdateNPCProximity()
+    {
+        bool nearNpc = IsPlayerNearNPC();
+
+        if (npcAnimator != null)
+        {
+            if (wasPlayerNear && !nearNpc && !isReversing)
+            {
+                isReversing = true;
+                npcReadyToInteract = false;
+                npcAnimator.SetFloat("AnimSpeed", 1f);
+                npcAnimator.SetTrigger("Reverse");
+                reverseCoroutine = StartCoroutine(ResetAnimatorAfterReverse());
+            }
+            else if (isReversing && nearNpc)
+            {
+                if (reverseCoroutine != null)
+                    StopCoroutine(reverseCoroutine);
+                reverseCoroutine = null;
+                isReversing = false;
+                npcAnimator.ResetTrigger("Reverse");
+                npcAnimator.Play("idle 3", 0);
+                npcReadyToInteract = true;
+            }
+            else if (!isReversing)
+            {
+                npcAnimator.SetFloat("AnimSpeed", nearNpc ? 1f : 0f);
+
+                if (nearNpc && !wasPlayerNear && !npcReadyToInteract)
+                {
+                    StartCoroutine(WaitForStandUpAnimation());
+                }
+            }
+        }
+        else
+        {
+            npcReadyToInteract = nearNpc;
+        }
+
+        wasPlayerNear = nearNpc;
+    }
+
+    // =========================================================================
+    // NPC Rotation (face the player)
+    // =========================================================================
+
+    /// <summary>
+    /// Smoothly rotates Gorp on the Y axis to face the player camera whenever
+    /// the player is within interact range. Only rotates horizontally so Gorp
+    /// doesn't tilt up/down.
+    /// </summary>
+    private void RotateNPCTowardsPlayer()
+    {
+        if (npcObject == null) return;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+        if (dist > interactRange) return;
+
+        // Direction from NPC to player, flattened to horizontal plane
+        Vector3 dirToPlayer = cam.transform.position - npcObject.transform.position;
+        dirToPlayer.y = 0f;
+
+        if (dirToPlayer.sqrMagnitude < 0.001f) return;
+
+        Quaternion targetRot = Quaternion.LookRotation(dirToPlayer);
+        npcObject.transform.rotation = Quaternion.RotateTowards(
+            npcObject.transform.rotation,
+            targetRot,
+            npcTurnSpeed * Time.deltaTime
+        );
+    }
+
+    // =========================================================================
+    // Gaze-Based Interaction (raycast determines what the player looks at)
+    // =========================================================================
+
+    /// <summary>
+    /// Single unified gaze system. Casts a ray from screen center and determines
+    /// what the player is looking at: NPC, keypad, or door. Shows the appropriate
+    /// prompt and handles E-press interaction.
+    ///
+    /// Before dialogue is completed: NPC is interactable (if near and ready).
+    /// After dialogue is completed: door and keypad become interactable; NPC can
+    ///   optionally be re-talked to (restarts dialogue to hear the code again).
+    /// </summary>
+    private void UpdateGazeInteraction(bool ePressed)
+    {
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            interactPromptCanvas.gameObject.SetActive(false);
+            doorInteractPromptText.enabled = false;
+            return;
+        }
+
+        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        RaycastHit hit;
+        bool hasHit = Physics.Raycast(ray, out hit, Mathf.Max(interactRange, doorInteractRange), ~0, QueryTriggerInteraction.Collide);
+
+        GazeTarget target = GazeTarget.None;
+        float hitDist = hasHit ? hit.distance : float.MaxValue;
+
+        if (hasHit)
+        {
+            if (hitDist <= doorInteractRange && IsHitOnKeypad(hit))
+                target = GazeTarget.Keypad;
+            else if (hitDist <= doorInteractRange && IsHitOnDoor(hit))
+                target = GazeTarget.Door;
+            else if (hitDist <= interactRange && IsHitOnNPC(hit))
+                target = GazeTarget.NPC;
+        }
+
+        // If not looking at NPC via raycast, fall back to proximity check
+        // (only before dialogue is completed -- afterwards require gaze)
+        if (target == GazeTarget.None && !dialogueCompleted && IsPlayerNearNPC() && npcReadyToInteract)
+            target = GazeTarget.NPC;
+
+        // Update prompts
+        switch (target)
+        {
+            case GazeTarget.NPC:
+                interactPromptCanvas.gameObject.SetActive(npcReadyToInteract);
+                interactPromptText.text = dialogueCompleted
+                    ? "Press [E] to talk again"
+                    : "Press [E] to interact";
+                doorInteractPromptText.enabled = false;
+                break;
+
+            case GazeTarget.Keypad:
+                interactPromptCanvas.gameObject.SetActive(false);
+                doorInteractPromptText.enabled = true;
+                doorInteractPromptText.text = "[E] Use Keypad";
+                break;
+
+            case GazeTarget.Door:
+                interactPromptCanvas.gameObject.SetActive(false);
+                doorInteractPromptText.enabled = true;
+                doorInteractPromptText.text = "[E] Try Door";
+                break;
+
+            default:
+                interactPromptCanvas.gameObject.SetActive(false);
+                doorInteractPromptText.enabled = false;
+                break;
+        }
+
+        // Handle E press
+        if (ePressed)
+        {
+            switch (target)
+            {
+                case GazeTarget.NPC:
+                    if (npcReadyToInteract)
+                        TryStartDialogue();
+                    break;
+
+                case GazeTarget.Keypad:
+                    if (keypad != null)
+                        keypad.Open();
+                    break;
+
+                case GazeTarget.Door:
+                    if (doorController != null)
+                    {
+                        doorController.ShakeDoor();
+                    }
+                    break;
+            }
+        }
+    }
+
+    private enum GazeTarget { None, NPC, Keypad, Door }
+
+    private bool IsHitOnNPC(RaycastHit hit)
+    {
+        if (npcObject == null) return false;
+        return hit.collider.transform.IsChildOf(npcObject.transform)
+            || hit.collider.gameObject == npcObject;
     }
 
     private IEnumerator ResetAnimatorAfterReverse()
@@ -217,6 +438,73 @@ public class Level5_DumbNPC : LevelManager
         float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
         return dist <= interactRange;
     }
+
+    // =========================================================================
+    // Hit Detection Helpers (used by gaze interaction)
+    // =========================================================================
+
+    private bool IsHitOnKeypad(RaycastHit hit)
+    {
+        if (doorController != null)
+        {
+            if (doorController.keypadMount != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadMount.transform))
+                return true;
+            if (doorController.keypadPanel != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadPanel.transform))
+                return true;
+        }
+        return false;
+    }
+
+    private bool IsHitOnDoor(RaycastHit hit)
+    {
+        if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
+            return true;
+        return false;
+    }
+
+    // =========================================================================
+    // Keypad Code Handling
+    // =========================================================================
+
+    private void HandleCodeSubmitted(string code)
+    {
+        if (code == generatedCode)
+        {
+            keypad.AcceptCode("ACCESS GRANTED");
+            StartCoroutine(OpenDoorSequence());
+        }
+        else
+        {
+            keypad.RejectCode("WRONG CODE");
+
+            if (!dialogueCompleted)
+                keypad.SetStatus("Maybe talk to " + npcName + " first?", new Color(1f, 0.8f, 0.3f));
+        }
+    }
+
+    private IEnumerator OpenDoorSequence()
+    {
+        doorOpening = true;
+
+        yield return new WaitForSeconds(0.8f);
+
+        if (keypad != null) keypad.Close();
+
+        yield return new WaitForSeconds(0.3f);
+
+        if (doorController != null)
+            doorController.OpenDoor();
+
+        yield return new WaitForSeconds(1.5f);
+
+        CompleteLevel();
+    }
+
+    // =========================================================================
+    // Dialogue — Walk-Away Detection
+    // =========================================================================
 
     /// <summary>
     /// During dialogue, checks if the player has wandered too far from the NPC.
@@ -405,11 +693,11 @@ public class Level5_DumbNPC : LevelManager
     {
         inDialogue = false;
         waitingForInput = false;
+        dialogueCompleted = true;
 
         dialogueCanvas.gameObject.SetActive(false);
 
-        Debug.Log($"[Level5] Dialogue ended after {dialogueLines.Count} lines.");
-        CompleteLevel();
+        Debug.Log($"[Level5] Dialogue ended after {dialogueLines.Count} lines. Code was: {generatedCode}");
     }
 
     // =========================================================================
@@ -515,6 +803,55 @@ public class Level5_DumbNPC : LevelManager
     }
 
     // =========================================================================
+    // Door Interaction HUD (crosshair + interact prompt for door/keypad)
+    // =========================================================================
+
+    private void CreateDoorHUD()
+    {
+        GameObject canvasObj = new GameObject("DoorHUD");
+        canvasObj.transform.SetParent(transform);
+        doorHudCanvas = canvasObj.AddComponent<Canvas>();
+        doorHudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        doorHudCanvas.sortingOrder = 15;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        // Crosshair
+        GameObject crossObj = new GameObject("Crosshair");
+        crossObj.transform.SetParent(canvasObj.transform, false);
+        crosshairImage = crossObj.AddComponent<Image>();
+        crosshairImage.color = new Color(1f, 1f, 1f, 0.5f);
+        crosshairImage.raycastTarget = false;
+        RectTransform crossRect = crossObj.GetComponent<RectTransform>();
+        crossRect.anchorMin = new Vector2(0.498f, 0.496f);
+        crossRect.anchorMax = new Vector2(0.502f, 0.504f);
+        crossRect.offsetMin = Vector2.zero;
+        crossRect.offsetMax = Vector2.zero;
+
+        // Door interact prompt text
+        GameObject promptObj = new GameObject("DoorPromptText");
+        promptObj.transform.SetParent(canvasObj.transform, false);
+        doorInteractPromptText = promptObj.AddComponent<Text>();
+        doorInteractPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        doorInteractPromptText.fontSize = 22;
+        doorInteractPromptText.fontStyle = FontStyle.Bold;
+        doorInteractPromptText.alignment = TextAnchor.MiddleCenter;
+        doorInteractPromptText.color = new Color(1f, 1f, 1f, 0.85f);
+        doorInteractPromptText.raycastTarget = false;
+        doorInteractPromptText.enabled = false;
+
+        RectTransform promptRect = promptObj.GetComponent<RectTransform>();
+        promptRect.anchorMin = new Vector2(0.3f, 0.42f);
+        promptRect.anchorMax = new Vector2(0.7f, 0.48f);
+        promptRect.offsetMin = Vector2.zero;
+        promptRect.offsetMax = Vector2.zero;
+    }
+
+    // =========================================================================
     // HUD Creation (matches Level 3 style)
     // =========================================================================
 
@@ -591,29 +928,58 @@ public class Level5_DumbNPC : LevelManager
     }
 
     // =========================================================================
-    // Default Dialogue
+    // Default Dialogue (with generated door code buried inside)
     // =========================================================================
 
     private void BuildDefaultDialogue()
     {
+        // Split the code into individual digits for extra obfuscation in the rambling
+        char d0 = generatedCode[0];
+        char d1 = generatedCode[1];
+        char d2 = generatedCode[2];
+        char d3 = generatedCode[3];
+
         dialogueLines = new List<string>
         {
             "Oh! A visitor! I haven't had a visitor in... well, I've never had a visitor actually. This is quite exciting.",
+
             "Let me tell you about my day. So I woke up this morning and my pillow was slightly to the left of where I usually put it. Can you believe that?",
+
             "Anyway, then I spent about 45 minutes deciding what to have for breakfast. I went with toast. Actually no, I had cereal. Wait, was it toast?",
+
             "You know what, I think it was actually a toast-cereal hybrid. I put the cereal on the toast. Revolutionary, right? I should patent that.",
+
             "But enough about breakfast. Have I told you about my collection of vintage spoons? I have over 300.",
+
             "My favorite spoon is number 47. It has a slight bend in the handle from when I used it to dig a very small hole in my garden.",
+
             "I was planting a seed. The seed never grew. I think about that seed sometimes. It was a mystery seed. Found it in my pocket.",
+
             "Could have been anything. A tree, a flower, a small civilization. We'll never know.",
+
             "Oh! That reminds me of my uncle. He collected bottle caps. Had 12,000 of them. Bottle cap number 1 was a Coca-Cola cap from 1987. It was red.",
-            "Bottle cap number 2 was also a Coca-Cola cap from 1987. Also red. Bottle cap number 3— you know what, this might take a while.",
+
+            "Bottle cap number 2 was also a Coca-Cola cap from 1987. Also red. Bottle cap number 3-- you know what, this might take a while.",
+
             "Anyway, you probably want to know about the door, right? Everyone always asks about the door.",
-            "Here's the thing about the door: it's a door. It has hinges. And a handle. You push it or pull it. Actually, I forget which one.",
-            "Maybe it slides? No wait, I think you have to say a password. The password is... hmm. I wrote it down somewhere.",
-            "On my hand I think. Let me check. No, that's my grocery list. Eggs, milk, more spoons...",
-            "Oh! I remember now! The password is 'please'. Or 'open sesame'. Or 'Gerald is the best'. One of those three. Try all of them.",
-            "Actually, the door might not even be locked. I honestly don't remember.",
+
+            "Here's the thing about the door: it's a door. It has hinges. And a handle. And a keypad! I love keypads. So many buttons.",
+
+            // The code is buried here, delivered casually mid-ramble
+            $"The code is... let me think. I wrote it on my hand once. First digit is {d0}. Or was it? No, it's definitely {d0}.",
+
+            $"Then there's a {d1}. I remember because that's how many invisible cats I own. {d1} invisible cats. You can't see them but they're there.",
+
+            $"Third digit is {d2}. Same as the number of times I've tried to teach those cats to fetch. {d2} times. None successful.",
+
+            $"And the last one is {d3}. Like the number of working doors in my house. Well, {d3} if you count this one. Which you shouldn't because it's locked.",
+
+            $"So the whole code is {generatedCode}. Write it down or something. Actually, don't write it down. Memorize it. Actually, do whatever you want.",
+
+            "Oh! One more thing. If you get it wrong, don't look at me. I gave you the code fair and square.",
+
+            "Actually, I forget if that was the right code or the code to my spoon cabinet. Only one way to find out, I suppose.",
+
             "Anyway, it was lovely chatting with you. If you ever want to hear about my spoons in more detail, you know where to find me. Actually, you don't. I move around a lot. Goodbye!"
         };
     }
