@@ -103,7 +103,7 @@ public class Level7_CompassHallways : LevelManager
         containerRect.anchorMin = new Vector2(0.5f, 0f);
         containerRect.anchorMax = new Vector2(0.5f, 0f);
         containerRect.pivot = new Vector2(0.5f, 0f);
-        containerRect.anchoredPosition = new Vector2(0f, 16f);
+        containerRect.anchoredPosition = new Vector2(0f, 50f);
         containerRect.sizeDelta = new Vector2(120f, 120f);
 
         // Tick marks at 0, 90, 180, 270 degrees around the perimeter
