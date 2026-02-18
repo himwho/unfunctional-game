@@ -1325,7 +1325,7 @@ MonoBehaviour:
   enableMislabeling: 0
   stepDuration: 0.35
   resetOnFail: 1
-  failsBeforeReset: 2
+  failsBeforeReset: 3
 --- !u!4 &1416188551
 Transform:
   m_ObjectHideFlags: 0
