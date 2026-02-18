@@ -1744,9 +1744,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51605ef1de880404b8cf952baab9671f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Level2_SettingsPuzzle
-  levelDisplayName: Unnamed Level
+  levelDisplayName: Setup the Game
   levelDescription: 
-  levelBuildIndex: -1
+  levelBuildIndex: 2
   wantsCursorLocked: 0
   needsPlayer: 0
   playerSpawnPoint: {fileID: 0}

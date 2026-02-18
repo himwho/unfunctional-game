@@ -767,9 +767,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 819bbe7603e657d4c9c96c8743779c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Level1_ConfusingMenu
-  levelDisplayName: Unnamed Level
+  levelDisplayName: Start the game!
   levelDescription: 
-  levelBuildIndex: -1
+  levelBuildIndex: 1
   wantsCursorLocked: 0
   needsPlayer: 0
   playerSpawnPoint: {fileID: 0}

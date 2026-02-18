@@ -1589,9 +1589,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebcb7e900810e754aabf05b7c471a0b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Level5_DumbNPC
-  levelDisplayName: Unnamed Level
-  levelDescription: 
-  levelBuildIndex: -1
+  levelDisplayName: NPC Conversation
+  levelDescription: Time to listen!
+  levelBuildIndex: 5
   wantsCursorLocked: 1
   needsPlayer: 1
   playerSpawnPoint: {fileID: 916945061}
@@ -1602,9 +1602,12 @@ MonoBehaviour:
   maxDialogueRange: 15
   comeBackLine: Hey, come back here!
   startOverLine: Let me start over...
+  npcTurnSpeed: 90
   typingSpeed: 0.04
   enableTypingEffect: 1
   dialogueLines: []
+  doorController: {fileID: 0}
+  doorInteractRange: 3
 --- !u!4 &1473191274
 Transform:
   m_ObjectHideFlags: 0

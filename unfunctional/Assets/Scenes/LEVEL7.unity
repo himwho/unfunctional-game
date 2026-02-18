@@ -484,9 +484,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9c7b3e05a3680248988254fc8bd2b0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Level7_CompassHallways
-  levelDisplayName: Unnamed Level
+  levelDisplayName: Compass
   levelDescription: 
-  levelBuildIndex: -1
+  levelBuildIndex: 7
   wantsCursorLocked: 1
   needsPlayer: 1
   playerSpawnPoint: {fileID: 0}

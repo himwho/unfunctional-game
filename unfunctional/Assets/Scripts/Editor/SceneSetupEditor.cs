@@ -997,6 +997,22 @@ public class SceneSetupEditor : EditorWindow
         Level6_QuicktimeEvents qteScript = levelRoot.GetComponent<Level6_QuicktimeEvents>();
         if (qteScript == null) qteScript = levelRoot.AddComponent<Level6_QuicktimeEvents>();
 
+        // Wire doorController if missing
+        if (qteScript.doorController == null)
+        {
+            GameObject doorGO = FindDoorInstance();
+            if (doorGO != null)
+            {
+                DoorController dc = doorGO.GetComponent<DoorController>();
+                if (dc != null)
+                {
+                    qteScript.doorController = dc;
+                    dc.unlockMethod = DoorController.UnlockMethod.None;
+                    dc.ApplyUnlockMethod();
+                }
+            }
+        }
+
         // If already configured, skip
         if (qteScript.qteCanvas != null)
         {
@@ -1099,6 +1115,10 @@ public class SceneSetupEditor : EditorWindow
         qteScript.playerSpawnPoint = spawnPoint.transform;
         qteScript.needsPlayer = true;
         qteScript.wantsCursorLocked = true;
+
+        // Wire door controller
+        if (doorCtrl != null && qteScript.doorController == null)
+            qteScript.doorController = doorCtrl;
 
         EnsureEventSystem();
         EditorSceneManager.MarkSceneDirty(scene);

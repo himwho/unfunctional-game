@@ -557,6 +557,11 @@ MonoBehaviour:
   - LEVEL4
   - LEVEL5
   - LEVEL6
+  - LEVEL7
+  - LEVEL8
+  - LEVEL9
+  - LEVEL10
+  - LEVEL11
   playerPrefab: {fileID: 7894247577456986327, guid: d0e996dd98f2d2f4cbfbed60445f33b9,
     type: 3}
   fadeOutDuration: 0.5
