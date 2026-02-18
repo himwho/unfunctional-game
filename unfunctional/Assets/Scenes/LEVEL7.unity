@@ -7993,6 +7993,9 @@ MonoBehaviour:
   playerSpawnPoint: {fileID: 493782387}
   levelComplete: 0
   doorController: {fileID: 1029397942}
+  npcObject: {fileID: 1814944328}
+  interactRange: 5
+  npcName: Gorp
   exitPoint: {fileID: 1512600536}
   erraticStartDistance: 20
   erraticIntensity: 180
@@ -38471,6 +38474,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6f305479920950e4294c8d3d3a436d71, type: 3}
+--- !u!1 &1814944328 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f305479920950e4294c8d3d3a436d71,
+    type: 3}
+  m_PrefabInstance: {fileID: 1814944327}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1815387834
 GameObject:
   m_ObjectHideFlags: 0

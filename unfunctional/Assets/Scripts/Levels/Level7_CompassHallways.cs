@@ -17,6 +17,11 @@ public class Level7_CompassHallways : LevelManager
     [Header("Door")]
     public DoorController doorController;
 
+    [Header("NPC")]
+    public GameObject npcObject;
+    public float interactRange = 5f;
+    public string npcName = "Gorp";
+
     [Header("Exit")]
     [Tooltip("Transform marking the exit location. The compass needle points here.")]
     public Transform exitPoint;
@@ -33,6 +38,17 @@ public class Level7_CompassHallways : LevelManager
     private Image compassFace;
     private bool reachedEnd = false;
 
+    // NPC interaction UI
+    private Canvas interactPromptCanvas;
+    private Text interactPromptText;
+    private Canvas dialogueCanvas;
+    private Text dialogueNameText;
+    private Text dialogueBodyText;
+    private Text dialogueDismissText;
+    private bool inDialogue = false;
+    private bool hasSpokenToNpc = false;
+    private Coroutine typingCoroutine;
+
     protected override void Start()
     {
         base.Start();
@@ -42,6 +58,11 @@ public class Level7_CompassHallways : LevelManager
         wantsCursorLocked = true;
 
         CreateCompassHUD();
+        CreateInteractPrompt();
+        CreateDialogueHUD();
+
+        interactPromptCanvas.gameObject.SetActive(false);
+        dialogueCanvas.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -49,6 +70,7 @@ public class Level7_CompassHallways : LevelManager
         if (levelComplete) return;
         UpdateCompass();
         CheckExitProximity();
+        UpdateNpcInteraction();
     }
 
     // =========================================================================
@@ -233,6 +255,180 @@ public class Level7_CompassHallways : LevelManager
         }
 
         compassNeedle.localRotation = Quaternion.Euler(0, 0, -targetAngle);
+    }
+
+    // =========================================================================
+    // NPC Interaction
+    // =========================================================================
+
+    private void UpdateNpcInteraction()
+    {
+        if (npcObject == null) return;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
+        bool nearNpc = dist <= interactRange;
+        bool ePressed = Input.GetKeyDown(KeyCode.E);
+
+        if (inDialogue)
+        {
+            interactPromptCanvas.gameObject.SetActive(false);
+
+            if (ePressed)
+                DismissDialogue();
+
+            return;
+        }
+
+        interactPromptCanvas.gameObject.SetActive(nearNpc);
+
+        if (nearNpc && ePressed)
+            ShowDialogue();
+    }
+
+    private void ShowDialogue()
+    {
+        inDialogue = true;
+        hasSpokenToNpc = true;
+        interactPromptCanvas.gameObject.SetActive(false);
+        dialogueCanvas.gameObject.SetActive(true);
+
+        dialogueNameText.text = npcName;
+        dialogueDismissText.gameObject.SetActive(false);
+
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+        typingCoroutine = StartCoroutine(TypeDialogueLine("Follow the arrow... it will show you the way."));
+    }
+
+    private IEnumerator TypeDialogueLine(string text)
+    {
+        dialogueBodyText.text = "";
+        foreach (char c in text)
+        {
+            dialogueBodyText.text += c;
+            yield return new WaitForSeconds(0.04f);
+        }
+
+        dialogueDismissText.gameObject.SetActive(true);
+        dialogueDismissText.text = "[E] Dismiss";
+    }
+
+    private void DismissDialogue()
+    {
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+        typingCoroutine = null;
+
+        inDialogue = false;
+        dialogueCanvas.gameObject.SetActive(false);
+    }
+
+    // =========================================================================
+    // NPC Interact Prompt HUD
+    // =========================================================================
+
+    private void CreateInteractPrompt()
+    {
+        GameObject canvasObj = new GameObject("InteractPromptHUD");
+        canvasObj.transform.SetParent(transform);
+        interactPromptCanvas = canvasObj.AddComponent<Canvas>();
+        interactPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        interactPromptCanvas.sortingOrder = 20;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        GameObject textObj = new GameObject("InteractPromptText");
+        textObj.transform.SetParent(canvasObj.transform, false);
+
+        interactPromptText = textObj.AddComponent<Text>();
+        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.fontSize = 24;
+        interactPromptText.fontStyle = FontStyle.BoldAndItalic;
+        interactPromptText.alignment = TextAnchor.MiddleCenter;
+        interactPromptText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
+        interactPromptText.raycastTarget = false;
+        interactPromptText.text = "Press [E] to interact";
+
+        RectTransform rect = textObj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.3f, 0.45f);
+        rect.anchorMax = new Vector2(0.7f, 0.55f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    // =========================================================================
+    // NPC Dialogue HUD
+    // =========================================================================
+
+    private void CreateDialogueHUD()
+    {
+        GameObject canvasObj = new GameObject("DialogueHUD");
+        canvasObj.transform.SetParent(transform);
+        dialogueCanvas = canvasObj.AddComponent<Canvas>();
+        dialogueCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        dialogueCanvas.sortingOrder = 25;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        // NPC name
+        GameObject nameObj = new GameObject("NpcNameText");
+        nameObj.transform.SetParent(canvasObj.transform, false);
+        dialogueNameText = nameObj.AddComponent<Text>();
+        dialogueNameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueNameText.fontSize = 24;
+        dialogueNameText.fontStyle = FontStyle.BoldAndItalic;
+        dialogueNameText.alignment = TextAnchor.MiddleCenter;
+        dialogueNameText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
+        dialogueNameText.raycastTarget = false;
+
+        RectTransform nameRect = nameObj.GetComponent<RectTransform>();
+        nameRect.anchorMin = new Vector2(0.1f, 0.18f);
+        nameRect.anchorMax = new Vector2(0.9f, 0.22f);
+        nameRect.offsetMin = Vector2.zero;
+        nameRect.offsetMax = Vector2.zero;
+
+        // Dialogue body
+        GameObject bodyObj = new GameObject("DialogueText");
+        bodyObj.transform.SetParent(canvasObj.transform, false);
+        dialogueBodyText = bodyObj.AddComponent<Text>();
+        dialogueBodyText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueBodyText.fontSize = 24;
+        dialogueBodyText.fontStyle = FontStyle.Italic;
+        dialogueBodyText.alignment = TextAnchor.MiddleCenter;
+        dialogueBodyText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        dialogueBodyText.raycastTarget = false;
+        dialogueBodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        dialogueBodyText.verticalOverflow = VerticalWrapMode.Overflow;
+
+        RectTransform bodyRect = bodyObj.GetComponent<RectTransform>();
+        bodyRect.anchorMin = new Vector2(0.1f, 0.10f);
+        bodyRect.anchorMax = new Vector2(0.9f, 0.18f);
+        bodyRect.offsetMin = Vector2.zero;
+        bodyRect.offsetMax = Vector2.zero;
+
+        // Dismiss prompt
+        GameObject dismissObj = new GameObject("DismissText");
+        dismissObj.transform.SetParent(canvasObj.transform, false);
+        dialogueDismissText = dismissObj.AddComponent<Text>();
+        dialogueDismissText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueDismissText.fontSize = 20;
+        dialogueDismissText.fontStyle = FontStyle.Italic;
+        dialogueDismissText.alignment = TextAnchor.MiddleCenter;
+        dialogueDismissText.color = new Color(0.75f, 0.85f, 1f, 0.7f);
+        dialogueDismissText.raycastTarget = false;
+
+        RectTransform dismissRect = dismissObj.GetComponent<RectTransform>();
+        dismissRect.anchorMin = new Vector2(0.1f, 0.06f);
+        dismissRect.anchorMax = new Vector2(0.9f, 0.10f);
+        dismissRect.offsetMin = Vector2.zero;
+        dismissRect.offsetMax = Vector2.zero;
     }
 
     // =========================================================================
