@@ -7997,7 +7997,7 @@ MonoBehaviour:
   interactRange: 5
   npcName: Gorp
   exitPoint: {fileID: 1512600536}
-  erraticStartDistance: 20
+  erraticStartDistance: 100
   erraticIntensity: 180
 --- !u!4 &385072958
 Transform:

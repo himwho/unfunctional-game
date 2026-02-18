@@ -27,7 +27,7 @@ public class Level7_CompassHallways : LevelManager
     public Transform exitPoint;
 
     [Header("Compass Behavior")]
-    public float erraticStartDistance = 20f;
+    public float erraticStartDistance = 35f;
     public float erraticIntensity = 180f;
 
     private Canvas compassCanvas;
@@ -57,6 +57,7 @@ public class Level7_CompassHallways : LevelManager
         CreateInteractPrompt();
         CreateDialogueHUD();
 
+        compassCanvas.gameObject.SetActive(false);
         interactPromptCanvas.gameObject.SetActive(false);
         dialogueCanvas.gameObject.SetActive(false);
     }
@@ -164,6 +165,8 @@ public class Level7_CompassHallways : LevelManager
 
     private void UpdateCompass()
     {
+        if (!hasSpokenToNpc) return;
+
         Camera cam = Camera.main;
         if (cam == null || exitPoint == null || compassNeedle == null) return;
 
@@ -214,6 +217,8 @@ public class Level7_CompassHallways : LevelManager
             return;
         }
 
+        if (hasSpokenToNpc) return;
+
         interactPromptCanvas.gameObject.SetActive(nearNpc);
 
         if (nearNpc && ePressed)
@@ -256,6 +261,9 @@ public class Level7_CompassHallways : LevelManager
 
         inDialogue = false;
         dialogueCanvas.gameObject.SetActive(false);
+
+        if (!compassCanvas.gameObject.activeSelf)
+            compassCanvas.gameObject.SetActive(true);
     }
 
     // =========================================================================
