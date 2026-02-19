@@ -37,10 +37,13 @@ public class Level7_CompassHallways : LevelManager
     private Canvas compassCanvas;
     private RectTransform compassNeedle;
     private bool reachedEnd = false;
+    private bool nearDoor = false;
 
     // NPC interaction UI
     private Canvas interactPromptCanvas;
     private Text interactPromptText;
+    private Canvas doorPromptCanvas;
+    private Text doorPromptText;
     private Canvas dialogueCanvas;
     private Text dialogueNameText;
     private Text dialogueBodyText;
@@ -63,10 +66,12 @@ public class Level7_CompassHallways : LevelManager
 
         CreateCompassHUD();
         CreateInteractPrompt();
+        CreateDoorPrompt();
         CreateDialogueHUD();
 
         compassCanvas.gameObject.SetActive(false);
         interactPromptCanvas.gameObject.SetActive(false);
+        doorPromptCanvas.gameObject.SetActive(false);
         dialogueCanvas.gameObject.SetActive(false);
     }
 
@@ -75,6 +80,7 @@ public class Level7_CompassHallways : LevelManager
         if (levelComplete) return;
         UpdateCompass();
         CheckExitProximity();
+        UpdateDoorInteraction();
         UpdateNpcInteraction();
         RotateNPCTowardsPlayer();
     }
@@ -341,6 +347,41 @@ public class Level7_CompassHallways : LevelManager
     }
 
     // =========================================================================
+    // Door Interact Prompt HUD
+    // =========================================================================
+
+    private void CreateDoorPrompt()
+    {
+        GameObject canvasObj = new GameObject("DoorPromptHUD");
+        canvasObj.transform.SetParent(transform);
+        doorPromptCanvas = canvasObj.AddComponent<Canvas>();
+        doorPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        doorPromptCanvas.sortingOrder = 20;
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        GameObject textObj = new GameObject("DoorPromptText");
+        textObj.transform.SetParent(canvasObj.transform, false);
+
+        doorPromptText = textObj.AddComponent<Text>();
+        doorPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        doorPromptText.fontSize = 24;
+        doorPromptText.fontStyle = FontStyle.BoldAndItalic;
+        doorPromptText.alignment = TextAnchor.MiddleCenter;
+        doorPromptText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
+        doorPromptText.raycastTarget = false;
+        doorPromptText.text = "Press [E] to open door";
+
+        RectTransform rect = textObj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.3f, 0.45f);
+        rect.anchorMax = new Vector2(0.7f, 0.55f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    // =========================================================================
     // NPC Dialogue HUD
     // =========================================================================
 
@@ -420,9 +461,19 @@ public class Level7_CompassHallways : LevelManager
         if (cam == null || exitPoint == null) return;
 
         float dist = Vector3.Distance(cam.transform.position, exitPoint.position);
-        if (dist < 3f && !reachedEnd)
+        nearDoor = dist < 3f;
+    }
+
+    private void UpdateDoorInteraction()
+    {
+        if (reachedEnd || inDialogue) return;
+
+        doorPromptCanvas.gameObject.SetActive(nearDoor);
+
+        if (nearDoor && Input.GetKeyDown(KeyCode.E))
         {
             reachedEnd = true;
+            doorPromptCanvas.gameObject.SetActive(false);
             OnReachedEnd();
         }
     }
@@ -431,10 +482,13 @@ public class Level7_CompassHallways : LevelManager
     {
         if (levelComplete) return;
 
+        reachedEnd = true;
+        doorPromptCanvas.gameObject.SetActive(false);
+
         if (doorController != null)
         {
             doorController.OpenDoor();
-            StartCoroutine(CompleteAfterDelay(2f));
+            StartCoroutine(WaitForDoorThenComplete());
         }
         else
         {
@@ -442,16 +496,26 @@ public class Level7_CompassHallways : LevelManager
         }
     }
 
-    private IEnumerator CompleteAfterDelay(float delay)
+    private IEnumerator WaitForDoorThenComplete()
     {
-        yield return new WaitForSeconds(delay);
+        while (doorController != null && doorController.IsAnimating)
+            yield return null;
+
+        yield return new WaitForSeconds(1.5f);
         CompleteLevel();
     }
+
+    public void SetNearDoor(bool value)
+    {
+        nearDoor = value;
+    }
+
 }
 
 /// <summary>
 /// Trigger collider for the exit zone. Place on a GameObject with a trigger
-/// collider near the exit point in the scene.
+/// collider near the exit point in the scene. Sets nearDoor state so the
+/// player can press E to open the door.
 /// </summary>
 public class Level7ExitTrigger : MonoBehaviour
 {
@@ -462,7 +526,16 @@ public class Level7ExitTrigger : MonoBehaviour
         if (other.CompareTag("Player") || other.GetComponent<CharacterController>() != null)
         {
             if (levelManager != null)
-                levelManager.OnReachedEnd();
+                levelManager.SetNearDoor(true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player") || other.GetComponent<CharacterController>() != null)
+        {
+            if (levelManager != null)
+                levelManager.SetNearDoor(false);
         }
     }
 }

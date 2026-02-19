@@ -10756,6 +10756,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: LEVEL_DOOR
       objectReference: {fileID: 0}
+    - target: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: unlockMethod
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -10826,6 +10831,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23e3bca1494037c4e8f3b207ff613ea1, type: 3}
+--- !u!114 &292543772 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+    type: 3}
+  m_PrefabInstance: {fileID: 292543771}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de270b5e1851ec54e80db4e040711b18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
 --- !u!1 &292815406
 GameObject:
   m_ObjectHideFlags: 0
@@ -13827,7 +13844,7 @@ MonoBehaviour:
   needsPlayer: 1
   playerSpawnPoint: {fileID: 493782387}
   levelComplete: 0
-  doorController: {fileID: 0}
+  doorController: {fileID: 292543772}
   npcObject: {fileID: 1814944328}
   interactRange: 5
   npcName: Gorp
@@ -17370,7 +17387,7 @@ Transform:
   m_GameObject: {fileID: 493782386}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -11.57, y: 0.578, z: 0.01}
+  m_LocalPosition: {x: 625.9, y: 0.578, z: 120.176}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
