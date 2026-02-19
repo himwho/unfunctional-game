@@ -118,7 +118,6 @@ public class PlayerController : MonoBehaviour
         float speed = running ? runSpeed : walkSpeed;
 
         Vector3 move = transform.right * h + transform.forward * v;
-        controller.Move(move * speed * Time.deltaTime);
 
         // Jump
         bool jumpInput = InputManager.Instance != null ? InputManager.Instance.JumpPressed : Input.GetButtonDown("Jump");
@@ -129,7 +128,15 @@ public class PlayerController : MonoBehaviour
 
         // Apply gravity
         velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+
+        // Combine lateral movement + gravity into a single Move call.
+        // Guard against zero-length vectors to avoid the internal
+        // "IsNormalized(dir)" assertion in CharacterController.
+        Vector3 finalMove = (move * speed * Time.deltaTime) + (velocity * Time.deltaTime);
+        if (finalMove.sqrMagnitude > 1e-10f)
+        {
+            controller.Move(finalMove);
+        }
     }
 
     /// <summary>
