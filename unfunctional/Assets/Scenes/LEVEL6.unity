@@ -164,6 +164,7 @@ GameObject:
   - component: {fileID: 98616260}
   - component: {fileID: 98616259}
   - component: {fileID: 98616258}
+  - component: {fileID: 98616262}
   m_Layer: 0
   m_Name: Wall (3)
   m_TagString: Untagged
@@ -263,6 +264,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &98616262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 98616257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &515947631
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,7 +312,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
-  texturePropertyName: _MainTex
+  texturePropertyName: _BaseMap
   tiling: {x: 8, y: 2}
   offset: {x: 0, y: 0}
   debugLog: 0
@@ -895,6 +912,7 @@ GameObject:
   - component: {fileID: 987925648}
   - component: {fileID: 987925647}
   - component: {fileID: 987925646}
+  - component: {fileID: 987925650}
   m_Layer: 0
   m_Name: Wall (5)
   m_TagString: Untagged
@@ -994,6 +1012,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &987925650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987925645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &1048584848
 GameObject:
   m_ObjectHideFlags: 0
@@ -1260,6 +1294,7 @@ GameObject:
   - component: {fileID: 1149568445}
   - component: {fileID: 1149568444}
   - component: {fileID: 1149568443}
+  - component: {fileID: 1149568447}
   m_Layer: 0
   m_Name: Wall
   m_TagString: Untagged
@@ -1359,6 +1394,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1149568447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1149568442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &1217589398
 GameObject:
   m_ObjectHideFlags: 0
@@ -1498,6 +1549,7 @@ GameObject:
   - component: {fileID: 1220531055}
   - component: {fileID: 1220531054}
   - component: {fileID: 1220531053}
+  - component: {fileID: 1220531057}
   m_Layer: 0
   m_Name: Wall (1)
   m_TagString: Untagged
@@ -1597,6 +1649,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1220531057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220531052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &1405361469
 GameObject:
   m_ObjectHideFlags: 0
@@ -1863,6 +1931,7 @@ GameObject:
   - component: {fileID: 1715670139}
   - component: {fileID: 1715670138}
   - component: {fileID: 1715670137}
+  - component: {fileID: 1715670141}
   m_Layer: 0
   m_Name: Wall (2)
   m_TagString: Untagged
@@ -1962,6 +2031,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &1715670141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1715670136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &1902773130
 GameObject:
   m_ObjectHideFlags: 0
@@ -2101,6 +2186,7 @@ GameObject:
   - component: {fileID: 1914124464}
   - component: {fileID: 1914124463}
   - component: {fileID: 1914124462}
+  - component: {fileID: 1914124466}
   m_Layer: 0
   m_Name: Roof
   m_TagString: Untagged
@@ -2200,6 +2286,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &1914124466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1914124461}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &1948895076
 GameObject:
   m_ObjectHideFlags: 0
@@ -2339,6 +2441,7 @@ GameObject:
   - component: {fileID: 2099574715}
   - component: {fileID: 2099574714}
   - component: {fileID: 2099574713}
+  - component: {fileID: 2099574717}
   m_Layer: 0
   m_Name: Wall (6)
   m_TagString: Untagged
@@ -2438,6 +2541,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &2099574717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099574712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c60506b7b792841bf94481b4795526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
+  texturePropertyName: _BaseMap
+  tiling: {x: 4, y: 4}
+  offset: {x: 0, y: 0}
+  debugLog: 0
 --- !u!1 &2113961563
 GameObject:
   m_ObjectHideFlags: 0
