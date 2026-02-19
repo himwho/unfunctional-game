@@ -94,6 +94,7 @@ public class KeypadController : MonoBehaviour
     private Button requestCodeButton;
     private Button closeKeypadButton;
     private Font defaultFont;
+    private GameObject dimBackground;
     private bool uiBuilt = false;
 
     // State
@@ -124,6 +125,7 @@ public class KeypadController : MonoBehaviour
 
         IsOpen = true;
         keypadPanel.SetActive(true);
+        if (dimBackground != null) dimBackground.SetActive(true);
         enteredCode = "";
         UpdateCodeDisplay();
         SetStatus("Enter the " + codeLength + "-digit code", Color.white);
@@ -161,6 +163,8 @@ public class KeypadController : MonoBehaviour
 
         if (keypadPanel != null)
             keypadPanel.SetActive(false);
+        if (dimBackground != null)
+            dimBackground.SetActive(false);
 
         // Re-lock cursor for FPS
         if (InputManager.Instance != null)
@@ -334,11 +338,11 @@ public class KeypadController : MonoBehaviour
         canvasObj.AddComponent<GraphicRaycaster>();
 
         // Dimmed background
-        GameObject dimObj = MakeChild(canvasObj, "DimBackground");
-        Image dimImg = dimObj.AddComponent<Image>();
+        dimBackground = MakeChild(canvasObj, "DimBackground");
+        Image dimImg = dimBackground.AddComponent<Image>();
         dimImg.color = new Color(0, 0, 0, 0.7f);
         dimImg.raycastTarget = true;
-        Stretch(dimObj);
+        Stretch(dimBackground);
 
         // Main keypad panel
         keypadPanel = MakeChild(canvasObj, "KeypadPanel");
@@ -436,6 +440,7 @@ public class KeypadController : MonoBehaviour
 
         // Start hidden
         keypadPanel.SetActive(false);
+        dimBackground.SetActive(false);
     }
 
     // =========================================================================
