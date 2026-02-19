@@ -46,11 +46,55 @@ public class Level1_ConfusingMenu : LevelManager
         levelDisplayName = "Main Menu";
         levelDescription = "Find the Start Game button. Good luck.";
 
+        // Create an oversized background that covers the screen even when
+        // the panel rotates. Placed behind all children so buttons are unaffected.
+        CreateOversizedBackground();
+
         SetupFakeButtons();
         SetupRealButton();
         SetupSubMenus();
 
         subMenuTimer = subMenuPopupInterval;
+    }
+
+    /// <summary>
+    /// Adds a large background image inside the MainPanel that extends well
+    /// beyond the screen edges. When the panel rotates/drifts the background
+    /// still fills the viewport, hiding the black void behind it.
+    /// Placed as the first sibling so it renders behind every other child.
+    /// </summary>
+    private void CreateOversizedBackground()
+    {
+        if (mainPanel == null) return;
+
+        GameObject bg = new GameObject("OversizedBackground");
+        bg.transform.SetParent(mainPanel, false);
+        bg.transform.SetAsFirstSibling(); // render behind everything
+
+        RectTransform bgRT = bg.AddComponent<RectTransform>();
+        bgRT.anchorMin = new Vector2(0.5f, 0.5f);
+        bgRT.anchorMax = new Vector2(0.5f, 0.5f);
+        bgRT.pivot = new Vector2(0.5f, 0.5f);
+        bgRT.sizeDelta = new Vector2(4000, 4000); // ~2x diagonal of 1920×1080
+        bgRT.anchoredPosition = Vector2.zero;
+
+        Image bgImg = bg.AddComponent<Image>();
+        bgImg.raycastTarget = false; // don't block button clicks
+
+        // Copy the panel's own visual so it looks seamless
+        Image panelImg = mainPanel.GetComponent<Image>();
+        if (panelImg != null)
+        {
+            bgImg.color = panelImg.color;
+            bgImg.sprite = panelImg.sprite;
+            bgImg.material = panelImg.material;
+            bgImg.type = panelImg.type;
+        }
+        else
+        {
+            // Fallback: dark menu-style background
+            bgImg.color = new Color(0.12f, 0.12f, 0.15f, 1f);
+        }
     }
 
     private void Update()

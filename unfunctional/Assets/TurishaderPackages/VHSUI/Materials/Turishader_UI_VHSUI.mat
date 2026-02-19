@@ -38,20 +38,20 @@ Material:
     - _Colorbleedingamount: 0.0261
     - _Coords: 0
     - _DistortionAmount: 0.1
-    - _GlitchAmount: 0.053
-    - _GlitchMinColorMultiply: 0.173
-    - _GlitchMinOpacity: 1
+    - _GlitchAmount: 0.22
+    - _GlitchMinColorMultiply: 0.26
+    - _GlitchMinOpacity: 0.45
     - _GlitchTiling: 0.1
     - _GridAmount: 0.406
-    - _MipLevel: 4
+    - _MipLevel: 5
     - _MipLevelIntensity: 1
-    - _NoiseAmount: 0.233
+    - _NoiseAmount: 0.91
     - _Pattern: 0
     - _PatternCoords: 1
     - _PatternSize: 30
     - _PixelGridAmount: 0
     - _PixelGridSize: 50
-    - _ScanLinesAmount: 0.614
+    - _ScanLinesAmount: 0.2
     - _ScanLinesFrenquency: 400
     - _ScanLinesSpeed: 0
     - _Stencil: 0
@@ -61,6 +61,6 @@ Material:
     - _StencilWriteMask: 255
     - _UseUIAlphaClip: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.4528302, g: 0.087575644, b: 0.087575644, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
