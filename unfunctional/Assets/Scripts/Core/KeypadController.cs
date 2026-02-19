@@ -320,14 +320,13 @@ public class KeypadController : MonoBehaviour
         if (uiBuilt) return;
         uiBuilt = true;
 
-        defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        defaultFont = UIHelper.GetDefaultFont();
 
         // Screen-space overlay canvas
         GameObject canvasObj = new GameObject("KeypadCanvas");
         canvasObj.transform.SetParent(transform);
         keypadCanvas = canvasObj.AddComponent<Canvas>();
-        keypadCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        keypadCanvas.sortingOrder = 50;
+        UIHelper.ConfigureCanvas(keypadCanvas, sortingOrder: 50);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

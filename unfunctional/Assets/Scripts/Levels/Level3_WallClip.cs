@@ -313,8 +313,7 @@ public class Level3_WallClip : LevelManager
         GameObject canvasObj = new GameObject("Level3HUD");
         canvasObj.transform.SetParent(transform);
         hudCanvas = canvasObj.AddComponent<Canvas>();
-        hudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        hudCanvas.sortingOrder = 20;
+        UIHelper.ConfigureCanvas(hudCanvas, sortingOrder: 20);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -342,7 +341,7 @@ public class Level3_WallClip : LevelManager
 
         interactPromptText = promptObj.AddComponent<Text>();
         interactPromptText.text = "[E] Interact";
-        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.font = UIHelper.GetDefaultFont();
         interactPromptText.fontSize = 22;
         interactPromptText.alignment = TextAnchor.MiddleCenter;
         interactPromptText.color = new Color(1f, 1f, 1f, 0.85f);
@@ -363,7 +362,7 @@ public class Level3_WallClip : LevelManager
         hintCanvasGroup.alpha = 0f;
 
         hintText = hintObj.AddComponent<Text>();
-        hintText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        hintText.font = UIHelper.GetDefaultFont();
         hintText.fontSize = 20;
         hintText.alignment = TextAnchor.MiddleCenter;
         hintText.color = new Color(0.8f, 0.8f, 0.5f, 1f);
@@ -384,7 +383,7 @@ public class Level3_WallClip : LevelManager
         messageCanvasGroup.alpha = 0f;
 
         messageText = msgObj.AddComponent<Text>();
-        messageText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        messageText.font = UIHelper.GetDefaultFont();
         messageText.fontSize = 32;
         messageText.alignment = TextAnchor.MiddleCenter;
         messageText.color = Color.white;
@@ -404,7 +403,7 @@ public class Level3_WallClip : LevelManager
         narrationCanvasGroup.alpha = 0f;
 
         narrationText = narObj.AddComponent<Text>();
-        narrationText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        narrationText.font = UIHelper.GetDefaultFont();
         narrationText.fontSize = 24;
         narrationText.alignment = TextAnchor.MiddleCenter;
         narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);

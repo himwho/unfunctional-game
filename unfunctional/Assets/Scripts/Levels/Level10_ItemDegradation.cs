@@ -505,8 +505,7 @@ public class Level10_ItemDegradation : LevelManager
         GameObject canvasObj = new GameObject("ItemDegradationHUD");
         canvasObj.transform.SetParent(transform);
         hudCanvas = canvasObj.AddComponent<Canvas>();
-        hudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        hudCanvas.sortingOrder = 15;
+        UIHelper.ConfigureCanvas(hudCanvas, sortingOrder: 15);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -545,7 +544,7 @@ public class Level10_ItemDegradation : LevelManager
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         Text txt = obj.AddComponent<Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.font = UIHelper.GetDefaultFont();
         txt.fontSize = fontSize;
         txt.alignment = anchor;
         txt.color = color;

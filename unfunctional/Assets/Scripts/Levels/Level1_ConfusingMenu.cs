@@ -257,7 +257,7 @@ public class Level1_ConfusingMenu : LevelManager
             Text msgText = msgObj.AddComponent<Text>();
             msgText.text = "GAME STARTING...";
             msgText.fontSize = 56;
-            msgText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            msgText.font = UIHelper.GetDefaultFont();
             msgText.alignment = TextAnchor.MiddleCenter;
             msgText.color = new Color(0.2f, 1f, 0.2f, 1f);
         }

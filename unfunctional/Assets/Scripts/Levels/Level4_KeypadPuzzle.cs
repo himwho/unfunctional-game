@@ -571,13 +571,12 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void CreateHUD()
     {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        Font font = UIHelper.GetDefaultFont();
 
         GameObject canvasObj = new GameObject("Level4HUD");
         canvasObj.transform.SetParent(transform);
         hudCanvas = canvasObj.AddComponent<Canvas>();
-        hudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        hudCanvas.sortingOrder = 20;
+        UIHelper.ConfigureCanvas(hudCanvas, sortingOrder: 20);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

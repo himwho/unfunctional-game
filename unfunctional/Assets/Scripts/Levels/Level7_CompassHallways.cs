@@ -94,8 +94,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject canvasObj = new GameObject("CompassHUD");
         canvasObj.transform.SetParent(transform);
         compassCanvas = canvasObj.AddComponent<Canvas>();
-        compassCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        compassCanvas.sortingOrder = 15;
+        UIHelper.ConfigureCanvas(compassCanvas, sortingOrder: 15);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -320,8 +319,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject canvasObj = new GameObject("InteractPromptHUD");
         canvasObj.transform.SetParent(transform);
         interactPromptCanvas = canvasObj.AddComponent<Canvas>();
-        interactPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        interactPromptCanvas.sortingOrder = 20;
+        UIHelper.ConfigureCanvas(interactPromptCanvas, sortingOrder: 20);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -331,7 +329,7 @@ public class Level7_CompassHallways : LevelManager
         textObj.transform.SetParent(canvasObj.transform, false);
 
         interactPromptText = textObj.AddComponent<Text>();
-        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.font = UIHelper.GetDefaultFont();
         interactPromptText.fontSize = 24;
         interactPromptText.fontStyle = FontStyle.BoldAndItalic;
         interactPromptText.alignment = TextAnchor.MiddleCenter;
@@ -355,8 +353,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject canvasObj = new GameObject("DoorPromptHUD");
         canvasObj.transform.SetParent(transform);
         doorPromptCanvas = canvasObj.AddComponent<Canvas>();
-        doorPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        doorPromptCanvas.sortingOrder = 20;
+        UIHelper.ConfigureCanvas(doorPromptCanvas, sortingOrder: 20);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -366,7 +363,7 @@ public class Level7_CompassHallways : LevelManager
         textObj.transform.SetParent(canvasObj.transform, false);
 
         doorPromptText = textObj.AddComponent<Text>();
-        doorPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        doorPromptText.font = UIHelper.GetDefaultFont();
         doorPromptText.fontSize = 24;
         doorPromptText.fontStyle = FontStyle.BoldAndItalic;
         doorPromptText.alignment = TextAnchor.MiddleCenter;
@@ -390,8 +387,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject canvasObj = new GameObject("DialogueHUD");
         canvasObj.transform.SetParent(transform);
         dialogueCanvas = canvasObj.AddComponent<Canvas>();
-        dialogueCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        dialogueCanvas.sortingOrder = 25;
+        UIHelper.ConfigureCanvas(dialogueCanvas, sortingOrder: 25);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -401,7 +397,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject nameObj = new GameObject("NpcNameText");
         nameObj.transform.SetParent(canvasObj.transform, false);
         dialogueNameText = nameObj.AddComponent<Text>();
-        dialogueNameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueNameText.font = UIHelper.GetDefaultFont();
         dialogueNameText.fontSize = 24;
         dialogueNameText.fontStyle = FontStyle.BoldAndItalic;
         dialogueNameText.alignment = TextAnchor.MiddleCenter;
@@ -418,7 +414,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject bodyObj = new GameObject("DialogueText");
         bodyObj.transform.SetParent(canvasObj.transform, false);
         dialogueBodyText = bodyObj.AddComponent<Text>();
-        dialogueBodyText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueBodyText.font = UIHelper.GetDefaultFont();
         dialogueBodyText.fontSize = 24;
         dialogueBodyText.fontStyle = FontStyle.Italic;
         dialogueBodyText.alignment = TextAnchor.MiddleCenter;
@@ -437,7 +433,7 @@ public class Level7_CompassHallways : LevelManager
         GameObject dismissObj = new GameObject("DismissText");
         dismissObj.transform.SetParent(canvasObj.transform, false);
         dialogueDismissText = dismissObj.AddComponent<Text>();
-        dialogueDismissText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueDismissText.font = UIHelper.GetDefaultFont();
         dialogueDismissText.fontSize = 20;
         dialogueDismissText.fontStyle = FontStyle.Italic;
         dialogueDismissText.alignment = TextAnchor.MiddleCenter;

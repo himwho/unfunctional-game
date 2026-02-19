@@ -265,12 +265,11 @@ public class SceneSetupEditor : EditorWindow
         {
             canvasObj = new GameObject("MenuCanvas");
             canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
             CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             canvasObj.AddComponent<GraphicRaycaster>();
+            UIHelper.ConfigureCanvas(canvas, sortingOrder: 10);
         }
         else
         {
@@ -301,7 +300,7 @@ public class SceneSetupEditor : EditorWindow
             titleText = titleObj.AddComponent<Text>();
             titleText.text = "UNFUNCTIONAL";
             titleText.fontSize = 72;
-            titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            titleText.font = UIHelper.GetDefaultFont();
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
         }
@@ -320,7 +319,7 @@ public class SceneSetupEditor : EditorWindow
             subtitleText = subtitleObj.AddComponent<Text>();
             subtitleText.text = "The Worst Game Ever Made (on purpose)";
             subtitleText.fontSize = 24;
-            subtitleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            subtitleText.font = UIHelper.GetDefaultFont();
             subtitleText.alignment = TextAnchor.MiddleCenter;
             subtitleText.color = new Color(0.6f, 0.6f, 0.6f, 1f);
         }
@@ -431,7 +430,7 @@ public class SceneSetupEditor : EditorWindow
                 if (panelText == null) panelText = textObj.AddComponent<Text>();
                 panelText.text = subMenuTitles[i];
                 panelText.fontSize = 22;
-                panelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                panelText.font = UIHelper.GetDefaultFont();
                 panelText.alignment = TextAnchor.MiddleCenter;
                 panelText.color = Color.white;
 
@@ -481,12 +480,11 @@ public class SceneSetupEditor : EditorWindow
         {
             canvasObj = new GameObject("SettingsCanvas");
             Canvas canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
             CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             canvasObj.AddComponent<GraphicRaycaster>();
+            UIHelper.ConfigureCanvas(canvas, sortingOrder: 10);
         }
 
         if (puzzleScript.settingsCanvas == null)
@@ -1088,12 +1086,11 @@ public class SceneSetupEditor : EditorWindow
         if (canvas == null)
         {
             canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 20;
             CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             canvasObj.AddComponent<GraphicRaycaster>();
+            UIHelper.ConfigureCanvas(canvas, sortingOrder: 20);
         }
         qteScript.qteCanvas = canvas;
 
@@ -1370,12 +1367,18 @@ public class SceneSetupEditor : EditorWindow
         Renderer rend = obj.GetComponent<Renderer>();
         if (rend == null) return;
 
-        Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        if (mat.shader == null || mat.shader.name == "Hidden/InternalErrorShader")
+        Shader urpLit = Shader.Find("Universal Render Pipeline/Lit");
+        Material mat;
+        if (urpLit != null && urpLit.name != "Hidden/InternalErrorShader")
+        {
+            mat = new Material(urpLit);
+            mat.SetColor("_BaseColor", color); // URP uses _BaseColor not _Color
+        }
+        else
         {
             mat = new Material(Shader.Find("Standard"));
+            mat.color = color;
         }
-        mat.color = color;
         rend.sharedMaterial = mat;
     }
 
@@ -1477,7 +1480,7 @@ public class SceneSetupEditor : EditorWindow
 
         text.text = label;
         text.fontSize = fontSize;
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.font = UIHelper.GetDefaultFont();
         text.alignment = TextAnchor.MiddleCenter;
         text.color = Color.white;
 
@@ -1489,14 +1492,13 @@ public class SceneSetupEditor : EditorWindow
         // Canvas
         GameObject canvasObj = new GameObject("PauseCanvas");
         Canvas canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100;
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
         canvasObj.AddComponent<GraphicRaycaster>();
+        UIHelper.ConfigureCanvas(canvas, sortingOrder: 100);
 
         // GamePauseMenu component
         GamePauseMenu pauseMenu = canvasObj.AddComponent<GamePauseMenu>();
@@ -1529,7 +1531,7 @@ public class SceneSetupEditor : EditorWindow
         Text titleText = titleObj.AddComponent<Text>();
         titleText.text = "PAUSED";
         titleText.fontSize = 48;
-        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titleText.font = UIHelper.GetDefaultFont();
         titleText.alignment = TextAnchor.MiddleCenter;
         titleText.color = Color.white;
 
@@ -1591,7 +1593,7 @@ public class SceneSetupEditor : EditorWindow
         Text text = textObj.AddComponent<Text>();
         text.text = label;
         text.fontSize = 28;
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.font = UIHelper.GetDefaultFont();
         text.alignment = TextAnchor.MiddleCenter;
         text.color = Color.white;
 

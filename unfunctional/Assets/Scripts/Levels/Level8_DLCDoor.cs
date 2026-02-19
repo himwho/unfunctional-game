@@ -242,8 +242,7 @@ public class Level8_DLCDoor : LevelManager
         GameObject canvasObj = new GameObject("ShopCanvas");
         canvasObj.transform.SetParent(transform);
         shopCanvas = canvasObj.AddComponent<Canvas>();
-        shopCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        shopCanvas.sortingOrder = 50;
+        UIHelper.ConfigureCanvas(shopCanvas, sortingOrder: 50);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -319,7 +318,7 @@ public class Level8_DLCDoor : LevelManager
         contentRT.anchoredPosition = Vector2.zero;
         scrollRect.content = contentRT;
 
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        Font font = UIHelper.GetDefaultFont();
 
         for (int i = 0; i < shopItems.Length; i++)
         {
@@ -948,8 +947,7 @@ public class Level8_DLCDoor : LevelManager
         GameObject canvasObj = new GameObject("InteractHUD");
         canvasObj.transform.SetParent(transform);
         hudCanvas = canvasObj.AddComponent<Canvas>();
-        hudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        hudCanvas.sortingOrder = 15;
+        UIHelper.ConfigureCanvas(hudCanvas, sortingOrder: 15);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -958,7 +956,7 @@ public class Level8_DLCDoor : LevelManager
         GameObject textObj = new GameObject("PromptText");
         textObj.transform.SetParent(canvasObj.transform, false);
         hudPromptText = textObj.AddComponent<Text>();
-        hudPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        hudPromptText.font = UIHelper.GetDefaultFont();
         hudPromptText.fontSize = 24;
         hudPromptText.alignment = TextAnchor.MiddleCenter;
         hudPromptText.color = Color.white;
@@ -1003,7 +1001,7 @@ public class Level8_DLCDoor : LevelManager
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         Text txt = obj.AddComponent<Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.font = UIHelper.GetDefaultFont();
         txt.fontSize = fontSize;
         txt.alignment = TextAnchor.MiddleLeft;
         txt.color = color;
@@ -1044,7 +1042,7 @@ public class Level8_DLCDoor : LevelManager
         textRect.offsetMin = Vector2.zero;
         textRect.offsetMax = Vector2.zero;
         Text txt = textObj.AddComponent<Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.font = UIHelper.GetDefaultFont();
         txt.fontSize = 16;
         txt.alignment = TextAnchor.MiddleCenter;
         txt.color = Color.white;

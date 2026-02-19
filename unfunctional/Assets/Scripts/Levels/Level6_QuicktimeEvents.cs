@@ -126,7 +126,7 @@ public class Level6_QuicktimeEvents : LevelManager
 
         while (elapsed < timeout)
         {
-            playerController = FindObjectOfType<PlayerController>();
+            playerController = FindAnyObjectByType<PlayerController>();
             if (playerController != null) break;
             elapsed += Time.deltaTime;
             yield return null;
@@ -152,7 +152,7 @@ public class Level6_QuicktimeEvents : LevelManager
         // Auto-find DoorController if not wired via inspector
         if (doorController == null)
         {
-            doorController = FindObjectOfType<DoorController>();
+            doorController = FindAnyObjectByType<DoorController>();
         }
 
         // Door target position
@@ -291,8 +291,7 @@ public class Level6_QuicktimeEvents : LevelManager
             canvasObj = new GameObject("QTECanvas");
             canvasObj.transform.SetParent(transform);
             canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 20;
+            UIHelper.ConfigureCanvas(canvas, sortingOrder: 20);
             CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -403,7 +402,7 @@ public class Level6_QuicktimeEvents : LevelManager
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         Text txt = obj.AddComponent<Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.font = UIHelper.GetDefaultFont();
         txt.fontSize = fontSize;
         txt.alignment = anchor;
         txt.color = color;

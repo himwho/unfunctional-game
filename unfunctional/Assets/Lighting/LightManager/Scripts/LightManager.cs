@@ -13,7 +13,7 @@ public class LightManager<T> : MonoBehaviour
 			if (s_Instance != null)
 				return s_Instance;
 
-			s_Instance = (LightManager<T>) FindObjectOfType(typeof(LightManager<T>));
+			s_Instance = (LightManager<T>) FindAnyObjectByType(typeof(LightManager<T>));
 			return s_Instance;
 		}
 	}

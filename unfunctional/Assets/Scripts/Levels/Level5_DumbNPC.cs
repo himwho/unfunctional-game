@@ -777,8 +777,7 @@ public class Level5_DumbNPC : LevelManager
         GameObject canvasObj = new GameObject("InteractPromptHUD");
         canvasObj.transform.SetParent(transform);
         interactPromptCanvas = canvasObj.AddComponent<Canvas>();
-        interactPromptCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        interactPromptCanvas.sortingOrder = 20;
+        UIHelper.ConfigureCanvas(interactPromptCanvas, sortingOrder: 20);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -790,7 +789,7 @@ public class Level5_DumbNPC : LevelManager
         textObj.transform.SetParent(canvasObj.transform, false);
 
         interactPromptText = textObj.AddComponent<Text>();
-        interactPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        interactPromptText.font = UIHelper.GetDefaultFont();
         interactPromptText.fontSize = 24;
         interactPromptText.fontStyle = FontStyle.BoldAndItalic;
         interactPromptText.alignment = TextAnchor.MiddleCenter;
@@ -814,8 +813,7 @@ public class Level5_DumbNPC : LevelManager
         GameObject canvasObj = new GameObject("DoorHUD");
         canvasObj.transform.SetParent(transform);
         doorHudCanvas = canvasObj.AddComponent<Canvas>();
-        doorHudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        doorHudCanvas.sortingOrder = 15;
+        UIHelper.ConfigureCanvas(doorHudCanvas, sortingOrder: 15);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -839,7 +837,7 @@ public class Level5_DumbNPC : LevelManager
         GameObject promptObj = new GameObject("DoorPromptText");
         promptObj.transform.SetParent(canvasObj.transform, false);
         doorInteractPromptText = promptObj.AddComponent<Text>();
-        doorInteractPromptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        doorInteractPromptText.font = UIHelper.GetDefaultFont();
         doorInteractPromptText.fontSize = 22;
         doorInteractPromptText.fontStyle = FontStyle.Bold;
         doorInteractPromptText.alignment = TextAnchor.MiddleCenter;
@@ -864,8 +862,7 @@ public class Level5_DumbNPC : LevelManager
         GameObject canvasObj = new GameObject("DialogueHUD");
         canvasObj.transform.SetParent(transform);
         dialogueCanvas = canvasObj.AddComponent<Canvas>();
-        dialogueCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        dialogueCanvas.sortingOrder = 25;
+        UIHelper.ConfigureCanvas(dialogueCanvas, sortingOrder: 25);
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -878,7 +875,7 @@ public class Level5_DumbNPC : LevelManager
         nameObj.transform.SetParent(canvasObj.transform, false);
 
         npcNameText = nameObj.AddComponent<Text>();
-        npcNameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        npcNameText.font = UIHelper.GetDefaultFont();
         npcNameText.fontSize = 24;
         npcNameText.fontStyle = FontStyle.BoldAndItalic;
         npcNameText.alignment = TextAnchor.MiddleCenter;
@@ -896,7 +893,7 @@ public class Level5_DumbNPC : LevelManager
         textObj.transform.SetParent(canvasObj.transform, false);
 
         dialogueText = textObj.AddComponent<Text>();
-        dialogueText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        dialogueText.font = UIHelper.GetDefaultFont();
         dialogueText.fontSize = 24;
         dialogueText.fontStyle = FontStyle.Italic;
         dialogueText.alignment = TextAnchor.MiddleCenter;
@@ -916,7 +913,7 @@ public class Level5_DumbNPC : LevelManager
         promptObj.transform.SetParent(canvasObj.transform, false);
 
         promptText = promptObj.AddComponent<Text>();
-        promptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        promptText.font = UIHelper.GetDefaultFont();
         promptText.fontSize = 20;
         promptText.fontStyle = FontStyle.Italic;
         promptText.alignment = TextAnchor.MiddleCenter;

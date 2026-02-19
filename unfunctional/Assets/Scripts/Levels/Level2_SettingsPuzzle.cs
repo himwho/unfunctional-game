@@ -156,7 +156,7 @@ public class Level2_SettingsPuzzle : LevelManager
         levelDisplayName = "Audio/Video Calibration";
         levelDescription = "Please configure your display and audio settings to proceed.";
 
-        defaultFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        defaultFont = UIHelper.GetDefaultFont();
         leftTone = GenerateTone(440f, 10f);
         rightTone = GenerateTone(554.37f, 10f);
 
@@ -217,8 +217,7 @@ public class Level2_SettingsPuzzle : LevelManager
         GameObject obj = new GameObject("SettingsCanvas");
         obj.transform.SetParent(transform);
         settingsCanvas = obj.AddComponent<Canvas>();
-        settingsCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        settingsCanvas.sortingOrder = 10;
+        UIHelper.ConfigureCanvas(settingsCanvas, sortingOrder: 10);
         CanvasScaler scaler = obj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);

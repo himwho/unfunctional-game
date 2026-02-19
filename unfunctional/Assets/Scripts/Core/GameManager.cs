@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -202,6 +203,14 @@ public class GameManager : MonoBehaviour
             SceneManager.SetActiveScene(loadedScene);
         }
 
+        // Remove duplicate EventSystems that came in with the additive scene.
+        // The GLOBAL scene already has one; extras cause input conflicts.
+        CleanupDuplicateEventSystems();
+
+        // Strip orphan CanvasRenderer components from non-Canvas TextMeshPro
+        // objects to silence URP / TMP warnings.
+        CleanupOrphanCanvasRenderers();
+
         // Find the level manager and handle player spawning
         // Wait one frame so all Start() methods have run
         yield return null;
@@ -264,9 +273,13 @@ public class GameManager : MonoBehaviour
         currentPlayerInstance = Instantiate(playerPrefab, position, rotation);
         currentPlayerInstance.name = "Player";
 
-        // Move the player to the GLOBAL scene so it persists if needed,
-        // but actually for per-level spawning it should stay in the level scene.
-        // We keep it in the level scene so it gets cleaned up on unload.
+        // In URP, having two Base cameras active simultaneously (BackgroundCamera +
+        // PlayerCamera) can cause Screen Space - Overlay canvases to become invisible.
+        // The intermediate render texture blit from the second camera overwrites the
+        // overlay compositing from the first camera. Disabling BackgroundCamera when
+        // the PlayerCamera is active avoids this entirely.
+        SetBackgroundCamera(false);
+
         Debug.Log($"[GameManager] Player spawned at {position}");
     }
 
@@ -277,6 +290,38 @@ public class GameManager : MonoBehaviour
             Destroy(currentPlayerInstance);
             currentPlayerInstance = null;
             Debug.Log("[GameManager] Player despawned.");
+        }
+
+        // Re-enable BackgroundCamera for UI-only levels (no player camera)
+        SetBackgroundCamera(true);
+    }
+
+    /// <summary>
+    /// Enable or disable the BackgroundCamera in the GLOBAL scene.
+    /// Must be disabled when a PlayerCamera is active to prevent URP
+    /// multi-Base-camera issues with Screen Space - Overlay canvases.
+    /// </summary>
+    private void SetBackgroundCamera(bool enabled)
+    {
+        // The BackgroundCamera lives as a sibling in the GLOBAL scene root
+        GameObject camObj = GameObject.Find("BackgroundCamera");
+        if (camObj == null)
+        {
+            // Also check children of this transform (in case it was parented)
+            Transform child = transform.parent != null
+                ? transform.parent.Find("BackgroundCamera")
+                : null;
+            if (child != null) camObj = child.gameObject;
+        }
+
+        if (camObj != null)
+        {
+            Camera cam = camObj.GetComponent<Camera>();
+            if (cam != null)
+            {
+                cam.enabled = enabled;
+                Debug.Log($"[GameManager] BackgroundCamera enabled={enabled}");
+            }
         }
     }
 
@@ -291,10 +336,12 @@ public class GameManager : MonoBehaviour
         canvasObj.transform.SetParent(transform);
 
         transitionCanvas = canvasObj.AddComponent<Canvas>();
-        transitionCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        transitionCanvas.sortingOrder = 999; // Above everything
 
-        canvasObj.AddComponent<CanvasScaler>();
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        UIHelper.ConfigureCanvas(transitionCanvas, sortingOrder: 999);
 
         // Fade overlay image
         GameObject overlayObj = new GameObject("FadeOverlay");
@@ -345,6 +392,54 @@ public class GameManager : MonoBehaviour
         if (GetComponent<DebugPanel>() == null)
         {
             gameObject.AddComponent<DebugPanel>();
+        }
+    }
+
+    // =========================================================================
+    // Scene Cleanup Helpers
+    // =========================================================================
+
+    /// <summary>
+    /// After an additive scene load, destroy every EventSystem except the
+    /// first one found (which lives in the persistent GLOBAL scene).
+    /// This silences the "There can be only one active Event System" warning
+    /// and prevents input conflicts between duplicate EventSystems.
+    /// </summary>
+    private void CleanupDuplicateEventSystems()
+    {
+        EventSystem[] all = FindObjectsByType<EventSystem>(FindObjectsSortMode.None);
+        if (all.Length <= 1) return;
+
+        // Keep the very first one (GLOBAL's), destroy the rest
+        bool kept = false;
+        foreach (var es in all)
+        {
+            if (!kept)
+            {
+                kept = true;
+                continue;
+            }
+            Debug.Log($"[GameManager] Destroying duplicate EventSystem on '{es.gameObject.name}'.");
+            Destroy(es.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// Removes stray CanvasRenderer components left on GameObjects that have a
+    /// TextMeshPro (world-space) component but no parent Canvas. URP + TMP
+    /// in Unity 6 logs warnings about these.
+    /// </summary>
+    private void CleanupOrphanCanvasRenderers()
+    {
+        var tmps = FindObjectsByType<TMPro.TextMeshPro>(FindObjectsSortMode.None);
+        foreach (var tmp in tmps)
+        {
+            var cr = tmp.GetComponent<CanvasRenderer>();
+            if (cr != null && tmp.GetComponentInParent<Canvas>() == null)
+            {
+                Debug.Log($"[GameManager] Removing orphan CanvasRenderer from '{tmp.gameObject.name}'.");
+                Destroy(cr);
+            }
         }
     }
 
