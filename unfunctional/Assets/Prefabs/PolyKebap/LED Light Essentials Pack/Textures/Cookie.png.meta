@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: bdb018f19eab51640b2025a8bb21b433
+guid: 5717968b8b9b37d4fa73c95b0dd813a0
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -27,14 +27,14 @@ TextureImporter:
   vTOnly: 0
   ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
-  generateCubemap: 6
-  cubemapConvolution: 1
-  seamlessCubemap: 1
+  generateCubemap: 1
+  cubemapConvolution: 0
+  seamlessCubemap: 0
   textureFormat: 1
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 2
+    filterMode: 1
     aniso: 0
     mipBias: 0
     wrapU: 1
@@ -51,10 +51,10 @@ TextureImporter:
   spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
-  alphaUsage: 1
+  alphaUsage: 2
   alphaIsTransparency: 0
   spriteTessellationDetail: -1
-  textureType: 0
+  textureType: 4
   textureShape: 2
   singleChannelComponent: 0
   flipbookRows: 1
@@ -65,15 +65,15 @@ TextureImporter:
   ignorePngGamma: 0
   applyGammaDecoding: 0
   swizzle: 50462976
-  cookieLightType: 0
+  cookieLightType: 2
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 1024
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
-    compressionQuality: 100
+    compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
@@ -115,3 +115,10 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 340786
+  packageName: Modern LED Lighting Pack
+  packageVersion: 2.0.0
+  assetPath: Assets/PolyKebap/LED Light Essentials Pack/Textures/Cookie.png
+  uploadId: 847486
