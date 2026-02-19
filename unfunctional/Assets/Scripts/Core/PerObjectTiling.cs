@@ -11,8 +11,8 @@ public class PerObjectTiling : MonoBehaviour
 {
     [Header("Texture Property")]
     [Tooltip("The shader texture property name to override tiling for. " +
-             "Built-in Standard shader uses _MainTex. URP Lit uses _BaseMap.")]
-    [SerializeField] private string texturePropertyName = "_MainTex";
+             "URP Lit uses _BaseMap. Built-in Standard shader uses _MainTex.")]
+    [SerializeField] private string texturePropertyName = "_BaseMap";
 
     [Header("Tiling")]
     [SerializeField] private Vector2 tiling = Vector2.one;
