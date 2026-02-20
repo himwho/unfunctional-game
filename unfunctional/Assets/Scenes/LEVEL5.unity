@@ -93,8 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 0f483e12c1719d64e848124384c96889,
-    type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 6126b6fb6027e2344ae10307557a8348,
     type: 2}
 --- !u!196 &4
@@ -198,6 +197,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -319,6 +323,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (12)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -375,7 +384,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &51138783
 Transform:
@@ -518,6 +527,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (34)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -637,6 +651,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (25)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -758,6 +777,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (47)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -877,6 +901,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (24)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -998,6 +1027,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1040,6 +1074,174 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &81681626
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1135952385046753963, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 97.455
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.636
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 11.692
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000104308114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219368145949216935, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: LED_Light_7 (7)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Range
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_SpotAngle
+      value: 132.43091
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Lightmapping
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_InnerSpotAngle
+      value: 118.41182
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.11800003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0000000051856013
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -163.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 162.504
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d7561889ed225f440abef01860a852b6, type: 3}
 --- !u!1001 &84600863
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1117,6 +1319,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (16)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1238,6 +1445,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (31)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1357,6 +1569,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1478,6 +1695,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (19)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1597,6 +1819,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (28)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1718,6 +1945,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1838,6 +2070,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1894,7 +2131,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &140237654
 Transform:
@@ -2004,6 +2241,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (41)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2125,6 +2367,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2244,6 +2491,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (36)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2365,6 +2617,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2485,6 +2742,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (35)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2527,133 +2789,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &212133103
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 212133105}
-  - component: {fileID: 212133104}
-  - component: {fileID: 212133106}
-  m_Layer: 0
-  m_Name: Point Light (15)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &212133104
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 212133103}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &212133105
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 212133103}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 28.68303, y: 2.3687901, z: 1.9111605}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2137850672}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &212133106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 212133103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &221645967
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2731,6 +2866,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (21)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2852,6 +2992,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (39)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2971,6 +3116,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (39)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3092,6 +3242,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3148,7 +3303,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &244742749
 Transform:
@@ -3291,6 +3446,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (39)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3410,6 +3570,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (29)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3531,6 +3696,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (21)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3650,6 +3820,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (20)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3771,6 +3946,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3813,99 +3993,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1001 &318457031
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 594019028836086635, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1127294887145582950, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: hintText
-      value: Ask GORP!
-      objectReference: {fileID: 0}
-    - target: {fileID: 1127294887145582950, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: codeLength
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 1621532252513387166, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3491991024644350340, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_Name
-      value: LEVEL_DOOR
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: unlockMethod
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 115.673
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.068
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 12.741
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 23e3bca1494037c4e8f3b207ff613ea1, type: 3}
 --- !u!1001 &329367224
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3983,6 +4070,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (35)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4104,6 +4196,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4223,6 +4320,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4344,6 +4446,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (29)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4386,260 +4493,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &338683674
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 338683675}
-  - component: {fileID: 338683676}
-  - component: {fileID: 338683677}
-  m_Layer: 0
-  m_Name: Point Light (15)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &338683675
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 338683674}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 35.4, y: 2.31, z: -0.43}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2064375633}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!108 &338683676
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 338683674}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!114 &338683677
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 338683674}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
---- !u!1 &345578076
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 345578078}
-  - component: {fileID: 345578077}
-  - component: {fileID: 345578079}
-  m_Layer: 0
-  m_Name: Point Light (12)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &345578077
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 345578076}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &345578078
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 345578076}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12.158035, y: 2.3687901, z: -2.7018394}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2064375633}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &345578079
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 345578076}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &346317431
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4717,6 +4570,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (15)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4838,6 +4696,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4957,6 +4820,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (19)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5078,6 +4946,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (25)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5197,6 +5070,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (45)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5318,6 +5196,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (15)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5360,6 +5243,174 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &416667694
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1135952385046753963, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 77.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.636
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 11.692
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000104308114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219368145949216935, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: LED_Light_7 (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Range
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_SpotAngle
+      value: 132.43091
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Lightmapping
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_InnerSpotAngle
+      value: 118.41182
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.11800003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0000000051856013
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -163.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 162.504
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d7561889ed225f440abef01860a852b6, type: 3}
 --- !u!1001 &417818169
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5437,6 +5488,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (43)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5558,6 +5614,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (21)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5677,6 +5738,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5798,6 +5864,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (46)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5918,6 +5989,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (30)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5960,6 +6036,174 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &477179819
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1135952385046753963, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 108.41
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.636
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 11.692
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000104308114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219368145949216935, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: LED_Light_7 (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Range
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_SpotAngle
+      value: 40.186974
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Lightmapping
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_InnerSpotAngle
+      value: 26.167946
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.11800003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0000000051856013
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -163.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 162.504
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d7561889ed225f440abef01860a852b6, type: 3}
 --- !u!1001 &481214021
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6037,6 +6281,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (33)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6158,6 +6407,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (13)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6277,6 +6531,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (31)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6398,6 +6657,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (21)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6518,6 +6782,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6560,133 +6829,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &526925333
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 526925335}
-  - component: {fileID: 526925334}
-  - component: {fileID: 526925336}
-  m_Layer: 0
-  m_Name: Point Light (10)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &526925334
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 526925333}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &526925335
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 526925333}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.3810349, y: 2.3687901, z: -2.7018394}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2064375633}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &526925336
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 526925333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &528855726
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6764,6 +6906,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (38)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6885,6 +7032,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (34)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7004,6 +7156,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7125,6 +7282,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (34)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7244,6 +7406,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (30)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7365,6 +7532,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (32)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7485,6 +7657,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (20)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7604,6 +7781,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7793,6 +7975,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (12)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7912,6 +8099,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (16)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8033,6 +8225,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (13)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8153,6 +8350,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (31)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8195,133 +8397,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &649708726
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 649708727}
-  - component: {fileID: 649708728}
-  - component: {fileID: 649708729}
-  m_Layer: 0
-  m_Name: Point Light (10)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &649708727
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 649708726}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.009964, y: 2.3687901, z: -2.8179998}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2064375633}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!108 &649708728
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 649708726}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!114 &649708729
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 649708726}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &712443538
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8399,6 +8474,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (25)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8520,6 +8600,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (22)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8639,6 +8724,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (37)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8760,6 +8850,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8879,6 +8974,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9000,6 +9100,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9119,6 +9224,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (33)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9240,6 +9350,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (32)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9360,6 +9475,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (45)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9402,6 +9522,174 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &789626111
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1135952385046753963, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 86.444
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.602
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 11.692
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000104308114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219368145949216935, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: LED_Light_7 (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Range
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_SpotAngle
+      value: 132.43091
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Lightmapping
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_InnerSpotAngle
+      value: 118.41182
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.11800003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0000000051856013
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -163.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 162.504
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d7561889ed225f440abef01860a852b6, type: 3}
 --- !u!1001 &796784928
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9479,6 +9767,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (13)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9600,6 +9893,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (24)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9719,6 +10017,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (25)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9840,6 +10143,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (12)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9959,6 +10267,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (17)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10080,6 +10393,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (22)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10199,6 +10517,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (27)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10320,6 +10643,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10439,6 +10767,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (14)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10560,6 +10893,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (11)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10679,6 +11017,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10800,6 +11143,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (28)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10920,6 +11268,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11039,6 +11392,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11191,6 +11549,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11310,6 +11673,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (22)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11431,6 +11799,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11550,6 +11923,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (28)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11671,6 +12049,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (42)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11790,6 +12173,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (41)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11911,6 +12299,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (44)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12030,6 +12423,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (40)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12151,6 +12549,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12270,6 +12673,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (18)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12391,6 +12799,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (26)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12433,133 +12846,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &1029644235
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1029644237}
-  - component: {fileID: 1029644236}
-  - component: {fileID: 1029644238}
-  m_Layer: 0
-  m_Name: Point Light (13)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &1029644236
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1029644235}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &1029644237
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1029644235}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12.158035, y: 2.3687901, z: 1.9111605}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2137850672}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1029644238
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1029644235}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &1029762861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12637,6 +12923,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (18)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12758,6 +13049,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (36)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12877,6 +13173,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (45)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12998,6 +13299,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (11)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13117,6 +13423,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (15)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13238,6 +13549,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (16)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13357,6 +13673,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (28)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13478,6 +13799,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (32)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13598,6 +13924,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (26)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13654,7 +13985,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1082888226
 Transform:
@@ -13797,6 +14128,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (35)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13916,6 +14252,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (47)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14037,6 +14378,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (13)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14156,6 +14502,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14277,6 +14628,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (26)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14396,6 +14752,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (40)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14517,6 +14878,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (40)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14636,6 +15002,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (46)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14757,6 +15128,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14877,6 +15253,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (18)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14919,6 +15300,174 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &1121054429
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1135952385046753963, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 66.41
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.596
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 11.692
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000104308114
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6107979918083717061, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219368145949216935, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Name
+      value: LED_Light_7 (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Range
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_SpotAngle
+      value: 132.43091
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Lightmapping
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_InnerSpotAngle
+      value: 118.41182
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_BounceIntensity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.11800003
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0000000051856013
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70707977
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0061829155
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -163.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 162.504
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d7561889ed225f440abef01860a852b6, type: 3}
 --- !u!1001 &1125046423
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14997,6 +15546,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (35)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15065,7 +15619,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 108.446
+      value: 108.255
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}
@@ -15075,7 +15629,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 11.791
+      value: 11.765
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6f305479920950e4294c8d3d3a436d71,
         type: 3}
@@ -15256,6 +15810,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (24)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15376,6 +15935,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15435,7 +15999,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!114 &1166405878
 MonoBehaviour:
@@ -15688,6 +16252,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (16)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15744,7 +16313,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1193736064
 Transform:
@@ -15854,6 +16423,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (24)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15975,6 +16549,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (41)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16031,7 +16610,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1256065145
 Transform:
@@ -16174,6 +16753,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (40)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16293,6 +16877,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16414,6 +17003,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (14)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16533,6 +17127,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (46)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16654,6 +17253,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (38)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16773,6 +17377,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (44)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16894,6 +17503,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (28)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17013,6 +17627,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (17)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17134,6 +17753,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (47)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17254,6 +17878,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (11)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17296,133 +17925,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &1375598319
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1375598321}
-  - component: {fileID: 1375598320}
-  - component: {fileID: 1375598322}
-  m_Layer: 0
-  m_Name: Point Light (14)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &1375598320
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1375598319}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &1375598321
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1375598319}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 28.68303, y: 2.3687901, z: -2.7018394}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2064375633}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1375598322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1375598319}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &1383008032
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17500,6 +18002,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (44)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17621,6 +18128,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17740,6 +18252,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (26)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17861,6 +18378,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (24)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17980,6 +18502,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (18)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18101,6 +18628,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (14)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18220,6 +18752,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (23)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18341,6 +18878,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (19)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18460,6 +19002,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (15)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18581,6 +19128,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (33)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18700,6 +19252,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18821,6 +19378,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (21)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18941,6 +19503,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (44)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -19060,6 +19627,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (23)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19244,6 +19816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (22)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -19363,6 +19940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19484,6 +20066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (12)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -19603,6 +20190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (42)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19724,6 +20316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (30)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -19843,6 +20440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (43)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19964,6 +20566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (16)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20083,6 +20690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (43)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20204,6 +20816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (19)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20323,6 +20940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (22)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20444,6 +21066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (17)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20563,6 +21190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (38)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20684,6 +21316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (42)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20803,6 +21440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (34)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20924,6 +21566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (29)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21043,6 +21690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (23)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21164,6 +21816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (32)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21283,6 +21940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (23)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21404,6 +22066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (42)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21523,6 +22190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (29)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21644,6 +22316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21763,6 +22440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (33)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21884,6 +22566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -22003,6 +22690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (39)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22124,6 +22816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (30)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -22243,6 +22940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22364,6 +23066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (18)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -22483,6 +23190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22604,6 +23316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (16)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -22723,6 +23440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (41)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22844,6 +23566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (47)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -22963,6 +23690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (26)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23084,6 +23816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (17)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23203,6 +23940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (25)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23324,6 +24066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (43)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23443,6 +24190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (18)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23564,6 +24316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (26)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23683,6 +24440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (37)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23804,6 +24566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (36)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23923,6 +24690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (20)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -24044,6 +24816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (13)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24163,6 +24940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -24284,6 +25066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24403,6 +25190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (30)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -24524,6 +25316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (29)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24643,6 +25440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -24764,6 +25566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24883,6 +25690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (37)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25004,6 +25816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (30)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25123,6 +25940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (46)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25244,6 +26066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (10)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25363,6 +26190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (28)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25484,6 +26316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (11)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25603,6 +26440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (15)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25724,6 +26566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (20)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25843,6 +26690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (20)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25964,6 +26816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (17)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26083,6 +26940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (37)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -26204,6 +27066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (36)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26323,6 +27190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (45)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -26444,6 +27316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (15)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26563,6 +27440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (22)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -26684,6 +27566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (27)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26803,6 +27690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -26924,6 +27816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (31)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -27043,6 +27940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (7)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27164,6 +28066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (27)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -27283,6 +28190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (24)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27404,6 +28316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -27523,6 +28440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27644,6 +28566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -27686,133 +28613,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &2052450006
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2052450008}
-  - component: {fileID: 2052450007}
-  - component: {fileID: 2052450009}
-  m_Layer: 0
-  m_Name: Point Light (9)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &2052450007
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2052450006}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &2052450008
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2052450006}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.009964, y: 2.3687901, z: 1.9111605}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2137850672}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2052450009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2052450006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &2063448947
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27890,6 +28690,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28011,6 +28816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (29)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -28053,42 +28863,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &2064375632
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2064375633}
-  m_Layer: 0
-  m_Name: Lights Right
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2064375633
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2064375632}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 79.43397, y: 0.08421, z: 12.22884}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 526925335}
-  - {fileID: 345578078}
-  - {fileID: 1375598321}
-  - {fileID: 338683675}
-  - {fileID: 649708727}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2073131995
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28166,6 +28940,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (14)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28287,6 +29066,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (21)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -28406,6 +29190,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (13)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28527,6 +29316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (20)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -28569,133 +29363,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &2090794134
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2090794136}
-  - component: {fileID: 2090794135}
-  - component: {fileID: 2090794137}
-  m_Layer: 0
-  m_Name: Point Light (11)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &2090794135
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2090794134}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &2090794136
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2090794134}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.3810349, y: 2.3687901, z: 1.9111605}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2137850672}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2090794137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2090794134}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &2128173070
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28773,6 +29440,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Padded Wall (27)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28894,6 +29566,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (17)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29014,6 +29691,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (25)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29056,41 +29738,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.02, y: 0.009240762, z: 0.009786241}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &2137850671
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2137850672}
-  m_Layer: 0
-  m_Name: Lights Left
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2137850672
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2137850671}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 79.43397, y: 0.08421, z: 12.22884}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2052450008}
-  - {fileID: 2090794136}
-  - {fileID: 1029644237}
-  - {fileID: 212133105}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2141256943
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29169,6 +29816,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Padded Wall (38)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 47972a36c32352543bf2c926adf5b507,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29217,15 +29869,17 @@ SceneRoots:
   m_Roots:
   - {fileID: 1473191274}
   - {fileID: 916945061}
-  - {fileID: 318457031}
-  - {fileID: 1130440688}
   - {fileID: 604196921}
+  - {fileID: 1166405881}
+  - {fileID: 1130440688}
   - {fileID: 1082888226}
   - {fileID: 140237654}
   - {fileID: 1193736064}
   - {fileID: 51138783}
   - {fileID: 244742749}
   - {fileID: 1256065145}
-  - {fileID: 2137850672}
-  - {fileID: 2064375633}
-  - {fileID: 1166405881}
+  - {fileID: 477179819}
+  - {fileID: 81681626}
+  - {fileID: 789626111}
+  - {fileID: 416667694}
+  - {fileID: 1121054429}
