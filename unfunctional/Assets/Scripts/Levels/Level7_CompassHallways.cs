@@ -38,7 +38,7 @@ public class Level7_CompassHallways : LevelManager
     [Tooltip("Height above the player where the spotlight is placed.")]
     public float spotlightHeight = 4f;
     [Tooltip("Spotlight cone angle in degrees.")]
-    public float spotlightAngle = 60f;
+    public float spotlightAngle = 90f;
     [Tooltip("How far the spotlight reaches.")]
     public float spotlightRange = 15f;
     [Tooltip("Spotlight brightness.")]
@@ -46,6 +46,8 @@ public class Level7_CompassHallways : LevelManager
     public Color spotlightColor = new Color(0.9f, 0.95f, 1f);
     [Tooltip("Enable shadows on the spotlight. Disable if the light is above ceiling geometry.")]
     public bool spotlightShadows = false;
+    [Tooltip("Scene object to attach above the player as the visible light fixture (e.g. LED_Light_7).")]
+    public GameObject spotlightFixture;
 
     private Light playerSpotlight;
 
@@ -219,6 +221,14 @@ public class Level7_CompassHallways : LevelManager
         playerSpotlight.range = spotlightRange;
         playerSpotlight.spotAngle = spotlightAngle;
         playerSpotlight.shadows = spotlightShadows ? LightShadows.Soft : LightShadows.None;
+
+        if (spotlightFixture != null)
+        {
+            Quaternion originalRotation = spotlightFixture.transform.rotation;
+            spotlightFixture.transform.SetParent(player, false);
+            spotlightFixture.transform.localPosition = new Vector3(0f, spotlightHeight, 0f);
+            spotlightFixture.transform.rotation = originalRotation;
+        }
     }
 
     // =========================================================================
