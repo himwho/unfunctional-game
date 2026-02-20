@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e797280518c48db428875fe969f8786e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Demo/Scenes/DemoSceneBakedLightSettings.lighting
+  uploadId: 776328

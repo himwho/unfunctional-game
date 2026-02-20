@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: aa6663de77e9ce04d96f600b02434771
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232690
+  packageName: SeedMesh vegetation Shaderss
+  packageVersion: 2.1.0
+  assetPath: Assets/SeedMesh/Shader_graph/Shaders/SeedMesh_Tree_Bark.shadergraph
+  uploadId: 784744

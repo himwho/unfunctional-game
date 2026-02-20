@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d6f7f9c76e5928d4e8f42a4fb227828b
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Shaders/MirrorsAndReflections.cginc
+  uploadId: 776328

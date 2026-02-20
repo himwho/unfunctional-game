@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2b86e046e0534d64ea43e378390ae581
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232690
+  packageName: SeedMesh vegetation Shaderss
+  packageVersion: 2.1.0
+  assetPath: Assets/SeedMesh/Shader_graph/Pipeline Setup/HDRP/SMShaders_2.0.0_HDRP_Unity_2022.3.unitypackage
+  uploadId: 784744

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c276b3f250327174088701d19d75a825
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 178966
+  packageName: Jungle - Tropical Vegetation
+  packageVersion: 3.3.1
+  assetPath: Assets/SeedMesh/Jungle-Tropical Vegetation/Scene/Groups_demo/LightingData.asset
+  uploadId: 550503

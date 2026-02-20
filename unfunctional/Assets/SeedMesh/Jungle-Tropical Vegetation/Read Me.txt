@@ -1,0 +1,19 @@
+Very Important! you need to import SeedMesh shaders separately, if you did not download it yet, here the links: https://www.artstation.com/a/19987937
+https://assetstore.unity.com/packages/vfx/shaders/seedmesh-vegetation-shaders-232690
+
+Do not forget to add the diffusion profiles from package to the Diffusion Profile List in HDRP!!!
+
+If you do not do it, you will experimenting a "black screen" or the vegetation will not render property 
+
+The easiest way to do this is selecting any Vegetation material, and in the material properties (down in the diffusion profile box) there must be a FIX button.
+
+This Step is about the HDRP workflow! Find more information in the Unity Docs: 
+https://docs.unity.cn/Packages/com.unity.render-pipelines.high-definition@9.0/manual/Diffusion-Profile.html
+
+Find an unity package to convert shaders from HDRP to URP: Seedmesh>Shader_graph>Shaders
+also, here a video tutorial in case you want to know how to transform shaders by yourself using shader graph (extra information about Demo scene in video) https://youtu.be/2qqS1mpb3vU
+
+Do not forget yo join my discord server in case you need help: https://discord.gg/8hU5VfzmPf
+
+Here my Artstation Profile in case you are interested in know more about my work! :D
+https://www.artstation.com/bpaul

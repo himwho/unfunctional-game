@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: b6b22827182ed074ebd89f531a9ee416
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Demo/Materials/Brass
+    BakedLit.mat
+  uploadId: 776328

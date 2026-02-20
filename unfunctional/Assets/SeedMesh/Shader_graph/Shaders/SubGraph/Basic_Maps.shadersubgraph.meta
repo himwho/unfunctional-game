@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 3cde744f607575d448cdab5de793b8b3
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 60072b568d64c40a485e0fc55012dc9f, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232690
+  packageName: SeedMesh vegetation Shaderss
+  packageVersion: 2.1.0
+  assetPath: Assets/SeedMesh/Shader_graph/Shaders/SubGraph/Basic_Maps.shadersubgraph
+  uploadId: 784744

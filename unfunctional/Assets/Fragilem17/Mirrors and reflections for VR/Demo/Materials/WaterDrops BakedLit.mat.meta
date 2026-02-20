@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 9a5f59c601ef02f40a9e31bb8ebd117e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Demo/Materials/WaterDrops
+    BakedLit.mat
+  uploadId: 776328

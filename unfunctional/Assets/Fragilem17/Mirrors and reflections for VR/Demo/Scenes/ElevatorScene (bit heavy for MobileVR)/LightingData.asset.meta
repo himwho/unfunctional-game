@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 1a18410e572eb954197214695c8dbecc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Demo/Scenes/ElevatorScene
+    (bit heavy for MobileVR)/LightingData.asset
+  uploadId: 776328

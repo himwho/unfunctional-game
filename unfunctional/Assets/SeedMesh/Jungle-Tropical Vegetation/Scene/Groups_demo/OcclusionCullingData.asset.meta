@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fbec0ca0fbe4e08468a12dcfd451a23c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 36300000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 178966
+  packageName: Jungle - Tropical Vegetation
+  packageVersion: 3.3.1
+  assetPath: Assets/SeedMesh/Jungle-Tropical Vegetation/Scene/Groups_demo/OcclusionCullingData.asset
+  uploadId: 550503

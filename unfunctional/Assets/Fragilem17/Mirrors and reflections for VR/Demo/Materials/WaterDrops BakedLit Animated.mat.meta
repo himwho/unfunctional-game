@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 031c80e53ca61e947ac3f8b6f93d0729
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 212493
+  packageName: Mirrors and reflections for VR
+  packageVersion: 2.4.1
+  assetPath: Assets/Fragilem17/Mirrors and reflections for VR/Demo/Materials/WaterDrops
+    BakedLit Animated.mat
+  uploadId: 776328

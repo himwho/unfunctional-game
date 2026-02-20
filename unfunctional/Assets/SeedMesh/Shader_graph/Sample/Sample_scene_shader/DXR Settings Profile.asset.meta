@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 3d192807d09900c4f82ff02d39a1dc8a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232690
+  packageName: SeedMesh vegetation Shaderss
+  packageVersion: 2.1.0
+  assetPath: Assets/SeedMesh/Shader_graph/Sample/Sample_scene_shader/DXR Settings
+    Profile.asset
+  uploadId: 784744

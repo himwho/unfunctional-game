@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 62db03ea4bbc6904bb522ee45049ff5a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 178966
+  packageName: Jungle - Tropical Vegetation
+  packageVersion: 3.3.1
+  assetPath: Assets/SeedMesh/Jungle-Tropical Vegetation/Environment/Terrain/Background/Background_terrain.mat
+  uploadId: 550503
