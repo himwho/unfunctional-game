@@ -306,10 +306,11 @@ public class KeypadController : MonoBehaviour
         if (codeDisplayText == null) return;
 
         string display = "";
-        int groupSize = codeLength <= 6 ? 3 : 3; // always group by 3
+        bool groupByThree = codeLength > 6;
         for (int i = 0; i < codeLength; i++)
         {
-            if (i > 0 && i % groupSize == 0) display += " ";
+            if (i > 0)
+                display += groupByThree && i % 3 != 0 ? "" : " ";
             display += (i < enteredCode.Length) ? enteredCode[i].ToString() : "_";
         }
         codeDisplayText.text = display;
