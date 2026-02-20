@@ -34,6 +34,21 @@ public class Level7_CompassHallways : LevelManager
     public float erraticStartDistance = 35f;
     public float erraticIntensity = 180f;
 
+    [Header("Spotlight")]
+    [Tooltip("Height above the player where the spotlight is placed.")]
+    public float spotlightHeight = 4f;
+    [Tooltip("Spotlight cone angle in degrees.")]
+    public float spotlightAngle = 60f;
+    [Tooltip("How far the spotlight reaches.")]
+    public float spotlightRange = 15f;
+    [Tooltip("Spotlight brightness.")]
+    public float spotlightIntensity = 20f;
+    public Color spotlightColor = new Color(0.9f, 0.95f, 1f);
+    [Tooltip("Enable shadows on the spotlight. Disable if the light is above ceiling geometry.")]
+    public bool spotlightShadows = false;
+
+    private Light playerSpotlight;
+
     private Canvas compassCanvas;
     private RectTransform compassNeedle;
     private bool reachedEnd = false;
@@ -68,6 +83,7 @@ public class Level7_CompassHallways : LevelManager
         CreateInteractPrompt();
         CreateDoorPrompt();
         CreateDialogueHUD();
+        StartCoroutine(AttachSpotlightToPlayer());
 
         compassCanvas.gameObject.SetActive(false);
         interactPromptCanvas.gameObject.SetActive(false);
@@ -171,6 +187,38 @@ public class Level7_CompassHallways : LevelManager
         rect.sizeDelta = size;
         rect.anchoredPosition = position;
         rect.localRotation = Quaternion.Euler(0f, 0f, rotationZ);
+    }
+
+    // =========================================================================
+    // Player Spotlight
+    // =========================================================================
+
+    private IEnumerator AttachSpotlightToPlayer()
+    {
+        Transform player = null;
+        while (player == null)
+        {
+            var pc = FindObjectOfType<PlayerController>();
+            if (pc != null)
+                player = pc.transform;
+            else
+                yield return null;
+        }
+
+        Debug.Log("[Level7] Attaching spotlight to player.");
+
+        GameObject spotObj = new GameObject("PlayerSpotlight");
+        spotObj.transform.SetParent(player, false);
+        spotObj.transform.localPosition = new Vector3(0f, spotlightHeight, 0f);
+        spotObj.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+        playerSpotlight = spotObj.AddComponent<Light>();
+        playerSpotlight.type = LightType.Spot;
+        playerSpotlight.color = spotlightColor;
+        playerSpotlight.intensity = spotlightIntensity;
+        playerSpotlight.range = spotlightRange;
+        playerSpotlight.spotAngle = spotlightAngle;
+        playerSpotlight.shadows = spotlightShadows ? LightShadows.Soft : LightShadows.None;
     }
 
     // =========================================================================
