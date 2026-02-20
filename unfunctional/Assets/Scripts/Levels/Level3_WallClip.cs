@@ -55,7 +55,7 @@ public class Level3_WallClip : LevelManager
     private Text messageText;
     private Text interactPromptText;
     private Text narrationText;
-    private Image crosshairImage;
+
     private CanvasGroup hintCanvasGroup;
     private CanvasGroup messageCanvasGroup;
     private CanvasGroup narrationCanvasGroup;
@@ -320,20 +320,6 @@ public class Level3_WallClip : LevelManager
         scaler.referenceResolution = new Vector2(1920, 1080);
 
         canvasObj.AddComponent<GraphicRaycaster>();
-
-        // --- Crosshair ---
-        GameObject crosshairObj = new GameObject("Crosshair");
-        crosshairObj.transform.SetParent(canvasObj.transform, false);
-
-        crosshairImage = crosshairObj.AddComponent<Image>();
-        crosshairImage.color = new Color(1f, 1f, 1f, 0.6f);
-        crosshairImage.raycastTarget = false;
-
-        RectTransform crossRect = crosshairObj.GetComponent<RectTransform>();
-        crossRect.anchorMin = new Vector2(0.5f, 0.5f);
-        crossRect.anchorMax = new Vector2(0.5f, 0.5f);
-        crossRect.sizeDelta = new Vector2(4, 4);
-        crossRect.anchoredPosition = Vector2.zero;
 
         // --- Interact Prompt ---
         GameObject promptObj = new GameObject("InteractPrompt");
