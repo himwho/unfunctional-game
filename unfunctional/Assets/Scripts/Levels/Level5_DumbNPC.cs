@@ -316,21 +316,34 @@ public class Level5_DumbNPC : LevelManager
         }
 
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        RaycastHit hit;
-        bool hasHit = Physics.Raycast(ray, out hit, Mathf.Max(interactRange, doorInteractRange), ~0, QueryTriggerInteraction.Collide);
+        float maxRange = Mathf.Max(interactRange, doorInteractRange);
+
+        // RaycastAll so we can detect the keypad collider behind the door's
+        // large root trigger collider, then prioritise keypad > door > NPC.
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRange, ~0, QueryTriggerInteraction.Collide);
 
         GazeTarget target = GazeTarget.None;
-        float hitDist = hasHit ? hit.distance : float.MaxValue;
 
-        if (hasHit)
+        bool foundKeypad = false;
+        bool foundDoor = false;
+        bool foundNPC = false;
+
+        foreach (var hit in hits)
         {
-            if (hitDist <= doorInteractRange && IsHitOnKeypad(hit))
-                target = GazeTarget.Keypad;
-            else if (hitDist <= doorInteractRange && IsHitOnDoor(hit))
-                target = GazeTarget.Door;
-            else if (hitDist <= interactRange && IsHitOnNPC(hit))
-                target = GazeTarget.NPC;
+            if (!foundKeypad && hit.distance <= doorInteractRange && IsHitOnKeypad(hit))
+                foundKeypad = true;
+            if (!foundDoor && hit.distance <= doorInteractRange && IsHitOnDoor(hit))
+                foundDoor = true;
+            if (!foundNPC && hit.distance <= interactRange && IsHitOnNPC(hit))
+                foundNPC = true;
         }
+
+        if (foundKeypad)
+            target = GazeTarget.Keypad;
+        else if (foundDoor)
+            target = GazeTarget.Door;
+        else if (foundNPC)
+            target = GazeTarget.NPC;
 
         // If not looking at NPC via raycast, fall back to proximity check
         // (only before dialogue is completed -- afterwards require gaze)
