@@ -14,7 +14,6 @@
 *.blend filter=lfs diff=lfs merge=lfs -text
 *.pdf filter=lfs diff=lfs merge=lfs -text
 *.tga filter=lfs diff=lfs merge=lfs -text
-Assets/SeedMesh/Jungle-Tropical Vegetation/Scene/Groups_demo.unity filter=lfs diff=lfs merge=lfs -text
-*Vegetation/Scene/Groups_demo.unity filter=lfs diff=lfs merge=lfs -text
-*LEVEL9.unity filter=lfs diff=lfs merge=lfs -text
+"unfunctional/Assets/SeedMesh/Jungle-Tropical Vegetation/Scene/Groups_demo.unity" filter=lfs diff=lfs merge=lfs -text
+unfunctional/Assets/Scenes/LEVEL9.unity filter=lfs diff=lfs merge=lfs -text
 **/Groups_demo.unity filter=lfs diff=lfs merge=lfs -text
