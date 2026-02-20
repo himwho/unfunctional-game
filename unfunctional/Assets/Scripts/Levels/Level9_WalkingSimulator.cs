@@ -72,10 +72,7 @@ public class Level9_WalkingSimulator : LevelManager
 
         currentStamina = maxStamina;
 
-        BuildHallway();
-        PlaceScenicPieces();
         CreateHUD();
-        PlaceDoor();
     }
 
     private void Update()
@@ -198,127 +195,6 @@ public class Level9_WalkingSimulator : LevelManager
     {
         yield return new WaitForSeconds(delay);
         CompleteLevel();
-    }
-
-    // =========================================================================
-    // Hallway Generation
-    // =========================================================================
-
-    private void BuildHallway()
-    {
-        float wt = 0.2f;
-        Material wallMat = CreateMat(new Color(0.42f, 0.42f, 0.4f));
-        Material floorMat = CreateMat(new Color(0.28f, 0.28f, 0.3f));
-        Material ceilMat = CreateMat(new Color(0.48f, 0.48f, 0.45f));
-
-        float halfW = hallwayWidth / 2f;
-        float halfL = hallwayLength / 2f;
-        float centerZ = halfL;
-
-        // Floor
-        CreateBox("Floor", new Vector3(0, -wt / 2f, centerZ),
-            new Vector3(hallwayWidth, wt, hallwayLength + 10f), floorMat);
-
-        // Ceiling
-        CreateBox("Ceiling", new Vector3(0, hallwayHeight + wt / 2f, centerZ),
-            new Vector3(hallwayWidth, wt, hallwayLength + 10f), ceilMat);
-
-        // Left wall
-        CreateBox("WallLeft", new Vector3(-halfW - wt / 2f, hallwayHeight / 2f, centerZ),
-            new Vector3(wt, hallwayHeight, hallwayLength + 10f), wallMat);
-
-        // Right wall
-        CreateBox("WallRight", new Vector3(halfW + wt / 2f, hallwayHeight / 2f, centerZ),
-            new Vector3(wt, hallwayHeight, hallwayLength + 10f), wallMat);
-
-        // Back wall (behind player)
-        CreateBox("WallBack", new Vector3(0, hallwayHeight / 2f, -2f),
-            new Vector3(hallwayWidth, hallwayHeight, wt), wallMat);
-
-        // Lights along the hallway
-        for (float z = 5f; z < hallwayLength; z += 15f)
-        {
-            GameObject lightObj = new GameObject($"HallLight_{z}");
-            lightObj.transform.position = new Vector3(0, hallwayHeight - 0.5f, z);
-            Light light = lightObj.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.range = 12f;
-            light.intensity = 0.7f;
-            light.color = new Color(1f, 0.95f, 0.85f);
-        }
-
-        // Spawn point
-        GameObject sp = new GameObject("PlayerSpawnPoint");
-        sp.transform.position = new Vector3(0, 1f, 0);
-        sp.transform.rotation = Quaternion.LookRotation(Vector3.forward);
-        playerSpawnPoint = sp.transform;
-        playerStartZ = 0f;
-    }
-
-    private void PlaceScenicPieces()
-    {
-        Material scenicMat = CreateMat(new Color(0.55f, 0.4f, 0.3f));
-
-        float spacing = hallwayLength / (scenicMessages.Length + 1);
-
-        for (int i = 0; i < scenicMessages.Length; i++)
-        {
-            float z = spacing * (i + 1);
-
-            // Create a trigger zone for the scenic text
-            GameObject trigger = new GameObject($"ScenicTrigger_{i}");
-            trigger.transform.position = new Vector3(0, 1f, z);
-            BoxCollider col = trigger.AddComponent<BoxCollider>();
-            col.size = new Vector3(hallwayWidth, hallwayHeight, 3f);
-            col.isTrigger = true;
-
-            Level9ScenicTrigger st = trigger.AddComponent<Level9ScenicTrigger>();
-            st.message = scenicMessages[i];
-            st.levelManager = this;
-
-            // Some scenic objects
-            switch (i % 5)
-            {
-                case 0: // Chair
-                    CreateBox($"Chair_{i}", new Vector3(1.5f, 0.3f, z),
-                        new Vector3(0.5f, 0.6f, 0.5f), scenicMat);
-                    break;
-                case 1: // Potted plant (cylinder)
-                    GameObject pot = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                    pot.name = $"Plant_{i}";
-                    pot.transform.position = new Vector3(-1.8f, 0.4f, z);
-                    pot.transform.localScale = new Vector3(0.3f, 0.4f, 0.3f);
-                    pot.GetComponent<Renderer>().sharedMaterial = CreateMat(new Color(0.2f, 0.5f, 0.2f));
-                    break;
-                case 2: // Sign on wall
-                    GameObject sign = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                    sign.name = $"Sign_{i}";
-                    sign.transform.position = new Vector3(-hallwayWidth / 2f + 0.11f, 1.8f, z);
-                    sign.transform.localScale = new Vector3(1.2f, 0.6f, 1f);
-                    sign.transform.rotation = Quaternion.Euler(0, 90, 0);
-                    sign.GetComponent<Renderer>().sharedMaterial = CreateMat(new Color(0.8f, 0.75f, 0.6f));
-                    break;
-                case 3: // Box
-                    CreateBox($"Box_{i}", new Vector3(1.2f, 0.25f, z),
-                        new Vector3(0.5f, 0.5f, 0.5f), scenicMat);
-                    break;
-                case 4: // Vending machine
-                    CreateBox($"Vending_{i}", new Vector3(-1.6f, 1f, z),
-                        new Vector3(0.8f, 2f, 0.8f), CreateMat(new Color(0.15f, 0.15f, 0.3f)));
-                    break;
-            }
-        }
-    }
-
-    private void PlaceDoor()
-    {
-        doorController = FindAnyObjectByType<DoorController>();
-        if (doorController != null)
-        {
-            doorController.transform.position = new Vector3(0, 0, hallwayLength);
-            doorController.RecalculatePositions();
-            doorPlaced = true;
-        }
     }
 
     public void ShowScenicText(string message)

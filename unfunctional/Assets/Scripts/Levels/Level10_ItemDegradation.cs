@@ -75,7 +75,6 @@ public class Level10_ItemDegradation : LevelManager
 
         InitToolColors();
         InitTasks();
-        BuildWorkshop();
         CreateTaskStations();
         CreateToolRack();
         CreateHUD();
@@ -377,48 +376,6 @@ public class Level10_ItemDegradation : LevelManager
             text += $"  {status} {task.name} ({task.toolName})\n";
         }
         taskListText.text = text;
-    }
-
-    // =========================================================================
-    // Workshop Geometry
-    // =========================================================================
-
-    private void BuildWorkshop()
-    {
-        float roomW = 12f, roomH = 4f, roomD = 10f, wt = 0.2f;
-        Material wallMat = CreateMat(new Color(0.5f, 0.45f, 0.4f));
-        Material floorMat = CreateMat(new Color(0.35f, 0.3f, 0.28f));
-
-        CreateBox("Floor", new Vector3(0, -wt / 2f, 0), new Vector3(roomW, wt, roomD), floorMat);
-        CreateBox("Ceiling", new Vector3(0, roomH + wt / 2f, 0), new Vector3(roomW, wt, roomD), wallMat);
-        CreateBox("WallSouth", new Vector3(0, roomH / 2f, -roomD / 2f), new Vector3(roomW, roomH, wt), wallMat);
-        CreateBox("WallNorth", new Vector3(0, roomH / 2f, roomD / 2f), new Vector3(roomW, roomH, wt), wallMat);
-        CreateBox("WallWest", new Vector3(-roomW / 2f, roomH / 2f, 0), new Vector3(wt, roomH, roomD), wallMat);
-        CreateBox("WallEast", new Vector3(roomW / 2f, roomH / 2f, 0), new Vector3(wt, roomH, roomD), wallMat);
-
-        // Light
-        GameObject lightObj = new GameObject("WorkshopLight");
-        Light light = lightObj.AddComponent<Light>();
-        light.type = LightType.Point;
-        light.range = 18f;
-        light.intensity = 1.3f;
-        light.color = new Color(1f, 0.92f, 0.8f);
-        lightObj.transform.position = new Vector3(0, 3.5f, 0);
-
-        // Second light
-        GameObject light2Obj = new GameObject("WorkshopLight2");
-        Light light2 = light2Obj.AddComponent<Light>();
-        light2.type = LightType.Point;
-        light2.range = 10f;
-        light2.intensity = 0.6f;
-        light2.color = new Color(0.9f, 0.95f, 1f);
-        light2Obj.transform.position = new Vector3(0, 3.5f, -3f);
-
-        // Spawn
-        GameObject sp = new GameObject("PlayerSpawnPoint");
-        sp.transform.position = new Vector3(0, 1f, -4f);
-        sp.transform.rotation = Quaternion.LookRotation(Vector3.forward);
-        playerSpawnPoint = sp.transform;
     }
 
     private void CreateTaskStations()
