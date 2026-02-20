@@ -19,7 +19,7 @@ public class Level5_DumbNPC : LevelManager
 {
     [Header("NPC")]
     public GameObject npcObject;
-    public float interactRange = 5f;
+    public float interactRange = 0.5f;
     public string npcName = "Gorp";
 
     [Header("Walk-Away Detection")]
@@ -343,11 +343,6 @@ public class Level5_DumbNPC : LevelManager
         else if (foundDoor)
             target = GazeTarget.Door;
         else if (foundNPC)
-            target = GazeTarget.NPC;
-
-        // If not looking at NPC via raycast, fall back to proximity check
-        // (only before dialogue is completed -- afterwards require gaze)
-        if (target == GazeTarget.None && !dialogueCompleted && IsPlayerNearNPC() && npcReadyToInteract)
             target = GazeTarget.NPC;
 
         // Update prompts

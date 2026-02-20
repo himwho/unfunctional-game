@@ -19,7 +19,7 @@ public class Level7_CompassHallways : LevelManager
 
     [Header("NPC")]
     public GameObject npcObject;
-    public float interactRange = 5f;
+    public float interactRange = 0.5f;
     public string npcName = "Gorp";
 
     [Header("NPC Rotation")]
@@ -275,8 +275,6 @@ public class Level7_CompassHallways : LevelManager
         Camera cam = Camera.main;
         if (cam == null) return;
 
-        float dist = Vector3.Distance(cam.transform.position, npcObject.transform.position);
-        bool nearNpc = dist <= interactRange;
         bool ePressed = Input.GetKeyDown(KeyCode.E);
 
         if (inDialogue)
@@ -291,10 +289,27 @@ public class Level7_CompassHallways : LevelManager
 
         if (hasSpokenToNpc) return;
 
-        interactPromptCanvas.gameObject.SetActive(nearNpc);
+        bool lookingAtNpc = IsLookingAtNPC(cam);
 
-        if (nearNpc && ePressed)
+        interactPromptCanvas.gameObject.SetActive(lookingAtNpc);
+
+        if (lookingAtNpc && ePressed)
             ShowDialogue();
+    }
+
+    private bool IsLookingAtNPC(Camera cam)
+    {
+        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactRange, ~0, QueryTriggerInteraction.Collide);
+
+        foreach (var hit in hits)
+        {
+            if (hit.collider.transform.IsChildOf(npcObject.transform)
+                || hit.collider.gameObject == npcObject)
+                return true;
+        }
+
+        return false;
     }
 
     private void ShowDialogue()
