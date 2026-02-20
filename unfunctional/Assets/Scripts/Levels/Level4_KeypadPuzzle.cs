@@ -154,37 +154,61 @@ public class Level4_KeypadPuzzle : LevelManager
     // Interaction (raycasting in 3D world)
     // =========================================================================
 
+    private enum InteractTarget { None, Keypad, Door, StickyNotes }
+
+    /// <summary>
+    /// Uses RaycastAll to collect every collider along the crosshair ray, then
+    /// picks the highest-priority target. This avoids the door's large root
+    /// trigger collider stealing focus from the smaller keypad collider when
+    /// the two overlap.
+    /// </summary>
+    private InteractTarget GetInteractTarget()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return InteractTarget.None;
+
+        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactRange, ~0, QueryTriggerInteraction.Collide);
+
+        bool foundKeypad = false;
+        bool foundDoor = false;
+        bool foundSticky = false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (IsHitOnKeypad(hits[i]))
+                foundKeypad = true;
+            else if (IsHitOnDoor(hits[i]))
+                foundDoor = true;
+            else if (stickyNotePoint != null &&
+                     Vector3.Distance(hits[i].point, stickyNotePoint.position) < 1.5f)
+                foundSticky = true;
+        }
+
+        if (foundKeypad) return InteractTarget.Keypad;
+        if (foundSticky) return InteractTarget.StickyNotes;
+        if (foundDoor) return InteractTarget.Door;
+        return InteractTarget.None;
+    }
+
     private void CheckInteraction()
     {
         if (keypad != null && keypad.IsOpen) return;
         if (InputManager.Instance == null || !InputManager.Instance.InteractPressed) return;
 
-        Camera cam = Camera.main;
-        if (cam == null) return;
-
-        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
+        switch (GetInteractTarget())
         {
-            // Check if the player is looking at the keypad
-            if (IsHitOnKeypad(hit))
-            {
+            case InteractTarget.Keypad:
                 if (keypad != null) keypad.Open();
                 else ShowNarration("The keypad seems broken...", 2f);
-            }
-            // Check if looking at the door itself
-            else if (IsHitOnDoor(hit))
-            {
+                break;
+            case InteractTarget.Door:
                 ShowNarration("The door is locked. Use the keypad.", 2.5f);
                 if (doorController != null) doorController.ShakeDoor();
-            }
-            // Check if looking at sticky notes
-            else if (stickyNotePoint != null &&
-                     Vector3.Distance(hit.point, stickyNotePoint.position) < 1.5f)
-            {
+                break;
+            case InteractTarget.StickyNotes:
                 ShowStickyNoteInfo();
-            }
+                break;
         }
     }
 
@@ -197,41 +221,25 @@ public class Level4_KeypadPuzzle : LevelManager
             return;
         }
 
-        Camera cam = Camera.main;
-        if (cam == null)
+        string prompt;
+        switch (GetInteractTarget())
         {
-            interactPromptText.enabled = false;
-            return;
-        }
-
-        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        RaycastHit hit;
-
-        bool show = false;
-        string prompt = "[E] Interact";
-
-        if (Physics.Raycast(ray, out hit, interactRange, ~0, QueryTriggerInteraction.Collide))
-        {
-            if (IsHitOnKeypad(hit))
-            {
-                show = true;
+            case InteractTarget.Keypad:
                 prompt = "[E] Use Keypad";
-            }
-            else if (IsHitOnDoor(hit))
-            {
-                show = true;
+                break;
+            case InteractTarget.Door:
                 prompt = "[E] Try Door";
-            }
-            else if (stickyNotePoint != null &&
-                     Vector3.Distance(hit.point, stickyNotePoint.position) < 1.5f)
-            {
-                show = true;
+                break;
+            case InteractTarget.StickyNotes:
                 prompt = "[E] Read Notes";
-            }
+                break;
+            default:
+                interactPromptText.enabled = false;
+                return;
         }
 
-        interactPromptText.enabled = show;
-        if (show) interactPromptText.text = prompt;
+        interactPromptText.enabled = true;
+        interactPromptText.text = prompt;
     }
 
     // =========================================================================
@@ -240,11 +248,9 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private bool IsHitOnKeypad(RaycastHit hit)
     {
-        // Check the explicit keypadObject reference
         if (keypadObject != null && hit.collider.transform.IsChildOf(keypadObject.transform))
             return true;
 
-        // Also check DoorController's keypad children
         if (doorController != null)
         {
             if (doorController.keypadMount != null &&
@@ -260,6 +266,10 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private bool IsHitOnDoor(RaycastHit hit)
     {
+        // Keypad children are part of the door hierarchy but should never
+        // register as a "door" hit — they're handled by IsHitOnKeypad.
+        if (IsHitOnKeypad(hit)) return false;
+
         if (doorObject != null && hit.collider.transform.IsChildOf(doorObject.transform))
             return true;
         if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
