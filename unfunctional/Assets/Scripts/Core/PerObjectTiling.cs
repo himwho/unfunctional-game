@@ -17,6 +17,10 @@ public class PerObjectTiling : MonoBehaviour
     [Header("Tiling")]
     [SerializeField] private Vector2 tiling = Vector2.one;
 
+    [Tooltip("When enabled, tiling is multiplied by the object's world scale " +
+             "so texture density stays consistent across differently sized objects.")]
+    [SerializeField] private bool scaleCompensation = false;
+
     [Header("Offset")]
     [SerializeField] private Vector2 offset = Vector2.zero;
 
@@ -69,9 +73,17 @@ public class PerObjectTiling : MonoBehaviour
         // Get existing property block so we don't overwrite other per-object overrides
         cachedRenderer.GetPropertyBlock(propertyBlock);
 
-        // Set the _ST vector (tiling.x, tiling.y, offset.x, offset.y)
         string stProperty = texturePropertyName + "_ST";
-        Vector4 tilingOffset = new Vector4(tiling.x, tiling.y, offset.x, offset.y);
+
+        Vector2 finalTiling = tiling;
+        if (scaleCompensation)
+        {
+            Vector3 scale = transform.lossyScale;
+            finalTiling.x *= scale.x;
+            finalTiling.y *= scale.y;
+        }
+
+        Vector4 tilingOffset = new Vector4(finalTiling.x, finalTiling.y, offset.x, offset.y);
         propertyBlock.SetVector(stProperty, tilingOffset);
 
         cachedRenderer.SetPropertyBlock(propertyBlock);
@@ -80,7 +92,7 @@ public class PerObjectTiling : MonoBehaviour
         {
             Debug.Log(
                 $"[PerObjectTiling] '{gameObject.name}': set {stProperty} = {tilingOffset} " +
-                $"(shader: {mat.shader.name})", this);
+                $"(shader: {mat.shader.name}, scale: {transform.lossyScale})", this);
         }
     }
 
