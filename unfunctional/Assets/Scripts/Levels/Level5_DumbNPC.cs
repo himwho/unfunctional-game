@@ -19,7 +19,7 @@ public class Level5_DumbNPC : LevelManager
 {
     [Header("NPC")]
     public GameObject npcObject;
-    public float interactRange = 3f;
+    public float interactRange = 0.5f;
     public string npcName = "Gorp";
 
     [Header("Walk-Away Detection")]
