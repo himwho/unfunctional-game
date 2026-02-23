@@ -377,6 +377,52 @@ public class Level9_WalkingSimulator : LevelManager
     }
 
     // =========================================================================
+    // Wall Widening
+    // =========================================================================
+
+    public void WidenWalls(float scaleDivisor = 1.5f, float duration = 3f)
+    {
+        GameObject wallsParent = GameObject.Find("Walls");
+        if (wallsParent == null) return;
+        StartCoroutine(AnimateWallWiden(wallsParent.transform, scaleDivisor, duration));
+    }
+
+    private IEnumerator AnimateWallWiden(Transform wallsParent, float scaleDivisor, float duration)
+    {
+        int childCount = wallsParent.childCount;
+        Vector3[] startScales = new Vector3[childCount];
+        Vector3[] targetScales = new Vector3[childCount];
+
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = wallsParent.GetChild(i);
+            startScales[i] = child.localScale;
+            targetScales[i] = new Vector3(
+                child.localScale.x,
+                child.localScale.y,
+                child.localScale.z / scaleDivisor
+            );
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = wallsParent.GetChild(i);
+                child.localScale = Vector3.Lerp(startScales[i], targetScales[i], t);
+            }
+            yield return null;
+        }
+
+        for (int i = 0; i < childCount; i++)
+            wallsParent.GetChild(i).localScale = targetScales[i];
+    }
+
+    // =========================================================================
     // Lighting
     // =========================================================================
 

@@ -8,6 +8,7 @@ public class Level9ScenicTrigger : MonoBehaviour
     public string message;
     public Level9_WalkingSimulator levelManager;
     public bool triggerLightingChange = false;
+    public bool triggerWallWiden = false;
     public bool unlockSprint = false;
     private bool triggered = false;
 
@@ -22,6 +23,8 @@ public class Level9ScenicTrigger : MonoBehaviour
                 levelManager.ShowScenicText(message);
                 if (triggerLightingChange)
                     levelManager.ApplySubtleLightingChange();
+                if (triggerWallWiden)
+                    levelManager.WidenWalls();
                 if (unlockSprint)
                     levelManager.UnlockSprint();
             }
