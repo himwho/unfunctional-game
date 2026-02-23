@@ -48,6 +48,12 @@ public class Level9_WalkingSimulator : LevelManager
     private bool isSprinting = false;
     private bool doorPlaced = false;
     private bool sprintUnlocked = false;
+    private bool doorOpening = false;
+
+    // Door interaction
+    [Header("Door Interaction")]
+    public float doorInteractRange = 3.5f;
+    private Text interactPromptText;
 
     // Scenic set pieces
     private readonly string[] scenicMessages = new string[]
@@ -84,12 +90,13 @@ public class Level9_WalkingSimulator : LevelManager
 
     private void Update()
     {
-        if (levelComplete) return;
+        if (levelComplete || doorOpening) return;
 
         UpdateStamina();
         UpdateSprintModifier();
         UpdateProgressBar();
-        CheckFinish();
+        UpdateInteractPrompt();
+        CheckDoorInteraction();
     }
 
     // =========================================================================
@@ -213,20 +220,44 @@ public class Level9_WalkingSimulator : LevelManager
             progressText.text = $"{(displayProgress * 100f):F0}%";
     }
 
-    private void CheckFinish()
+    private bool IsLookingAtDoor()
     {
-        float progress = GetHallwayProgress();
-        if (progress >= 0.98f)
+        if (doorController == null) return false;
+
+        Camera cam = Camera.main;
+        if (cam == null) return false;
+
+        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        if (Physics.Raycast(ray, out RaycastHit hit, doorInteractRange, ~0, QueryTriggerInteraction.Collide))
         {
-            if (doorController != null && !doorController.IsOpen)
+            Transform t = hit.transform;
+            while (t != null)
             {
-                doorController.OpenDoor();
-                StartCoroutine(CompleteLevelAfterDelay(2f));
+                if (t == doorController.transform) return true;
+                t = t.parent;
             }
-            else if (doorController == null)
-            {
-                CompleteLevel();
-            }
+        }
+        return false;
+    }
+
+    private void UpdateInteractPrompt()
+    {
+        if (interactPromptText == null) return;
+        bool show = !doorController.IsOpen && !doorController.IsAnimating && IsLookingAtDoor();
+        interactPromptText.enabled = show;
+    }
+
+    private void CheckDoorInteraction()
+    {
+        if (doorController == null || doorController.IsOpen || doorController.IsAnimating) return;
+        if (InputManager.Instance == null || !InputManager.Instance.InteractPressed) return;
+
+        if (IsLookingAtDoor())
+        {
+            doorOpening = true;
+            doorController.OpenDoor();
+            if (interactPromptText != null) interactPromptText.enabled = false;
+            StartCoroutine(CompleteLevelAfterDelay(2f));
         }
     }
 
@@ -354,6 +385,14 @@ public class Level9_WalkingSimulator : LevelManager
             22, new Color(0.8f, 0.8f, 0.6f, 0f));
         scenicText.fontStyle = FontStyle.Italic;
         scenicText.alignment = TextAnchor.MiddleCenter;
+
+        // -- Interact Prompt --
+        interactPromptText = CreateHUDText(canvasObj.transform, "InteractPrompt",
+            "[E] Open Door",
+            new Vector2(0.35f, 0.45f), new Vector2(0.65f, 0.52f),
+            20, new Color(1f, 1f, 1f, 0.9f));
+        interactPromptText.alignment = TextAnchor.MiddleCenter;
+        interactPromptText.enabled = false;
     }
 
     private Text CreateHUDText(Transform parent, string name, string content,
