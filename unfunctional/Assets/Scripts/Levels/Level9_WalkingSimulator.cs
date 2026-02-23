@@ -29,13 +29,15 @@ public class Level9_WalkingSimulator : LevelManager
     public float maxStamina = 100f;
     public float staminaDrainRate = 40f;   // Per second while sprinting
     public float staminaRegenRate = 8f;    // Per second while walking
-    public float sprintMultiplier = 1.8f;
+    public float sprintMultiplier = 1.3f;
     public float staminaRegenDelay = 1.5f; // Delay after sprinting before regen starts
 
     // Runtime UI
     private Canvas hudCanvas;
     private Image staminaBarFill;
+    private RectTransform staminaFillRect;
     private Image progressBarFill;
+    private RectTransform progressFillRect;
     private Text progressText;
     private Text scenicText;
     private GameObject staminaBarRoot;
@@ -125,10 +127,11 @@ public class Level9_WalkingSimulator : LevelManager
         // Update stamina bar
         if (staminaBarFill != null)
         {
-            staminaBarFill.fillAmount = currentStamina / maxStamina;
+            float ratio = currentStamina / maxStamina;
+            if (staminaFillRect != null)
+                staminaFillRect.anchorMax = new Vector2(ratio, 1f);
 
             // Color: green when full, yellow when medium, red when low
-            float ratio = currentStamina / maxStamina;
             if (ratio > 0.5f)
                 staminaBarFill.color = Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f);
             else
@@ -148,15 +151,23 @@ public class Level9_WalkingSimulator : LevelManager
             return;
         }
 
+        bool wantsSprint = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
         if (isSprinting)
         {
             pc.walkSpeed = 5f * sprintMultiplier;
-            pc.runSpeed = 8f * sprintMultiplier;
+            pc.runSpeed = 5f * sprintMultiplier;
+        }
+        else if (wantsSprint && currentStamina <= 0f)
+        {
+            // Holding sprint with no stamina: lock to walk speed
+            pc.walkSpeed = 5f;
+            pc.runSpeed = 5f;
         }
         else
         {
             pc.walkSpeed = 5f;
-            pc.runSpeed = 8f;
+            pc.runSpeed = 5f;
         }
     }
 
@@ -183,7 +194,7 @@ public class Level9_WalkingSimulator : LevelManager
 
     private void UpdateProgressBar()
     {
-        if (progressBarFill == null) return;
+        if (progressFillRect == null) return;
 
         float rawProgress = GetHallwayProgress();
 
@@ -195,7 +206,8 @@ public class Level9_WalkingSimulator : LevelManager
             displayProgress = 0.4f + (rawProgress - 0.8f) * 3f;
 
         displayProgress = Mathf.Clamp01(displayProgress);
-        progressBarFill.fillAmount = displayProgress;
+        if (progressFillRect != null)
+            progressFillRect.anchorMax = new Vector2(displayProgress, 1f);
 
         if (progressText != null)
             progressText.text = $"{(displayProgress * 100f):F0}%";
@@ -293,15 +305,12 @@ public class Level9_WalkingSimulator : LevelManager
         staminaFill.transform.SetParent(staminaBg.transform, false);
         staminaBarFill = staminaFill.AddComponent<Image>();
         staminaBarFill.color = Color.green;
-        staminaBarFill.type = Image.Type.Filled;
-        staminaBarFill.fillMethod = Image.FillMethod.Horizontal;
-        staminaBarFill.fillAmount = 1f;
         staminaBarFill.raycastTarget = false;
-        RectTransform fillRect = staminaFill.GetComponent<RectTransform>();
-        fillRect.anchorMin = Vector2.zero;
-        fillRect.anchorMax = Vector2.one;
-        fillRect.offsetMin = Vector2.zero;
-        fillRect.offsetMax = Vector2.zero;
+        staminaFillRect = staminaFill.GetComponent<RectTransform>();
+        staminaFillRect.anchorMin = Vector2.zero;
+        staminaFillRect.anchorMax = Vector2.one;
+        staminaFillRect.offsetMin = Vector2.zero;
+        staminaFillRect.offsetMax = Vector2.zero;
 
         // Stamina label
         staminaLabelObj = CreateHUDText(canvasObj.transform, "StaminaLabel", "STAMINA",
@@ -327,13 +336,10 @@ public class Level9_WalkingSimulator : LevelManager
         progressFillObj.transform.SetParent(progressBg.transform, false);
         progressBarFill = progressFillObj.AddComponent<Image>();
         progressBarFill.color = new Color(0.3f, 0.5f, 0.8f);
-        progressBarFill.type = Image.Type.Filled;
-        progressBarFill.fillMethod = Image.FillMethod.Horizontal;
-        progressBarFill.fillAmount = 0f;
         progressBarFill.raycastTarget = false;
-        RectTransform progressFillRect = progressFillObj.GetComponent<RectTransform>();
+        progressFillRect = progressFillObj.GetComponent<RectTransform>();
         progressFillRect.anchorMin = Vector2.zero;
-        progressFillRect.anchorMax = Vector2.one;
+        progressFillRect.anchorMax = new Vector2(0f, 1f);
         progressFillRect.offsetMin = Vector2.zero;
         progressFillRect.offsetMax = Vector2.zero;
 
