@@ -38,11 +38,14 @@ public class Level9_WalkingSimulator : LevelManager
     private Image progressBarFill;
     private Text progressText;
     private Text scenicText;
+    private GameObject staminaBarRoot;
+    private GameObject staminaLabelObj;
 
     private float currentStamina;
     private float staminaRegenTimer = 0f;
     private bool isSprinting = false;
     private bool doorPlaced = false;
+    private bool sprintUnlocked = false;
 
     // Scenic set pieces
     private readonly string[] scenicMessages = new string[]
@@ -93,6 +96,8 @@ public class Level9_WalkingSimulator : LevelManager
 
     private void UpdateStamina()
     {
+        if (!sprintUnlocked) return;
+
         bool wantsSprint = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
         if (wantsSprint && currentStamina > 0f)
@@ -136,7 +141,13 @@ public class Level9_WalkingSimulator : LevelManager
         PlayerController pc = FindAnyObjectByType<PlayerController>();
         if (pc == null) return;
 
-        // Modify the player's walk/run speed based on sprint state
+        if (!sprintUnlocked)
+        {
+            pc.walkSpeed = 5f;
+            pc.runSpeed = 5f;
+            return;
+        }
+
         if (isSprinting)
         {
             pc.walkSpeed = 5f * sprintMultiplier;
@@ -213,6 +224,16 @@ public class Level9_WalkingSimulator : LevelManager
         CompleteLevel();
     }
 
+    public void UnlockSprint()
+    {
+        if (sprintUnlocked) return;
+        sprintUnlocked = true;
+        currentStamina = maxStamina;
+
+        if (staminaBarRoot != null) staminaBarRoot.SetActive(true);
+        if (staminaLabelObj != null) staminaLabelObj.SetActive(true);
+    }
+
     public void ShowScenicText(string message)
     {
         if (scenicText != null)
@@ -255,7 +276,7 @@ public class Level9_WalkingSimulator : LevelManager
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // -- Stamina Bar --
+        // -- Stamina Bar (hidden until sprint is unlocked) --
         GameObject staminaBg = new GameObject("StaminaBG");
         staminaBg.transform.SetParent(canvasObj.transform, false);
         Image staminaBgImg = staminaBg.AddComponent<Image>();
@@ -266,6 +287,7 @@ public class Level9_WalkingSimulator : LevelManager
         staminaBgRect.anchorMax = new Vector2(0.7f, 0.06f);
         staminaBgRect.offsetMin = Vector2.zero;
         staminaBgRect.offsetMax = Vector2.zero;
+        staminaBarRoot = staminaBg;
 
         GameObject staminaFill = new GameObject("StaminaFill");
         staminaFill.transform.SetParent(staminaBg.transform, false);
@@ -282,9 +304,12 @@ public class Level9_WalkingSimulator : LevelManager
         fillRect.offsetMax = Vector2.zero;
 
         // Stamina label
-        CreateHUDText(canvasObj.transform, "StaminaLabel", "STAMINA",
+        staminaLabelObj = CreateHUDText(canvasObj.transform, "StaminaLabel", "STAMINA",
             new Vector2(0.3f, 0.06f), new Vector2(0.7f, 0.09f),
-            14, new Color(0.6f, 0.6f, 0.6f));
+            14, new Color(0.6f, 0.6f, 0.6f)).gameObject;
+
+        staminaBarRoot.SetActive(false);
+        staminaLabelObj.SetActive(false);
 
         // -- Progress Bar --
         GameObject progressBg = new GameObject("ProgressBG");
