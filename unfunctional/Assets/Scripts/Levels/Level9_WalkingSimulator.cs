@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 using System.Collections;
 
 /// <summary>
@@ -18,6 +19,8 @@ public class Level9_WalkingSimulator : LevelManager
     public DoorController doorController;
 
     [Header("Hallway")]
+    public Transform hallwayStart;
+    public Transform hallwayEnd;
     public float hallwayLength = 250f;
     public float hallwayWidth = 5f;
     public float hallwayHeight = 4f;
@@ -39,7 +42,6 @@ public class Level9_WalkingSimulator : LevelManager
     private float currentStamina;
     private float staminaRegenTimer = 0f;
     private bool isSprinting = false;
-    private float playerStartZ;
     private bool doorPlaced = false;
 
     // Scenic set pieces
@@ -147,22 +149,39 @@ public class Level9_WalkingSimulator : LevelManager
         }
     }
 
-    private void UpdateProgressBar()
+    private float GetHallwayProgress()
     {
         Camera cam = Camera.main;
-        if (cam == null || progressBarFill == null) return;
+        if (cam == null) return 0f;
 
-        float currentZ = cam.transform.position.z;
-        float rawProgress = Mathf.Clamp01((currentZ - playerStartZ) / hallwayLength);
+        if (hallwayStart != null && hallwayEnd != null)
+        {
+            Vector3 startPos = hallwayStart.position;
+            Vector3 endPos = hallwayEnd.position;
+            Vector3 hallwayDir = endPos - startPos;
+            float hallwayLen = hallwayDir.magnitude;
+            if (hallwayLen < 0.001f) return 0f;
 
-        // Deceptive progress: slow at first, speeds up near end
-        // Use a power curve that makes early progress feel glacial
-        float displayProgress = Mathf.Pow(rawProgress, 0.4f) * 0.6f + rawProgress * 0.4f;
-        // Actually make it worse: the first 80% of real distance only shows 40% progress
+            float projected = Vector3.Dot(cam.transform.position - startPos, hallwayDir / hallwayLen);
+            return Mathf.Clamp01(projected / hallwayLen);
+        }
+
+        // Fallback: use hallwayLength along Z axis
+        return Mathf.Clamp01(cam.transform.position.z / hallwayLength);
+    }
+
+    private void UpdateProgressBar()
+    {
+        if (progressBarFill == null) return;
+
+        float rawProgress = GetHallwayProgress();
+
+        // Deceptive progress: the first 80% of real distance only shows 40% progress
+        float displayProgress;
         if (rawProgress < 0.8f)
             displayProgress = rawProgress * 0.5f;
         else
-            displayProgress = 0.4f + (rawProgress - 0.8f) * 3f; // Rushes to 100%
+            displayProgress = 0.4f + (rawProgress - 0.8f) * 3f;
 
         displayProgress = Mathf.Clamp01(displayProgress);
         progressBarFill.fillAmount = displayProgress;
@@ -173,11 +192,8 @@ public class Level9_WalkingSimulator : LevelManager
 
     private void CheckFinish()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
-
-        float currentZ = cam.transform.position.z;
-        if (currentZ >= hallwayLength - 3f)
+        float progress = GetHallwayProgress();
+        if (progress >= 0.98f)
         {
             if (doorController != null && !doorController.IsOpen)
             {
@@ -327,6 +343,60 @@ public class Level9_WalkingSimulator : LevelManager
         txt.text = content;
         txt.raycastTarget = false;
         return txt;
+    }
+
+    // =========================================================================
+    // Lighting
+    // =========================================================================
+
+    public void ApplySubtleLightingChange()
+    {
+        StartCoroutine(SubtleLightingTransition());
+    }
+
+    private IEnumerator SubtleLightingTransition()
+    {
+        float duration = 3f;
+        float elapsed = 0f;
+
+        Color startAmbient = RenderSettings.ambientSkyColor;
+        Color startEquator = RenderSettings.ambientEquatorColor;
+        float startIntensity = RenderSettings.ambientIntensity;
+        float startReflection = RenderSettings.reflectionIntensity;
+
+        // Shift toward a slightly warmer, dimmer tone
+        Color targetAmbient = new Color(
+            startAmbient.r + 0.06f,
+            startAmbient.g + 0.02f,
+            startAmbient.b - 0.04f,
+            startAmbient.a
+        );
+        Color targetEquator = new Color(
+            startEquator.r + 0.04f,
+            startEquator.g + 0.01f,
+            startEquator.b - 0.03f,
+            startEquator.a
+        );
+        float targetIntensity = startIntensity * 0.85f;
+        float targetReflection = startReflection * 0.9f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+            RenderSettings.ambientSkyColor = Color.Lerp(startAmbient, targetAmbient, t);
+            RenderSettings.ambientEquatorColor = Color.Lerp(startEquator, targetEquator, t);
+            RenderSettings.ambientIntensity = Mathf.Lerp(startIntensity, targetIntensity, t);
+            RenderSettings.reflectionIntensity = Mathf.Lerp(startReflection, targetReflection, t);
+
+            yield return null;
+        }
+
+        RenderSettings.ambientSkyColor = targetAmbient;
+        RenderSettings.ambientEquatorColor = targetEquator;
+        RenderSettings.ambientIntensity = targetIntensity;
+        RenderSettings.reflectionIntensity = targetReflection;
     }
 
     // =========================================================================

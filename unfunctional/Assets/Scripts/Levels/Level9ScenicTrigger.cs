@@ -7,6 +7,7 @@ public class Level9ScenicTrigger : MonoBehaviour
 {
     public string message;
     public Level9_WalkingSimulator levelManager;
+    public bool triggerLightingChange = false;
     private bool triggered = false;
 
     private void OnTriggerEnter(Collider other)
@@ -16,7 +17,11 @@ public class Level9ScenicTrigger : MonoBehaviour
         {
             triggered = true;
             if (levelManager != null)
+            {
                 levelManager.ShowScenicText(message);
+                if (triggerLightingChange)
+                    levelManager.ApplySubtleLightingChange();
+            }
         }
     }
 }
