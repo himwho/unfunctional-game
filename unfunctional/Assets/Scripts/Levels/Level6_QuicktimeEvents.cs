@@ -96,6 +96,8 @@ public class Level6_QuicktimeEvents : LevelManager
         KeyCode.Q, KeyCode.W, KeyCode.E, KeyCode.R, KeyCode.T,
         KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.F, KeyCode.G,
         KeyCode.Z, KeyCode.X, KeyCode.C, KeyCode.V, KeyCode.B,
+        KeyCode.N, KeyCode.M, KeyCode.Y, KeyCode.H, KeyCode.J,
+        KeyCode.U, KeyCode.I, KeyCode.O, KeyCode.P, KeyCode.K,
         KeyCode.Space, KeyCode.LeftShift
     };
 

@@ -68,6 +68,11 @@ public class GameManager : MonoBehaviour
     private Image fadeOverlay;
     private CanvasGroup fadeCanvasGroup;
 
+    // Persistent Level-2 settings overlay
+    private Canvas persistentSettingsCanvas;
+    private Image persistentBrightnessOverlay;
+    private Image persistentContrastOverlay;
+
     // Player instance management
     private GameObject currentPlayerInstance;
 
@@ -230,6 +235,9 @@ public class GameManager : MonoBehaviour
         {
             SetState(GameState.Playing);
         }
+
+        // Apply persistent brightness/contrast/volume if the player kept them
+        ApplyLevel2PersistentSettings();
 
         OnLevelLoaded?.Invoke(levelIndex, newSceneName);
         Debug.Log($"[GameManager] Loaded level: {newSceneName} (index {levelIndex})");
@@ -441,6 +449,125 @@ public class GameManager : MonoBehaviour
                 Destroy(cr);
             }
         }
+    }
+
+    // =========================================================================
+    // Persistent Level-2 Settings Overlay
+    // =========================================================================
+
+    /// <summary>
+    /// Creates the persistent settings canvas (once) and updates the
+    /// brightness/contrast overlays + AudioListener volume based on the
+    /// values the player chose in Level 2.  Called after every level load.
+    /// </summary>
+    private void ApplyLevel2PersistentSettings()
+    {
+        if (!Level2_SettingsPuzzle.SettingsPersisted)
+        {
+            // Player either hasn't finished Level 2 yet, or chose "Reset"
+            if (persistentSettingsCanvas != null)
+                persistentSettingsCanvas.gameObject.SetActive(false);
+            return;
+        }
+
+        EnsurePersistentSettingsCanvas();
+
+        float brightness = Level2_SettingsPuzzle.PersistentBrightness;
+        float contrast   = Level2_SettingsPuzzle.PersistentContrast;
+        float volume     = Level2_SettingsPuzzle.PersistentVolume;
+
+        // ── Brightness overlay ──
+        if (brightness >= 0f)
+        {
+            persistentBrightnessOverlay.gameObject.SetActive(true);
+            if (brightness <= 0.5f)
+            {
+                float darkAlpha = 1f - (brightness / 0.5f);
+                persistentBrightnessOverlay.color = new Color(0f, 0f, 0f, darkAlpha);
+            }
+            else
+            {
+                float lightAlpha = (brightness - 0.5f) / 0.5f;
+                persistentBrightnessOverlay.color = new Color(1f, 1f, 1f, lightAlpha);
+            }
+        }
+        else
+        {
+            persistentBrightnessOverlay.gameObject.SetActive(false);
+        }
+
+        // ── Contrast overlay ──
+        if (contrast >= 0f)
+        {
+            persistentContrastOverlay.gameObject.SetActive(true);
+            if (contrast < 0.5f)
+            {
+                float alpha = (0.5f - contrast) * 1.2f;
+                persistentContrastOverlay.color = new Color(0.5f, 0.5f, 0.5f, alpha);
+            }
+            else
+            {
+                float alpha = (contrast - 0.5f) * 0.6f;
+                persistentContrastOverlay.color = new Color(0f, 0f, 0f, alpha);
+            }
+        }
+        else
+        {
+            persistentContrastOverlay.gameObject.SetActive(false);
+        }
+
+        // ── Volume ──
+        if (volume >= 0f)
+        {
+            AudioListener.volume = volume;
+        }
+
+        persistentSettingsCanvas.gameObject.SetActive(true);
+    }
+
+    private void EnsurePersistentSettingsCanvas()
+    {
+        if (persistentSettingsCanvas != null) return;
+
+        GameObject canvasObj = new GameObject("PersistentSettingsCanvas");
+        canvasObj.transform.SetParent(transform);
+
+        persistentSettingsCanvas = canvasObj.AddComponent<Canvas>();
+        UIHelper.ConfigureCanvas(persistentSettingsCanvas, sortingOrder: 900);
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        // No GraphicRaycaster -- overlays should not block input
+
+        // Brightness overlay
+        GameObject bObj = new GameObject("BrightnessOverlay");
+        bObj.transform.SetParent(canvasObj.transform, false);
+        RectTransform brt = bObj.AddComponent<RectTransform>();
+        brt.anchorMin = Vector2.zero;
+        brt.anchorMax = Vector2.one;
+        brt.offsetMin = Vector2.zero;
+        brt.offsetMax = Vector2.zero;
+        persistentBrightnessOverlay = bObj.AddComponent<Image>();
+        persistentBrightnessOverlay.color = new Color(0, 0, 0, 0);
+        persistentBrightnessOverlay.raycastTarget = false;
+        bObj.SetActive(false);
+
+        // Contrast overlay
+        GameObject cObj = new GameObject("ContrastOverlay");
+        cObj.transform.SetParent(canvasObj.transform, false);
+        RectTransform crt = cObj.AddComponent<RectTransform>();
+        crt.anchorMin = Vector2.zero;
+        crt.anchorMax = Vector2.one;
+        crt.offsetMin = Vector2.zero;
+        crt.offsetMax = Vector2.zero;
+        persistentContrastOverlay = cObj.AddComponent<Image>();
+        persistentContrastOverlay.color = new Color(0, 0, 0, 0);
+        persistentContrastOverlay.raycastTarget = false;
+        cObj.SetActive(false);
+
+        canvasObj.SetActive(false);
     }
 
     private void OnDestroy()

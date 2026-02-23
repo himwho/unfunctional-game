@@ -24,6 +24,12 @@ using System.Collections.Generic;
 /// </summary>
 public class Level2_SettingsPuzzle : LevelManager
 {
+    // ── Static persistence — set by "Continue", read by other levels ──
+    public static float PersistentBrightness { get; private set; } = -1f; // -1 = not set
+    public static float PersistentContrast   { get; private set; } = -1f;
+    public static float PersistentVolume     { get; private set; } = -1f;
+    public static bool  SettingsPersisted    { get; private set; } = false;
+
     private const int TOTAL_STEPS = 10;
 
     [Header("Optional - will create if null")]
@@ -44,7 +50,7 @@ public class Level2_SettingsPuzzle : LevelManager
     private Image step1Overlay;
     private Button step1Next;
     private Image step1NextImage;
-    private readonly float step1Target = 0.72f;
+    private float step1Target; // randomized each load
 
     // -- Step 2 --
     private Slider step2Slider;
@@ -53,8 +59,7 @@ public class Level2_SettingsPuzzle : LevelManager
     private Image step2NextImage;
     private Text step2Warning;
     private readonly float step2MaxSafe = 0.78f;
-    private readonly float step2VisibleMin = 0.03f; // NEXT visible from 3%
-    private readonly float step2VisibleMax = 0.11f; // NEXT visible to 11%
+    private float step2Target; // randomized each load
     private bool step2Warned = false;
 
     // -- Step 3 --
@@ -71,13 +76,17 @@ public class Level2_SettingsPuzzle : LevelManager
     private Slider step5Slider;
     private AudioSource step5Audio;
     private Button step5Next;
+    private Image step5NextImage;
     private Text step5VolLabel;
+    private float step5Target;
 
     // -- Step 6 --
     private Slider step6Slider;
     private AudioSource step6Audio;
     private Button step6Next;
+    private Image step6NextImage;
     private Text step6VolLabel;
+    private float step6Target;
 
     // -- Step 7 --
     private Image step7BarFill;
@@ -91,6 +100,7 @@ public class Level2_SettingsPuzzle : LevelManager
     private bool micAvailable;
     private float micPeakAvg;
     private float step7Timer;
+    private float step7Target;
 
     // -- Step 8 --
     private Text step8LangName;
@@ -111,12 +121,14 @@ public class Level2_SettingsPuzzle : LevelManager
     private Text step9HiddenText;
     private List<Image> compBlocks = new List<Image>();
     private Button step9Next;
+    private float step9Target;
 
     // -- Step 10 --
     private Slider step10Slider;
     private Text step10HiddenText;
     private List<RectTransform> particles = new List<RectTransform>();
     private Button step10Next;
+    private float step10Target;
 
     // -- Persistent camera overlays (brightness + contrast persist across all later steps) --
     private Image persistentBrightnessOverlay;
@@ -184,6 +196,18 @@ public class Level2_SettingsPuzzle : LevelManager
         // German: hal-lo(2) + welt(1) = 3
         // Mandarin: ni-hao(2) + shi-jie(2) = 4
         // Fuzhou: ru-ho(2) + se-gai(2) = 4
+
+        // Randomize target values each load
+        step1Target  = Random.Range(0.25f, 0.85f);
+        step2Target  = Random.Range(0.08f, 0.65f);
+        step5Target  = Random.Range(0.70f, 1.00f);
+        step6Target  = Random.Range(0.70f, 1.00f);
+        step7Target  = Random.Range(0.50f, 0.90f);
+        step9Target  = Random.Range(0.30f, 0.90f);
+        step10Target = Random.Range(0.10f, 0.50f);
+        Debug.Log($"[Level2] Targets — Bright:{Mathf.RoundToInt(step1Target*100)}% Contrast:{Mathf.RoundToInt(step2Target*100)}% " +
+            $"L-Audio:{Mathf.RoundToInt(step5Target*100)}% R-Audio:{Mathf.RoundToInt(step6Target*100)}% " +
+            $"Mic:{Mathf.RoundToInt(step7Target*100)}% Compress:{Mathf.RoundToInt(step9Target*100)}% Particles:{Mathf.RoundToInt(step10Target*100)}%");
 
         EnsureCanvas();
         BuildAllSteps();
@@ -428,11 +452,11 @@ public class Level2_SettingsPuzzle : LevelManager
 
         MakeText(summaryPanel, "SETTINGS SUMMARY", 36, TextAnchor.MiddleCenter,
             new Color(0.9f, 0.9f, 0.3f),
-            new Vector2(0.1f, 0.88f), new Vector2(0.9f, 0.95f));
+            new Vector2(0.1f, 0.89f), new Vector2(0.9f, 0.96f));
 
         MakeText(summaryPanel, "Your calibration results:", 18, TextAnchor.MiddleCenter,
             new Color(0.6f, 0.6f, 0.6f),
-            new Vector2(0.2f, 0.83f), new Vector2(0.8f, 0.88f));
+            new Vector2(0.2f, 0.84f), new Vector2(0.8f, 0.89f));
 
         string[] labels = {
             "Brightness", "Contrast",
@@ -449,21 +473,34 @@ public class Level2_SettingsPuzzle : LevelManager
             savedStep9, savedStep10
         };
 
-        float startY = 0.81f;
-        float rowH = 0.048f;
+        // Target info per row (steps without a single-value target get hasTarget=false)
+        float[] targets = new float[labels.Length];
+        bool[] hasTarget = new bool[labels.Length];
+        targets[0]  = step1Target;  hasTarget[0]  = true;  // brightness
+        targets[1]  = step2Target;  hasTarget[1]  = true;  // contrast
+        // indices 2-5 = edges (spatial puzzle, no single target)
+        targets[6]  = step5Target;  hasTarget[6]  = true;  // left audio
+        targets[7]  = step6Target;  hasTarget[7]  = true;  // right audio
+        targets[8]  = step7Target;  hasTarget[8]  = true;  // mic input gain
+        // index 9 = language (no slider target)
+        targets[10] = step9Target;  hasTarget[10] = true;  // resolution quality
+        targets[11] = step10Target; hasTarget[11] = true;  // particle density
+
+        float startY = 0.82f;
+        float rowH = 0.044f;
 
         for (int i = 0; i < labels.Length; i++)
         {
             float y = startY - i * rowH;
 
             // Label
-            MakeText(summaryPanel, labels[i], 15, TextAnchor.MiddleRight,
+            MakeText(summaryPanel, labels[i], 14, TextAnchor.MiddleRight,
                 new Color(0.7f, 0.7f, 0.7f),
-                new Vector2(0.05f, y - rowH * 0.45f), new Vector2(0.33f, y + rowH * 0.45f));
+                new Vector2(0.03f, y - rowH * 0.45f), new Vector2(0.22f, y + rowH * 0.45f));
 
             // Bar background
             GameObject barBg = MakeChild(summaryPanel, $"SumBar_{i}");
-            Pos(barBg, new Vector2(0.35f, y - rowH * 0.3f), new Vector2(0.78f, y + rowH * 0.3f));
+            Pos(barBg, new Vector2(0.24f, y - rowH * 0.3f), new Vector2(0.68f, y + rowH * 0.3f));
             barBg.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.18f);
 
             // Bar fill
@@ -475,28 +512,84 @@ public class Level2_SettingsPuzzle : LevelManager
             fillRt.offsetMax = Vector2.zero;
             Image fillImg = barFill.AddComponent<Image>();
             fillImg.color = (i == 9)
-                ? new Color(0.3f, 0.8f, 0.3f)    // green for language
+                ? new Color(0.3f, 0.8f, 0.3f)
                 : new Color(0.3f, 0.5f, 0.8f, 0.8f);
 
-            // Percentage text
-            string valStr = (i == 9)
-                ? "\u2713 Complete"
-                : $"{Mathf.RoundToInt(values[i] * 100)}%";
-            MakeText(summaryPanel, valStr, 15, TextAnchor.MiddleLeft,
-                Color.white,
-                new Vector2(0.80f, y - rowH * 0.45f), new Vector2(0.96f, y + rowH * 0.45f));
+            // Target marker (thin yellow line on the bar)
+            if (hasTarget[i])
+            {
+                GameObject marker = MakeChild(barBg, "TargetMarker");
+                RectTransform mrt = marker.GetComponent<RectTransform>();
+                float tx = Mathf.Clamp01(targets[i]);
+                mrt.anchorMin = new Vector2(tx - 0.005f, 0f);
+                mrt.anchorMax = new Vector2(tx + 0.005f, 1f);
+                mrt.offsetMin = Vector2.zero;
+                mrt.offsetMax = Vector2.zero;
+                marker.AddComponent<Image>().color = new Color(0.9f, 0.9f, 0.2f, 0.9f);
+            }
+
+            // Value + target text
+            string valStr;
+            if (i == 9)
+            {
+                valStr = "\u2713 Complete";
+            }
+            else if (hasTarget[i])
+            {
+                valStr = $"{Mathf.RoundToInt(values[i] * 100)}%  (target: {Mathf.RoundToInt(targets[i] * 100)}%)";
+            }
+            else
+            {
+                valStr = $"{Mathf.RoundToInt(values[i] * 100)}%";
+            }
+
+            MakeText(summaryPanel, valStr, 13, TextAnchor.MiddleLeft,
+                hasTarget[i] ? new Color(0.9f, 0.9f, 0.5f) : Color.white,
+                new Vector2(0.70f, y - rowH * 0.45f), new Vector2(0.99f, y + rowH * 0.45f));
         }
 
-        // "Apply Settings" button
-        bool applied = false;
-        Button applyBtn = MakeButton(summaryPanel, "APPLY SETTINGS",
-            new Vector2(0.5f, 0.06f), new Vector2(240, 50),
-            new Color(0.2f, 0.5f, 0.2f, 1f));
-        applyBtn.onClick.AddListener(() => applied = true);
+        // ── Two choice buttons ──────────────────────────────────────────
 
-        // Wait for the player to click
-        while (!applied)
+        MakeText(summaryPanel, "Keep these settings for the rest of the game, or reset to defaults?",
+            16, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.7f),
+            new Vector2(0.1f, 0.12f), new Vector2(0.9f, 0.17f));
+
+        bool continuePressed = false;
+        bool resetPressed = false;
+
+        Button continueBtn = MakeButton(summaryPanel, "Continue",
+            new Vector2(0.35f, 0.06f), new Vector2(220, 48),
+            new Color(0.2f, 0.5f, 0.2f, 1f));
+        continueBtn.onClick.AddListener(() => continuePressed = true);
+
+        Button resetBtn = MakeButton(summaryPanel, "Reset & Continue",
+            new Vector2(0.65f, 0.06f), new Vector2(220, 48),
+            new Color(0.5f, 0.2f, 0.2f, 1f));
+        resetBtn.onClick.AddListener(() => resetPressed = true);
+
+        // Wait for the player to choose
+        while (!continuePressed && !resetPressed)
             yield return null;
+
+        if (continuePressed)
+        {
+            // Persist the player's chosen settings
+            PersistentBrightness = savedStep1;
+            PersistentContrast = savedStep2;
+            PersistentVolume = outputVolume;
+            SettingsPersisted = true;
+            Debug.Log($"[Level2] Settings persisted — Brightness: {savedStep1:P0}, Contrast: {savedStep2:P0}, Volume: {outputVolume:P0}");
+        }
+        else
+        {
+            // Reset to defaults
+            PersistentBrightness = -1f;
+            PersistentContrast = -1f;
+            PersistentVolume = -1f;
+            SettingsPersisted = false;
+            AudioListener.volume = 1f;
+            Debug.Log("[Level2] Settings reset to defaults.");
+        }
 
         // Flash transition
         GameObject flashObj = MakeFullOverlay(summaryPanel, "Flash", Color.white);
@@ -545,13 +638,12 @@ public class Level2_SettingsPuzzle : LevelManager
         step1Overlay = ovlObj.GetComponent<Image>();
         step1Overlay.raycastTarget = false;
 
-        // NEXT button -- grey tone that blends with the overlay at most brightness levels
+        // NEXT button -- green like Step 2, starts fully transparent, appears near target
         step1Next = MakeButton(panel, "NEXT", new Vector2(0.5f, 0.15f), new Vector2(180, 50),
-            new Color(0.15f, 0.15f, 0.15f, 1f));
+            new Color(0.2f, 0.45f, 0.2f, 0f));
         step1NextImage = step1Next.GetComponent<Image>();
-        // Make the button text also grey so it's truly hidden
         Text step1BtnText = step1Next.GetComponentInChildren<Text>();
-        if (step1BtnText != null) step1BtnText.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+        if (step1BtnText != null) step1BtnText.color = new Color(1f, 1f, 1f, 0f);
         step1Next.onClick.AddListener(() => { if (CanAdvanceStep1()) GoToStep(1); });
     }
 
@@ -660,17 +752,23 @@ public class Level2_SettingsPuzzle : LevelManager
     private void BuildStep5()
     {
         GameObject panel = MakeStepPanel(4, "LEFT AUDIO CHANNEL",
-            "Set the left audio channel gain to maximum.");
+            "Calibrate the left audio channel gain.");
 
         step5Slider = MakeSlider(panel, "Left Channel Gain", 0.45f);
 
         step5VolLabel = MakeText(panel, "Volume: 0%", 24, TextAnchor.MiddleCenter,
             Color.white, new Vector2(0.3f, 0.32f), new Vector2(0.7f, 0.38f));
 
+        // Green NEXT button, starts fully transparent, appears near target
         step5Next = MakeButton(panel, "NEXT", new Vector2(0.5f, 0.12f), new Vector2(180, 50),
-            new Color(0.2f, 0.45f, 0.2f, 1f));
-        step5Next.gameObject.SetActive(false);
-        step5Next.onClick.AddListener(() => GoToStep(5));
+            new Color(0.2f, 0.45f, 0.2f, 0f));
+        step5NextImage = step5Next.GetComponent<Image>();
+        Text step5BtnText = step5Next.GetComponentInChildren<Text>();
+        if (step5BtnText != null) step5BtnText.color = new Color(1f, 1f, 1f, 0f);
+        step5Next.onClick.AddListener(() =>
+        {
+            if (Mathf.Abs(step5Slider.value - step5Target) < 0.05f) GoToStep(5);
+        });
 
         // Audio source
         step5Audio = MakeAudioSource("LeftChannel", leftTone);
@@ -681,17 +779,23 @@ public class Level2_SettingsPuzzle : LevelManager
     private void BuildStep6()
     {
         GameObject panel = MakeStepPanel(5, "RIGHT AUDIO CHANNEL",
-            "Set the right audio channel gain to maximum.");
+            "Calibrate the right audio channel gain.");
 
         step6Slider = MakeSlider(panel, "Right Channel Gain", 0.45f);
 
         step6VolLabel = MakeText(panel, "Volume: 0%", 24, TextAnchor.MiddleCenter,
             Color.white, new Vector2(0.3f, 0.32f), new Vector2(0.7f, 0.38f));
 
+        // Green NEXT button, starts fully transparent, appears near target
         step6Next = MakeButton(panel, "NEXT", new Vector2(0.5f, 0.12f), new Vector2(180, 50),
-            new Color(0.2f, 0.45f, 0.2f, 1f));
-        step6Next.gameObject.SetActive(false);
-        step6Next.onClick.AddListener(() => GoToStep(6));
+            new Color(0.2f, 0.45f, 0.2f, 0f));
+        step6NextImage = step6Next.GetComponent<Image>();
+        Text step6BtnText = step6Next.GetComponentInChildren<Text>();
+        if (step6BtnText != null) step6BtnText.color = new Color(1f, 1f, 1f, 0f);
+        step6Next.onClick.AddListener(() =>
+        {
+            if (Mathf.Abs(step6Slider.value - step6Target) < 0.05f) GoToStep(6);
+        });
 
         step6Audio = MakeAudioSource("RightChannel", rightTone);
         step6Audio.panStereo = 1f;
@@ -789,7 +893,7 @@ public class Level2_SettingsPuzzle : LevelManager
         step9Slider.value = 0f;
 
         // Hidden instruction text (obscured by compression blocks)
-        step9HiddenText = MakeText(panel, "Set slider to 85% and press NEXT", 30,
+        step9HiddenText = MakeText(panel, $"Set slider to {Mathf.RoundToInt(step9Target * 100)}% and press NEXT", 30,
             TextAnchor.MiddleCenter, new Color(0.9f, 0.9f, 0.3f),
             new Vector2(0.15f, 0.2f), new Vector2(0.85f, 0.38f));
 
@@ -825,7 +929,7 @@ public class Level2_SettingsPuzzle : LevelManager
             new Color(0.2f, 0.45f, 0.2f, 1f));
         step9Next.onClick.AddListener(() =>
         {
-            if (step9Slider.value >= 0.83f && step9Slider.value <= 0.87f)
+            if (Mathf.Abs(step9Slider.value - step9Target) < 0.03f)
                 GoToStep(9);
         });
     }
@@ -839,7 +943,7 @@ public class Level2_SettingsPuzzle : LevelManager
         step10Slider = MakeSlider(panel, "Particle Density", 0.5f);
         step10Slider.value = 1f; // Start at max particles
 
-        step10HiddenText = MakeText(panel, "Set slider to 22% to continue", 28,
+        step10HiddenText = MakeText(panel, $"Set slider to {Mathf.RoundToInt(step10Target * 100)}% to continue", 28,
             TextAnchor.MiddleCenter, new Color(0.9f, 0.9f, 0.3f),
             new Vector2(0.15f, 0.18f), new Vector2(0.85f, 0.35f));
 
@@ -870,7 +974,7 @@ public class Level2_SettingsPuzzle : LevelManager
             new Color(0.2f, 0.45f, 0.2f, 1f));
         step10Next.onClick.AddListener(() =>
         {
-            if (step10Slider.value >= 0.20f && step10Slider.value <= 0.24f)
+            if (Mathf.Abs(step10Slider.value - step10Target) < 0.03f)
             {
                 GoToStep(10); // triggers FinishLevel
             }
@@ -912,7 +1016,6 @@ public class Level2_SettingsPuzzle : LevelManager
     private void SetupStep5()
     {
         step5Slider.value = 0f;
-        step5Next.gameObject.SetActive(false);
         step5Audio.volume = 0f;
         step5Audio.Play();
     }
@@ -920,7 +1023,6 @@ public class Level2_SettingsPuzzle : LevelManager
     private void SetupStep6()
     {
         step6Slider.value = 0f;
-        step6Next.gameObject.SetActive(false);
         step6Audio.volume = 0f;
         step6Audio.Play();
     }
@@ -974,44 +1076,32 @@ public class Level2_SettingsPuzzle : LevelManager
         float v = step1Slider.value;
 
         // Overlay goes from completely dark (v=0) to completely light (v=1).
-        // At v=0 the screen is pitch black; at v=1 it's blinding white.
         if (v <= 0.5f)
         {
-            // Dark overlay fades out as brightness increases
-            float darkAlpha = 1f - (v / 0.5f); // 1 at v=0, 0 at v=0.5
+            float darkAlpha = 1f - (v / 0.5f);
             step1Overlay.color = new Color(0f, 0f, 0f, darkAlpha);
         }
         else
         {
-            // White overlay fades in as brightness goes past midpoint
-            float lightAlpha = (v - 0.5f) / 0.5f; // 0 at v=0.5, 1 at v=1
+            float lightAlpha = (v - 0.5f) / 0.5f;
             step1Overlay.color = new Color(1f, 1f, 1f, lightAlpha);
         }
 
-        // NEXT button is grey and blends into the background at most brightness.
-        // It only becomes distinguishable near the target (~85%).
-        // At 85% the overlay is white with alpha ~0.7, so the button needs to
-        // match that exact shade to be clickable but nearly invisible elsewhere.
+        // Green NEXT button visible within +/-5% of randomized target
         float dist = Mathf.Abs(v - step1Target);
-        float visibility = 1f - Mathf.Clamp01(dist / 0.04f); // visible within ±4% of target
+        float visibility = 1f - Mathf.Clamp01(dist / 0.05f);
 
-        // Background at ~85%: mix of panel dark + white overlay ≈ bright grey
-        // Button transitions from dark grey (invisible when dark) to matching bright grey
-        float grey = Mathf.Lerp(0.12f, 0.55f, visibility);
-        step1NextImage.color = new Color(grey, grey, grey, 0.3f + visibility * 0.7f);
+        if (step1NextImage != null)
+            step1NextImage.color = new Color(0.2f, 0.45f, 0.2f, visibility);
 
-        // Also adjust the button text visibility
         Text btnText = step1Next.GetComponentInChildren<Text>();
         if (btnText != null)
-        {
-            float textGrey = Mathf.Lerp(0.12f, 0.9f, visibility);
-            btnText.color = new Color(textGrey, textGrey, textGrey, visibility);
-        }
+            btnText.color = new Color(1f, 1f, 1f, visibility);
     }
 
     private bool CanAdvanceStep1()
     {
-        return Mathf.Abs(step1Slider.value - step1Target) < 0.04f;
+        return Mathf.Abs(step1Slider.value - step1Target) < 0.05f;
     }
 
     private void UpdateStep2()
@@ -1032,16 +1122,9 @@ public class Level2_SettingsPuzzle : LevelManager
         }
         step2Overlay.color = c;
 
-        // NEXT button only visible when contrast is in 3%-11% range
-        float visibility = 0f;
-        if (v >= step2VisibleMin && v <= step2VisibleMax)
-        {
-            // Full visibility when in the sweet spot center
-            float center = (step2VisibleMin + step2VisibleMax) / 2f;
-            float halfRange = (step2VisibleMax - step2VisibleMin) / 2f;
-            float dist = Mathf.Abs(v - center);
-            visibility = 1f - Mathf.Clamp01(dist / halfRange * 0.5f); // softer falloff within range
-        }
+        // NEXT button visible within +/-5% of randomized target
+        float dist = Mathf.Abs(v - step2Target);
+        float visibility = 1f - Mathf.Clamp01(dist / 0.05f);
 
         if (step2NextImage != null)
             step2NextImage.color = new Color(0.2f, 0.45f, 0.2f, visibility);
@@ -1062,8 +1145,7 @@ public class Level2_SettingsPuzzle : LevelManager
 
     private bool CanAdvanceStep2()
     {
-        float v = step2Slider.value;
-        return v >= step2VisibleMin && v <= step2VisibleMax;
+        return Mathf.Abs(step2Slider.value - step2Target) < 0.05f;
     }
 
     private IEnumerator ResetToStep1()
@@ -1096,9 +1178,15 @@ public class Level2_SettingsPuzzle : LevelManager
         step5Audio.volume = v;
         step5VolLabel.text = $"Volume: {Mathf.RoundToInt(v * 100)}%";
 
-        bool atMax = v >= 0.98f;
-        if (atMax && !step5Next.gameObject.activeSelf)
-            step5Next.gameObject.SetActive(true);
+        // Green NEXT button visible within +/-5% of randomized target
+        float dist5 = Mathf.Abs(v - step5Target);
+        float vis5 = 1f - Mathf.Clamp01(dist5 / 0.05f);
+
+        if (step5NextImage != null)
+            step5NextImage.color = new Color(0.2f, 0.45f, 0.2f, vis5);
+        Text btn5Text = step5Next.GetComponentInChildren<Text>();
+        if (btn5Text != null)
+            btn5Text.color = new Color(1f, 1f, 1f, vis5);
     }
 
     private void UpdateStep6()
@@ -1107,9 +1195,15 @@ public class Level2_SettingsPuzzle : LevelManager
         step6Audio.volume = v;
         step6VolLabel.text = $"Volume: {Mathf.RoundToInt(v * 100)}%";
 
-        bool atMax = v >= 0.98f;
-        if (atMax && !step6Next.gameObject.activeSelf)
-            step6Next.gameObject.SetActive(true);
+        // Green NEXT button visible within +/-5% of randomized target
+        float dist6 = Mathf.Abs(v - step6Target);
+        float vis6 = 1f - Mathf.Clamp01(dist6 / 0.05f);
+
+        if (step6NextImage != null)
+            step6NextImage.color = new Color(0.2f, 0.45f, 0.2f, vis6);
+        Text btn6Text = step6Next.GetComponentInChildren<Text>();
+        if (btn6Text != null)
+            btn6Text.color = new Color(1f, 1f, 1f, vis6);
     }
 
     private void UpdateStep7()
@@ -1150,8 +1244,8 @@ public class Level2_SettingsPuzzle : LevelManager
                 if (avg > micPeakAvg)
                     micPeakAvg = avg;
 
-                // NEXT only appears once mic level average hits ~70%
-                if (!step7Next.gameObject.activeSelf && micPeakAvg >= 0.70f)
+                // NEXT only appears once mic level average hits randomized threshold
+                if (!step7Next.gameObject.activeSelf && micPeakAvg >= step7Target)
                     step7Next.gameObject.SetActive(true);
             }
         }
