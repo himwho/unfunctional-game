@@ -23,7 +23,7 @@ public class Level6_QuicktimeEvents : LevelManager
     public float timePerEvent = 2.0f;       // Seconds to respond
     public float timeBetweenEvents = 0.8f;  // Pause between events
     public int walkEvents = 20;             // QTEs needed to reach the door
-    public int doorEvents = 8;              // QTEs needed to open the door
+    // doorEvents removed — the door phase now uses the code entry system below
     public bool enableMislabeling = true;   // Show wrong key on display
 
     [Header("Step Movement")]
@@ -33,6 +33,14 @@ public class Level6_QuicktimeEvents : LevelManager
     [Header("Fail Penalty")]
     public bool resetOnFail = true;         // Go back to start on failure
     public int failsBeforeReset = 3;        // Failures allowed before reset
+
+    [Header("Door Code (replaces QTEs at the door)")]
+    [Tooltip("Number of digits in the door code.")]
+    public int codeLength = 4;
+    [Tooltip("How many attempts the player gets to type the full code.")]
+    public int maxCodeAttempts = 3;
+    [Tooltip("Seconds the player has to type the entire code sequence.")]
+    public float codeTimeLimit = 1.5f;
 
     [System.Serializable]
     public class QTEEvent
@@ -89,6 +97,16 @@ public class Level6_QuicktimeEvents : LevelManager
     private bool waitingForInput = false;
     private int failCount = 0;
     private bool sequenceActive = false;
+
+    // =========================================================================
+    // Door code state
+    // =========================================================================
+
+    private int[] doorCode;
+    private int codeAttemptCount = 0;
+    private int codeInputIndex = 0;
+    private float codeTimer = 0f;
+    private bool codePhaseActive = false;
 
     // All possible keys for QTEs
     private KeyCode[] possibleKeys = new KeyCode[]
@@ -183,6 +201,7 @@ public class Level6_QuicktimeEvents : LevelManager
         float effectiveDistance = Mathf.Max(totalDistance - 2.5f, totalDistance * 0.9f);
         stepDistance = effectiveDistance / walkEvents;
 
+        GenerateDoorCode();
         BuildHUD();
         GenerateSequence(walkEvents);
         StartCoroutine(BeginSequenceAfterDelay(2f));
@@ -220,7 +239,16 @@ public class Level6_QuicktimeEvents : LevelManager
 
     private void Update()
     {
-        if (levelComplete || !sequenceActive || isStepping) return;
+        if (levelComplete) return;
+
+        // Door code entry phase (separate from QTE system)
+        if (codePhaseActive)
+        {
+            UpdateCodePhase();
+            return;
+        }
+
+        if (!sequenceActive || isStepping) return;
 
         if (waitingForInput)
         {
@@ -237,11 +265,10 @@ public class Level6_QuicktimeEvents : LevelManager
             // Progress bar (context-dependent)
             UpdateProgressBar();
 
-            // Counter
+            // Counter (walk phase only — code phase has its own display)
             if (counterText != null)
             {
-                int total = currentPhase == Phase.OpeningDoor ? doorEvents : walkEvents;
-                counterText.text = $"{currentEventIndex}/{total}";
+                counterText.text = $"{currentEventIndex}/{walkEvents}";
             }
 
             // Time ran out
@@ -267,15 +294,11 @@ public class Level6_QuicktimeEvents : LevelManager
     {
         if (progressBarFill == null) return;
 
+        // Walk phase progress (code phase updates its own bar in UpdateCodePhase)
         if (currentPhase == Phase.WalkingToDoor)
         {
             progressBarFill.fillAmount = (float)stepsCompleted / walkEvents;
             progressBarFill.color = new Color(0.3f, 0.8f, 0.3f);
-        }
-        else if (currentPhase == Phase.OpeningDoor)
-        {
-            progressBarFill.fillAmount = (float)currentEventIndex / doorEvents;
-            progressBarFill.color = new Color(0.8f, 0.6f, 0.2f);
         }
     }
 
@@ -468,18 +491,12 @@ public class Level6_QuicktimeEvents : LevelManager
 
     private void ShowCurrentEvent()
     {
-        int totalForPhase = (currentPhase == Phase.OpeningDoor) ? doorEvents : walkEvents;
-
         if (currentEventIndex >= eventSequence.Count)
         {
-            // Phase completed
+            // Walk phase completed — transition to door code phase
             if (currentPhase == Phase.WalkingToDoor)
             {
                 OnReachedDoor();
-            }
-            else if (currentPhase == Phase.OpeningDoor)
-            {
-                OnDoorSequenceComplete();
             }
             return;
         }
@@ -652,22 +669,20 @@ public class Level6_QuicktimeEvents : LevelManager
         yield return new WaitForSeconds(delay);
 
         currentPhase = Phase.OpeningDoor;
-        sequenceActive = true;
-        currentEventIndex = 0;
-        failCount = 0;
-
-        GenerateSequence(doorEvents);
+        sequenceActive = false;  // QTE system disabled during code phase
+        waitingForInput = false;
+        codeAttemptCount = 0;
 
         if (phaseText != null)
         {
-            phaseText.text = "OPEN THE DOOR!";
+            phaseText.text = "ENTER THE DOOR CODE!";
             phaseText.color = new Color(0.9f, 0.5f, 0.2f);
         }
 
         if (progressBarFill != null)
             progressBarFill.fillAmount = 0f;
 
-        ShowCurrentEvent();
+        StartCodeAttempt();
     }
 
     private void OnDoorSequenceComplete()
@@ -675,11 +690,13 @@ public class Level6_QuicktimeEvents : LevelManager
         currentPhase = Phase.Complete;
         sequenceActive = false;
         waitingForInput = false;
+        codePhaseActive = false;
 
         if (promptText != null)
         {
             promptText.text = "DOOR UNLOCKED!";
             promptText.color = Color.green;
+            promptText.supportRichText = false; // clean up rich text mode
         }
         if (phaseText != null)
             phaseText.text = "WELL DONE!";
@@ -693,7 +710,7 @@ public class Level6_QuicktimeEvents : LevelManager
             doorController.OpenDoor();
         }
 
-        Debug.Log("[Level6] QTE gauntlet complete! Door opened.");
+        Debug.Log("[Level6] QTE gauntlet + door code complete! Door opened.");
         RestorePlayerMovement();
         StartCoroutine(CompleteLevelAfterDelay(2f));
     }
@@ -728,29 +745,201 @@ public class Level6_QuicktimeEvents : LevelManager
         }
         else if (currentPhase == Phase.OpeningDoor)
         {
+            // Code failure: teleport back to start and redo the walk
             if (promptText != null)
-                promptText.text = "NOPE!\nTry again...";
+                promptText.text = "CODE FAILED!\nBack to the start...";
             if (feedbackText != null)
             {
-                feedbackText.text = $"({failCount} failures on the door)";
+                feedbackText.text = $"({codeAttemptCount}/{maxCodeAttempts} code attempts used)";
                 feedbackText.color = new Color(1f, 0.5f, 0.3f);
             }
 
             yield return new WaitForSeconds(2f);
+
+            if (playerController != null)
+                playerController.TeleportTo(startPosition);
+
+            stepsCompleted = 0;
+            codeAttemptCount = 0;
+            GenerateDoorCode(); // new code each reset
+
+            currentPhase = Phase.WalkingToDoor;
         }
 
-        // Regenerate and restart the current phase
+        // Regenerate and restart the walk phase
         currentEventIndex = 0;
         failCount = 0;
-
-        int count = (currentPhase == Phase.OpeningDoor) ? doorEvents : walkEvents;
-        GenerateSequence(count);
+        GenerateSequence(walkEvents);
 
         if (progressBarFill != null)
             progressBarFill.fillAmount = 0f;
+        if (phaseText != null)
+        {
+            phaseText.text = "WALK TO THE DOOR";
+            phaseText.color = new Color(0.9f, 0.9f, 0.5f);
+        }
 
         sequenceActive = true;
         ShowCurrentEvent();
+    }
+
+    // =========================================================================
+    // Door Code Phase
+    // =========================================================================
+
+    private void GenerateDoorCode()
+    {
+        doorCode = new int[codeLength];
+        string codeStr = "";
+        for (int i = 0; i < codeLength; i++)
+        {
+            doorCode[i] = Random.Range(0, 10);
+            codeStr += doorCode[i].ToString();
+        }
+        Debug.Log($"[Level6] Door code generated: {codeStr}");
+    }
+
+    /// <summary>
+    /// Begin one attempt at typing the door code within the time limit.
+    /// </summary>
+    private void StartCodeAttempt()
+    {
+        codeInputIndex = 0;
+        codeTimer = codeTimeLimit;
+        codePhaseActive = true;
+
+        UpdateCodeDisplay();
+
+        if (feedbackText != null)
+        {
+            feedbackText.text = $"Attempt {codeAttemptCount + 1} / {maxCodeAttempts}";
+            feedbackText.color = new Color(0.8f, 0.8f, 0.5f);
+        }
+
+        if (counterText != null)
+            counterText.text = $"{codeAttemptCount + 1}/{maxCodeAttempts}";
+    }
+
+    /// <summary>
+    /// Called every frame while the code phase is active.
+    /// Handles timer countdown and digit key detection.
+    /// </summary>
+    private void UpdateCodePhase()
+    {
+        codeTimer -= Time.deltaTime;
+
+        // Timer display
+        if (timerText != null)
+            timerText.text = codeTimer.ToString("F2") + "s";
+
+        if (timerBarFill != null)
+            timerBarFill.fillAmount = Mathf.Clamp01(codeTimer / codeTimeLimit);
+
+        // Progress bar shows digits entered
+        if (progressBarFill != null)
+        {
+            progressBarFill.fillAmount = (float)codeInputIndex / codeLength;
+            progressBarFill.color = new Color(0.8f, 0.6f, 0.2f);
+        }
+
+        // Time ran out
+        if (codeTimer <= 0f)
+        {
+            OnCodeAttemptFailed("TIME'S UP!");
+            return;
+        }
+
+        // Check for number key presses (top row + numpad)
+        for (int i = 0; i <= 9; i++)
+        {
+            bool topRow = Input.GetKeyDown(KeyCode.Alpha0 + i);
+            bool numpad = Input.GetKeyDown(KeyCode.Keypad0 + i);
+
+            if (topRow || numpad)
+            {
+                OnCodeDigitPressed(i);
+                return;
+            }
+        }
+    }
+
+    private void OnCodeDigitPressed(int digit)
+    {
+        if (digit == doorCode[codeInputIndex])
+        {
+            // Correct digit
+            codeInputIndex++;
+            UpdateCodeDisplay();
+
+            if (codeInputIndex >= codeLength)
+            {
+                // All digits entered correctly!
+                OnDoorSequenceComplete();
+            }
+        }
+        else
+        {
+            // Wrong digit
+            OnCodeAttemptFailed("WRONG!");
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the prompt text to show which digits have been entered.
+    /// Uses rich text: correct digits are green, remaining are white.
+    /// </summary>
+    private void UpdateCodeDisplay()
+    {
+        if (promptText == null) return;
+        promptText.supportRichText = true;
+
+        string display = "";
+        for (int i = 0; i < codeLength; i++)
+        {
+            if (i > 0) display += "  ";
+
+            if (i < codeInputIndex)
+                display += $"<color=#44FF44>{doorCode[i]}</color>";
+            else
+                display += $"{doorCode[i]}";
+        }
+        promptText.text = display;
+        promptText.fontSize = 80;
+        promptText.color = Color.white;
+    }
+
+    private void OnCodeAttemptFailed(string reason)
+    {
+        codePhaseActive = false;
+        codeAttemptCount++;
+
+        if (promptText != null)
+        {
+            promptText.text = reason;
+            promptText.color = Color.red;
+        }
+        if (feedbackText != null)
+        {
+            feedbackText.text = $"Attempt {codeAttemptCount} / {maxCodeAttempts} failed";
+            feedbackText.color = Color.red;
+        }
+
+        if (codeAttemptCount >= maxCodeAttempts)
+        {
+            // All attempts used — full reset back to walk phase
+            StartCoroutine(ResetSequence());
+        }
+        else
+        {
+            // Retry after a brief pause
+            StartCoroutine(RetryCodeAfterDelay(1.5f));
+        }
+    }
+
+    private IEnumerator RetryCodeAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        StartCodeAttempt();
     }
 
     // =========================================================================
