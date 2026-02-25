@@ -1,0 +1,844 @@
+using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
+
+/// <summary>
+/// LEVEL 13 – 2nd-Person Shooter
+///
+/// The core gimmick: the rendering camera sits on the SHOULDER of whichever NPC
+/// is closest to the player's crosshair. The player still controls their own
+/// character (WASD + mouse) but sees themselves from the enemy's perspective.
+///
+/// Features:
+///   • Wave-based NPC spawning with escalating difficulty
+///   • Dynamic camera switching (closest NPC to aim ray)
+///   • Player shooting via raycast from their own character
+///   • Full HUD: crosshair, health bar, ammo, kills, wave counter
+///   • Simple arena generated at runtime (can be replaced by scene geometry)
+///
+/// Attach to a root GameObject in the LEVEL13 scene.
+/// </summary>
+public class Level13_SecondPersonShooter : LevelManager
+{
+    // =========================================================================
+    // Inspector — tweakable in the Unity Editor
+    // =========================================================================
+
+    [Header("Level 13 — 2nd Person Shooter")]
+    public int npcsPerWave = 6;
+    public int totalWaves = 3;
+    public float spawnRadius = 28f;
+    public float minSpawnDistance = 12f;
+
+    [Header("Player Combat")]
+    public int playerMaxHealth = 100;
+    public int playerDamage = 25;
+    public int maxAmmo = 30;
+    public float fireRate = 6f;       // shots per second
+    public float reloadTime = 1.8f;
+
+    [Header("NPC Defaults")]
+    public int npcHealth = 80;
+    public float npcMoveSpeed = 3f;
+    public float npcDetectionRange = 30f;
+    public float npcAttackRange = 18f;
+    public float npcFireRate = 0.6f;
+    public int npcDamage = 8;
+
+    [Header("Camera")]
+    [Tooltip("How fast the 2nd-person camera lerps to the new shoulder.")]
+    public float cameraSmoothSpeed = 14f;
+    public float cameraLookSmooth = 12f;
+
+    // =========================================================================
+    // Runtime state
+    // =========================================================================
+
+    // Player refs
+    private PlayerController playerController;
+    private Transform playerTransform;
+    private Camera playerCamera;           // disabled but transform still used for aim
+    private Transform playerCamTransform;  // shorthand
+
+    // 2nd-person camera
+    private Camera secondPersonCam;
+
+    // NPCs
+    private List<SecondPersonNPC> activeNPCs = new List<SecondPersonNPC>();
+    private SecondPersonNPC currentViewNPC;
+
+    // Player combat
+    private int playerHealth;
+    private int currentAmmo;
+    private int kills;
+    private int currentWave;
+    private float fireCooldown;
+    private bool isReloading;
+    private bool gameOver;
+
+    // Shot visual
+    private LineRenderer playerShotLine;
+
+    // HUD
+    private Canvas hudCanvas;
+    private Image crosshairDot;
+    private Image crosshairH, crosshairV;
+    private Image healthBarFill;
+    private Text healthText;
+    private Text ammoText;
+    private Text killText;
+    private Text waveText;
+    private Text modeLabel;
+    private Text centerMsg;       // reload / game over / wave clear
+    private Image damageFlash;
+    private Image hitMarkerImg;
+
+    // Arena objects (so we can clean up)
+    private List<GameObject> arenaObjects = new List<GameObject>();
+
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
+
+    protected override void Start()
+    {
+        needsPlayer = true;
+        wantsCursorLocked = true;
+        base.Start();
+
+        levelDisplayName = "2nd Person Shooter";
+        levelDescription = "See yourself from their eyes.";
+
+        StartCoroutine(SetupAfterSpawn());
+    }
+
+    private IEnumerator SetupAfterSpawn()
+    {
+        // Wait for GameManager to spawn the player
+        float timeout = 5f;
+        float elapsed = 0f;
+        while (elapsed < timeout)
+        {
+            playerController = FindAnyObjectByType<PlayerController>();
+            if (playerController != null) break;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (playerController == null)
+        {
+            Debug.LogError("[Level13] PlayerController not found!");
+            yield break;
+        }
+
+        playerTransform = playerController.transform;
+        playerCamera = playerController.GetComponentInChildren<Camera>();
+        playerCamTransform = playerCamera != null ? playerCamera.transform : playerTransform;
+
+        // Tag the player so NPC hit-detection can find them
+        playerTransform.gameObject.tag = "Player";
+
+        // Initialize state
+        playerHealth = playerMaxHealth;
+        currentAmmo = maxAmmo;
+        kills = 0;
+        currentWave = 0;
+
+        // If the scene has no floor, create a simple arena
+        if (!Physics.Raycast(playerTransform.position + Vector3.up * 5f, Vector3.down, 50f))
+        {
+            CreateArena();
+        }
+
+        SetupSecondPersonCamera();
+        BuildHUD();
+
+        yield return new WaitForSeconds(1.5f);
+        StartNextWave();
+    }
+
+    protected override void OnDestroy()
+    {
+        // Re-enable player camera so the next level isn't broken
+        if (playerCamera != null) playerCamera.enabled = true;
+
+        // Destroy the 2nd-person camera
+        if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
+
+        // Clean up arena geometry if we made it
+        foreach (var obj in arenaObjects)
+        {
+            if (obj != null) Destroy(obj);
+        }
+
+        base.OnDestroy();
+    }
+
+    // =========================================================================
+    // Update
+    // =========================================================================
+
+    private void Update()
+    {
+        if (gameOver || levelComplete) return;
+        if (playerTransform == null) return;
+
+        UpdateCameraSwitch();
+        HandleShooting();
+        HandleReload();
+        UpdateHUD();
+    }
+
+    // =========================================================================
+    // 2nd-Person Camera System
+    // =========================================================================
+
+    private void SetupSecondPersonCamera()
+    {
+        // Disable the player's own camera (keep transform for aim direction)
+        if (playerCamera != null)
+            playerCamera.enabled = false;
+
+        // Create the 2nd-person rendering camera
+        GameObject camObj = new GameObject("SecondPersonCamera");
+        secondPersonCam = camObj.AddComponent<Camera>();
+        secondPersonCam.fieldOfView = 65f;
+        secondPersonCam.nearClipPlane = 0.15f;
+        secondPersonCam.farClipPlane = 500f;
+        secondPersonCam.depth = 10;
+
+        // Start above the player as a neutral position
+        camObj.transform.position = playerTransform.position + new Vector3(0, 4, -6);
+        camObj.transform.LookAt(playerTransform);
+    }
+
+    /// <summary>
+    /// Each frame: cast a ray from the player's aim direction, find the NPC
+    /// whose world position is closest to that ray, and smoothly move the
+    /// rendering camera to that NPC's shoulder.
+    /// </summary>
+    private void UpdateCameraSwitch()
+    {
+        if (secondPersonCam == null) return;
+
+        // Build the aim ray from the player's (disabled) camera transform
+        Ray aimRay = new Ray(
+            playerCamTransform.position,
+            playerCamTransform.forward
+        );
+
+        // Find closest NPC to the ray
+        SecondPersonNPC best = null;
+        float bestScore = float.MaxValue;
+
+        for (int i = activeNPCs.Count - 1; i >= 0; i--)
+        {
+            SecondPersonNPC npc = activeNPCs[i];
+            if (npc == null || npc.isDead)
+            {
+                activeNPCs.RemoveAt(i);
+                continue;
+            }
+
+            float rayDist = DistancePointToRay(aimRay, npc.transform.position);
+            float worldDist = Vector3.Distance(aimRay.origin, npc.transform.position);
+
+            // Combined score: perpendicular distance is dominant, with a tiny
+            // preference for physically closer NPCs when ray-distances tie.
+            float score = rayDist + worldDist * 0.01f;
+
+            if (score < bestScore)
+            {
+                bestScore = score;
+                best = npc;
+            }
+        }
+
+        if (best != null)
+            currentViewNPC = best;
+
+        // Smoothly follow the shoulder cam
+        if (currentViewNPC != null && currentViewNPC.shoulderCamPoint != null)
+        {
+            Transform cam = secondPersonCam.transform;
+            Transform shoulder = currentViewNPC.shoulderCamPoint;
+
+            cam.position = Vector3.Lerp(cam.position, shoulder.position,
+                                        Time.deltaTime * cameraSmoothSpeed);
+
+            Vector3 lookTarget = playerTransform.position + Vector3.up * 1.2f;
+            Quaternion targetRot = Quaternion.LookRotation(lookTarget - cam.position);
+            cam.rotation = Quaternion.Slerp(cam.rotation, targetRot,
+                                            Time.deltaTime * cameraLookSmooth);
+        }
+        else
+        {
+            // Fallback: hover behind the player
+            Vector3 fallback = playerTransform.position - playerTransform.forward * 6f + Vector3.up * 4f;
+            secondPersonCam.transform.position = Vector3.Lerp(
+                secondPersonCam.transform.position, fallback, Time.deltaTime * 5f);
+            secondPersonCam.transform.LookAt(playerTransform.position + Vector3.up * 1f);
+        }
+    }
+
+    private static float DistancePointToRay(Ray ray, Vector3 point)
+    {
+        Vector3 toPoint = point - ray.origin;
+        float dot = Vector3.Dot(toPoint, ray.direction);
+        if (dot < 0f) return toPoint.magnitude;           // behind the ray
+        Vector3 closest = ray.origin + ray.direction * dot;
+        return Vector3.Distance(point, closest);
+    }
+
+    // =========================================================================
+    // Player Combat
+    // =========================================================================
+
+    private void HandleShooting()
+    {
+        fireCooldown -= Time.deltaTime;
+
+        if (Input.GetMouseButton(0) && fireCooldown <= 0f && currentAmmo > 0 && !isReloading)
+        {
+            fireCooldown = 1f / Mathf.Max(fireRate, 0.1f);
+            currentAmmo--;
+            PlayerShoot();
+
+            if (currentAmmo <= 0)
+                StartCoroutine(DoReload());
+        }
+    }
+
+    private void PlayerShoot()
+    {
+        Vector3 origin = playerCamTransform.position;
+        Vector3 dir = playerCamTransform.forward;
+
+        Vector3 endPoint = origin + dir * 100f;
+        bool hitNPC = false;
+
+        if (Physics.Raycast(origin, dir, out RaycastHit hit, 200f))
+        {
+            endPoint = hit.point;
+
+            SecondPersonNPC npc = hit.collider.GetComponentInParent<SecondPersonNPC>();
+            if (npc != null && !npc.isDead)
+            {
+                npc.TakeDamage(playerDamage, dir);
+                hitNPC = true;
+            }
+        }
+
+        // Muzzle origin (slightly offset so line is visible from 2nd-person view)
+        Vector3 muzzle = playerTransform.position + Vector3.up * 1.3f
+                         + playerTransform.forward * 0.4f
+                         + playerTransform.right * 0.25f;
+
+        ShowPlayerShotLine(muzzle, endPoint);
+
+        if (hitNPC)
+            ShowHitMarker();
+    }
+
+    private void HandleReload()
+    {
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo && !isReloading)
+            StartCoroutine(DoReload());
+    }
+
+    private IEnumerator DoReload()
+    {
+        isReloading = true;
+        if (centerMsg != null) { centerMsg.text = "RELOADING..."; centerMsg.gameObject.SetActive(true); }
+
+        yield return new WaitForSeconds(reloadTime);
+
+        currentAmmo = maxAmmo;
+        isReloading = false;
+        if (centerMsg != null) centerMsg.gameObject.SetActive(false);
+    }
+
+    /// <summary>Called by <see cref="SecondPersonNPC"/> when it hits the player.</summary>
+    public void DamagePlayer(int dmg)
+    {
+        if (gameOver || levelComplete) return;
+
+        playerHealth = Mathf.Max(0, playerHealth - dmg);
+        StartCoroutine(FlashDamageOverlay());
+
+        if (playerHealth <= 0)
+            GameOver(false);
+    }
+
+    // =========================================================================
+    // NPC Management
+    // =========================================================================
+
+    /// <summary>Called by <see cref="SecondPersonNPC"/> on death.</summary>
+    public void OnNPCKilled(SecondPersonNPC npc)
+    {
+        kills++;
+        activeNPCs.Remove(npc);
+
+        if (currentViewNPC == npc)
+            currentViewNPC = null;
+
+        // Check if wave is clear
+        int alive = 0;
+        foreach (var n in activeNPCs)
+            if (n != null && !n.isDead) alive++;
+
+        if (alive == 0)
+            StartCoroutine(OnWaveCleared());
+    }
+
+    private IEnumerator OnWaveCleared()
+    {
+        if (centerMsg != null) { centerMsg.text = "WAVE CLEAR!"; centerMsg.gameObject.SetActive(true); }
+
+        yield return new WaitForSeconds(3f);
+
+        if (centerMsg != null) centerMsg.gameObject.SetActive(false);
+
+        if (currentWave >= totalWaves)
+        {
+            GameOver(true);
+        }
+        else
+        {
+            StartNextWave();
+        }
+    }
+
+    private void StartNextWave()
+    {
+        currentWave++;
+        int count = npcsPerWave + (currentWave - 1) * 2; // escalate each wave
+
+        for (int i = 0; i < count; i++)
+            SpawnNPC();
+
+        if (waveText != null)
+            waveText.text = $"WAVE  {currentWave} / {totalWaves}";
+    }
+
+    private void SpawnNPC()
+    {
+        // Pick a random position around the player
+        Vector2 circle = Random.insideUnitCircle.normalized
+                         * Random.Range(minSpawnDistance, spawnRadius);
+        Vector3 spawnPos = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+
+        // Snap to ground
+        if (Physics.Raycast(spawnPos + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
+            spawnPos.y = ground.point.y;
+
+        // Build the NPC visual (capsule + head + gun)
+        GameObject npcObj = CreateNPCVisual(spawnPos);
+
+        SecondPersonNPC npc = npcObj.AddComponent<SecondPersonNPC>();
+        npc.SetBodyRenderer(npcObj.GetComponent<Renderer>());
+
+        // Scale stats with wave
+        int waveBonus = currentWave - 1;
+        npc.maxHealth       = npcHealth + waveBonus * 10;
+        npc.moveSpeed       = npcMoveSpeed + waveBonus * 0.3f;
+        npc.detectionRange  = npcDetectionRange;
+        npc.attackRange     = npcAttackRange;
+        npc.fireRate        = npcFireRate + waveBonus * 0.1f;
+        npc.damage          = npcDamage + waveBonus * 2;
+        npc.accuracy        = Mathf.Clamp01(0.35f + waveBonus * 0.1f);
+
+        npc.Initialize(playerTransform, this);
+        activeNPCs.Add(npc);
+    }
+
+    private GameObject CreateNPCVisual(Vector3 position)
+    {
+        // Body capsule
+        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        body.name = "NPC_Enemy";
+        body.transform.position = position + Vector3.up * 1f;
+
+        Color npcColor = new Color(
+            Random.Range(0.5f, 0.9f),
+            Random.Range(0.1f, 0.3f),
+            Random.Range(0.1f, 0.3f));
+        SetMaterialColor(body.GetComponent<Renderer>(), npcColor);
+
+        // Head
+        GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        head.name = "Head";
+        head.transform.SetParent(body.transform);
+        head.transform.localPosition = new Vector3(0f, 0.85f, 0f);
+        head.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
+        SetMaterialColor(head.GetComponent<Renderer>(), npcColor * 0.8f);
+        Destroy(head.GetComponent<Collider>());
+
+        // Gun stub
+        GameObject gun = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        gun.name = "Gun";
+        gun.transform.SetParent(body.transform);
+        gun.transform.localPosition = new Vector3(0.4f, 0.3f, 0.35f);
+        gun.transform.localScale = new Vector3(0.08f, 0.08f, 0.45f);
+        SetMaterialColor(gun.GetComponent<Renderer>(), new Color(0.25f, 0.25f, 0.28f));
+        Destroy(gun.GetComponent<Collider>());
+
+        return body;
+    }
+
+    // =========================================================================
+    // Game Over / Win
+    // =========================================================================
+
+    private void GameOver(bool won)
+    {
+        gameOver = true;
+
+        if (centerMsg != null)
+        {
+            centerMsg.gameObject.SetActive(true);
+            if (won)
+            {
+                centerMsg.text = "ALL WAVES CLEARED!\n\nLevel Complete.";
+                centerMsg.color = Color.green;
+            }
+            else
+            {
+                centerMsg.text = "YOU DIED\n\nPress [R] to restart";
+                centerMsg.color = Color.red;
+            }
+        }
+
+        if (won)
+        {
+            StartCoroutine(WinAfterDelay(3f));
+        }
+        else
+        {
+            StartCoroutine(ListenForRestart());
+        }
+    }
+
+    private IEnumerator WinAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // Re-enable player cam before transitioning
+        if (playerCamera != null) playerCamera.enabled = true;
+        if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
+
+        CompleteLevel();
+    }
+
+    private IEnumerator ListenForRestart()
+    {
+        while (true)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (GameManager.Instance != null)
+                    GameManager.Instance.ReloadCurrentLevel();
+                yield break;
+            }
+            yield return null;
+        }
+    }
+
+    // =========================================================================
+    // HUD (built at runtime)
+    // =========================================================================
+
+    private void BuildHUD()
+    {
+        // Canvas
+        GameObject canvasObj = new GameObject("ShooterHUD");
+        canvasObj.transform.SetParent(transform);
+        hudCanvas = canvasObj.AddComponent<Canvas>();
+        UIHelper.ConfigureCanvas(hudCanvas, sortingOrder: 30);
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        // -- "2ND PERSON MODE" comedy label (top-left) --
+        modeLabel = MakeText(canvasObj, "ModeLabel",
+            "<b>2ND PERSON MODE</b>",
+            new Vector2(0.01f, 0.93f), new Vector2(0.25f, 0.99f),
+            20, new Color(1f, 0.4f, 0.4f, 0.9f), TextAnchor.UpperLeft);
+        modeLabel.supportRichText = true;
+
+        // -- Wave counter (top-center) --
+        waveText = MakeText(canvasObj, "WaveText",
+            "",
+            new Vector2(0.35f, 0.93f), new Vector2(0.65f, 0.99f),
+            24, new Color(0.9f, 0.9f, 0.5f), TextAnchor.MiddleCenter);
+
+        // -- Kills (top-right) --
+        killText = MakeText(canvasObj, "KillText",
+            "KILLS: 0",
+            new Vector2(0.78f, 0.93f), new Vector2(0.99f, 0.99f),
+            20, Color.white, TextAnchor.UpperRight);
+
+        // -- Crosshair (center) --
+        crosshairDot = MakeImage(canvasObj, "CrosshairDot",
+            new Vector2(0.498f, 0.494f), new Vector2(0.502f, 0.506f),
+            Color.white);
+
+        crosshairH = MakeImage(canvasObj, "CrosshairH",
+            new Vector2(0.485f, 0.499f), new Vector2(0.515f, 0.501f),
+            new Color(1, 1, 1, 0.7f));
+
+        crosshairV = MakeImage(canvasObj, "CrosshairV",
+            new Vector2(0.4995f, 0.48f), new Vector2(0.5005f, 0.52f),
+            new Color(1, 1, 1, 0.7f));
+
+        // -- Hit marker (flashes over crosshair) --
+        hitMarkerImg = MakeImage(canvasObj, "HitMarker",
+            new Vector2(0.49f, 0.485f), new Vector2(0.51f, 0.515f),
+            new Color(1f, 0.2f, 0.2f, 0f));
+
+        // -- Health bar (bottom-left) --
+        MakeText(canvasObj, "HealthLabel", "HP",
+            new Vector2(0.02f, 0.04f), new Vector2(0.06f, 0.08f),
+            16, Color.white, TextAnchor.MiddleLeft);
+
+        Image hpBg = MakeImage(canvasObj, "HealthBarBG",
+            new Vector2(0.06f, 0.045f), new Vector2(0.26f, 0.075f),
+            new Color(0.15f, 0.15f, 0.15f, 0.8f));
+
+        GameObject hpFillObj = new GameObject("HealthBarFill");
+        hpFillObj.transform.SetParent(hpBg.transform, false);
+        healthBarFill = hpFillObj.AddComponent<Image>();
+        healthBarFill.color = new Color(0.2f, 0.8f, 0.3f);
+        healthBarFill.type = Image.Type.Filled;
+        healthBarFill.fillMethod = Image.FillMethod.Horizontal;
+        healthBarFill.fillAmount = 1f;
+        RectTransform hpFillRt = hpFillObj.GetComponent<RectTransform>();
+        hpFillRt.anchorMin = Vector2.zero;
+        hpFillRt.anchorMax = Vector2.one;
+        hpFillRt.offsetMin = Vector2.zero;
+        hpFillRt.offsetMax = Vector2.zero;
+
+        healthText = MakeText(canvasObj, "HealthText",
+            $"{playerMaxHealth}",
+            new Vector2(0.06f, 0.04f), new Vector2(0.26f, 0.08f),
+            14, Color.white, TextAnchor.MiddleCenter);
+
+        // -- Ammo (bottom-right) --
+        ammoText = MakeText(canvasObj, "AmmoText",
+            $"{maxAmmo} / {maxAmmo}",
+            new Vector2(0.8f, 0.04f), new Vector2(0.98f, 0.08f),
+            20, Color.white, TextAnchor.MiddleRight);
+
+        // -- Center message (reload / wave clear / game over) --
+        centerMsg = MakeText(canvasObj, "CenterMsg", "",
+            new Vector2(0.2f, 0.35f), new Vector2(0.8f, 0.65f),
+            40, Color.white, TextAnchor.MiddleCenter);
+        centerMsg.gameObject.SetActive(false);
+
+        // -- Full-screen damage flash --
+        damageFlash = MakeImage(canvasObj, "DamageFlash",
+            Vector2.zero, Vector2.one,
+            new Color(0.8f, 0.1f, 0.05f, 0f));
+        damageFlash.raycastTarget = false;
+    }
+
+    private void UpdateHUD()
+    {
+        if (healthBarFill != null)
+        {
+            float hpPct = (float)playerHealth / playerMaxHealth;
+            healthBarFill.fillAmount = hpPct;
+            healthBarFill.color = Color.Lerp(Color.red, new Color(0.2f, 0.8f, 0.3f), hpPct);
+        }
+        if (healthText != null)
+            healthText.text = $"{playerHealth}";
+
+        if (ammoText != null)
+            ammoText.text = isReloading ? "..." : $"{currentAmmo} / {maxAmmo}";
+
+        if (killText != null)
+            killText.text = $"KILLS: {kills}";
+    }
+
+    // =========================================================================
+    // Visual Effects
+    // =========================================================================
+
+    private void ShowPlayerShotLine(Vector3 from, Vector3 to)
+    {
+        if (playerShotLine == null)
+        {
+            GameObject lineObj = new GameObject("PlayerShotLine");
+            lineObj.transform.SetParent(playerTransform);
+            playerShotLine = lineObj.AddComponent<LineRenderer>();
+            playerShotLine.startWidth = 0.02f;
+            playerShotLine.endWidth = 0.015f;
+            playerShotLine.material = new Material(Shader.Find("Sprites/Default"));
+            playerShotLine.startColor = new Color(1f, 0.9f, 0.3f);
+            playerShotLine.endColor = new Color(1f, 0.5f, 0.1f, 0.2f);
+            playerShotLine.positionCount = 2;
+        }
+
+        playerShotLine.enabled = true;
+        playerShotLine.SetPosition(0, from);
+        playerShotLine.SetPosition(1, to);
+        StartCoroutine(HideLine(playerShotLine, 0.05f));
+    }
+
+    private IEnumerator HideLine(LineRenderer lr, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (lr != null) lr.enabled = false;
+    }
+
+    private void ShowHitMarker()
+    {
+        if (hitMarkerImg != null)
+            StartCoroutine(FlashHitMarker());
+    }
+
+    private IEnumerator FlashHitMarker()
+    {
+        hitMarkerImg.color = new Color(1f, 0.2f, 0.2f, 0.9f);
+        float t = 0;
+        while (t < 0.15f)
+        {
+            t += Time.deltaTime;
+            float a = Mathf.Lerp(0.9f, 0f, t / 0.15f);
+            hitMarkerImg.color = new Color(1f, 0.2f, 0.2f, a);
+            yield return null;
+        }
+        hitMarkerImg.color = new Color(1f, 0.2f, 0.2f, 0f);
+    }
+
+    private IEnumerator FlashDamageOverlay()
+    {
+        if (damageFlash == null) yield break;
+        damageFlash.color = new Color(0.8f, 0.1f, 0.05f, 0.35f);
+        float t = 0;
+        while (t < 0.3f)
+        {
+            t += Time.deltaTime;
+            float a = Mathf.Lerp(0.35f, 0f, t / 0.3f);
+            damageFlash.color = new Color(0.8f, 0.1f, 0.05f, a);
+            yield return null;
+        }
+        damageFlash.color = new Color(0.8f, 0.1f, 0.05f, 0f);
+    }
+
+    // =========================================================================
+    // Arena Generation (fallback if scene has no geometry)
+    // =========================================================================
+
+    private void CreateArena()
+    {
+        Vector3 center = playerTransform.position - Vector3.up * 0.5f;
+
+        // Floor
+        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        floor.name = "Arena_Floor";
+        floor.transform.position = center;
+        floor.transform.localScale = new Vector3(8, 1, 8); // 80 × 80 units
+        SetMaterialColor(floor.GetComponent<Renderer>(), new Color(0.28f, 0.3f, 0.32f));
+        arenaObjects.Add(floor);
+
+        // Perimeter walls (4 sides)
+        float wallDist = 38f;
+        float wallHeight = 6f;
+        Vector3[] wallDirs = { Vector3.forward, Vector3.back, Vector3.left, Vector3.right };
+        foreach (var d in wallDirs)
+        {
+            GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wall.name = "Arena_Wall";
+            wall.transform.position = center + d * wallDist + Vector3.up * wallHeight * 0.5f;
+            bool xAligned = Mathf.Abs(d.x) > 0.5f;
+            wall.transform.localScale = xAligned
+                ? new Vector3(1f, wallHeight, wallDist * 2)
+                : new Vector3(wallDist * 2, wallHeight, 1f);
+            SetMaterialColor(wall.GetComponent<Renderer>(), new Color(0.22f, 0.22f, 0.24f));
+            arenaObjects.Add(wall);
+        }
+
+        // Scatter cover objects
+        for (int i = 0; i < 12; i++)
+        {
+            float angle = i * Mathf.PI * 2f / 12f + Random.Range(-0.2f, 0.2f);
+            float radius = Random.Range(8f, 22f);
+            Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
+            pos.y = center.y + 0.5f;
+
+            GameObject cover = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cover.name = $"Cover_{i}";
+            cover.transform.position = pos + Vector3.up * Random.Range(0.5f, 1.5f);
+            cover.transform.localScale = new Vector3(
+                Random.Range(1.5f, 3f),
+                Random.Range(1.5f, 3.5f),
+                Random.Range(1.5f, 3f));
+            cover.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+            SetMaterialColor(cover.GetComponent<Renderer>(), new Color(
+                Random.Range(0.3f, 0.45f),
+                Random.Range(0.28f, 0.38f),
+                Random.Range(0.25f, 0.35f)));
+            arenaObjects.Add(cover);
+        }
+
+        Debug.Log("[Level13] Simple arena created at runtime.");
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    private Text MakeText(GameObject parent, string name, string content,
+        Vector2 anchorMin, Vector2 anchorMax,
+        int fontSize, Color color, TextAnchor alignment)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(parent.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        Text txt = obj.AddComponent<Text>();
+        txt.font = UIHelper.GetDefaultFont();
+        txt.fontSize = fontSize;
+        txt.alignment = alignment;
+        txt.color = color;
+        txt.text = content;
+        txt.raycastTarget = false;
+        return txt;
+    }
+
+    private Image MakeImage(GameObject parent, string name,
+        Vector2 anchorMin, Vector2 anchorMax, Color color)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(parent.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        Image img = obj.AddComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    // =========================================================================
+    // Material Helper (URP-safe)
+    // =========================================================================
+
+    private static void SetMaterialColor(Renderer r, Color c)
+    {
+        if (r == null) return;
+        Material mat = r.material;
+        mat.color = c;
+        if (mat.HasProperty("_BaseColor"))
+            mat.SetColor("_BaseColor", c);
+    }
+}
