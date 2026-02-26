@@ -472,8 +472,10 @@ public class Level10_ItemDegradation : LevelManager
             {
                 if (hammerHitNail)
                 {
+                    int usesLeft = currentToolDurability - 1;
                     UseTool(taskIndex);
-                    StartBreakMessage("Hit!", new Color(0.3f, 1f, 0.3f, 1f));
+                    if (usesLeft > 0)
+                        StartBreakMessage($"Hit! ({usesLeft} to go)", new Color(0.3f, 1f, 0.3f, 1f));
                 }
                 else
                     StartBreakMessage("Swing missed! Try again.");
