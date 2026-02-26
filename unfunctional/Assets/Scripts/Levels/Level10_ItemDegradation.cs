@@ -57,6 +57,7 @@ public class Level10_ItemDegradation : LevelManager
     private Transform hammerHandleTransform;
     private bool holdingRealHammer = false;
     private bool isSwinging = false;
+    private Coroutine activeBreakMessage;
 
     // Nail
     private Transform nailTransform;
@@ -243,7 +244,9 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
-                            promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
+                            promptText.text = holdingRealHammer
+                                ? ""
+                                : $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
                             if (Input.GetMouseButtonDown(0) && !isSwinging)
                                 StartCoroutine(SwingAndUseTool(i));
@@ -264,18 +267,21 @@ public class Level10_ItemDegradation : LevelManager
 
         if (!showPrompt)
         {
-            if (!string.IsNullOrEmpty(currentToolName))
+            if (!holdingRealHammer && !string.IsNullOrEmpty(currentToolName))
                 promptText.text = $"Holding: {currentToolName} ({currentToolDurability} uses left)";
-            else
+            else if (!holdingRealHammer)
                 promptText.text = "";
         }
 
         // Update tool display
         if (toolText != null)
         {
-            toolText.text = string.IsNullOrEmpty(currentToolName)
-                ? "No tool equipped"
-                : $"{currentToolName} [{currentToolDurability}/{maxDurability}]";
+            if (holdingRealHammer)
+                toolText.text = "";
+            else if (string.IsNullOrEmpty(currentToolName))
+                toolText.text = "No tool equipped";
+            else
+                toolText.text = $"{currentToolName} [{currentToolDurability}/{maxDurability}]";
         }
     }
 
@@ -386,7 +392,7 @@ public class Level10_ItemDegradation : LevelManager
 
         Debug.Log($"[Level10] {msg}");
 
-        StartCoroutine(ShowBreakMessage(msg));
+        StartBreakMessage(msg);
 
         if (holdingRealHammer)
         {
@@ -465,9 +471,12 @@ public class Level10_ItemDegradation : LevelManager
             if (isHammerTask)
             {
                 if (hammerHitNail)
+                {
                     UseTool(taskIndex);
+                    StartBreakMessage("Hit!", new Color(0.3f, 1f, 0.3f, 1f));
+                }
                 else
-                    StartCoroutine(ShowBreakMessage("Swing missed! Try again."));
+                    StartBreakMessage("Swing missed! Try again.");
             }
 
             t = 0f;
@@ -502,21 +511,31 @@ public class Level10_ItemDegradation : LevelManager
         nailTransform.position = targetPos;
     }
 
-    private IEnumerator ShowBreakMessage(string msg)
+    private void StartBreakMessage(string msg)
+    {
+        StartBreakMessage(msg, new Color(1f, 0.3f, 0.3f, 1f));
+    }
+
+    private void StartBreakMessage(string msg, Color color)
+    {
+        if (activeBreakMessage != null)
+            StopCoroutine(activeBreakMessage);
+        activeBreakMessage = StartCoroutine(ShowBreakMessage(msg, color));
+    }
+
+    private IEnumerator ShowBreakMessage(string msg, Color color)
     {
         if (breakText == null) yield break;
 
         breakText.text = msg;
-        breakText.color = new Color(1f, 0.3f, 0.3f, 1f);
+        breakText.color = color;
 
-        yield return new WaitForSeconds(2f);
-
-        float fadeTime = 1f;
+        float fadeTime = 0.75f;
         float elapsed = 0f;
         while (elapsed < fadeTime)
         {
             elapsed += Time.deltaTime;
-            breakText.color = new Color(1f, 0.3f, 0.3f, 1f - (elapsed / fadeTime));
+            breakText.color = new Color(color.r, color.g, color.b, 1f - (elapsed / fadeTime));
             yield return null;
         }
         breakText.text = "";
@@ -547,7 +566,65 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = false;
         }
 
+        Task hammerTask = tasks.Find(t => t.toolName == "Hammer");
+        Transform stationTransform = hammerTask?.stationObject != null ? hammerTask.stationObject.transform : null;
+        StartCoroutine(ShowPromptUntilNearby("Hammer in the nail on the workbench.", stationTransform, interactRange, 1f));
         Debug.Log($"[Level10] Picked up real Hammer with {currentToolDurability} durability");
+    }
+
+    private IEnumerator ShowTimedPrompt(string msg, float holdTime, float fadeTime)
+    {
+        if (promptText == null) yield break;
+        promptText.text = msg;
+        Color startColor = promptText.color;
+        promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
+
+        yield return new WaitForSeconds(holdTime);
+
+        if (promptText.text != msg) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < fadeTime)
+        {
+            elapsed += Time.deltaTime;
+            promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f - (elapsed / fadeTime));
+            yield return null;
+        }
+
+        if (promptText.text == msg)
+            promptText.text = "";
+        promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
+    }
+
+    private IEnumerator ShowPromptUntilNearby(string msg, Transform target, float range, float fadeTime)
+    {
+        if (promptText == null) yield break;
+        promptText.text = msg;
+        Color startColor = promptText.color;
+        promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
+
+        Camera cam = Camera.main;
+        while (target != null && cam != null)
+        {
+            float dist = Vector3.Distance(cam.transform.position, target.position);
+            if (dist <= range)
+                break;
+            yield return null;
+        }
+
+        if (promptText.text != msg) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < fadeTime)
+        {
+            elapsed += Time.deltaTime;
+            promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f - (elapsed / fadeTime));
+            yield return null;
+        }
+
+        if (promptText.text == msg)
+            promptText.text = "";
+        promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
     }
 
     private void BreakHammer()
