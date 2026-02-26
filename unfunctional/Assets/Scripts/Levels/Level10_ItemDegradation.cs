@@ -22,6 +22,13 @@ public class Level10_ItemDegradation : LevelManager
     public int maxDurability = 3;           // Uses before tool breaks
     public float interactRange = 3.5f;
 
+    [Header("Hammer Mesh")]
+    [SerializeField] private Vector3 hammerHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
+    [SerializeField] private Vector3 hammerHeldRotation = new Vector3(0f, 180f, -30f);
+    [SerializeField] private Vector3 hammerHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float hammerHeadLaunchForce = 8f;
+    [SerializeField] private float hammerHeadTorque = 10f;
+
     // Task definitions
     [System.Serializable]
     public class Task
@@ -42,6 +49,12 @@ public class Level10_ItemDegradation : LevelManager
     private string currentToolName = "";
     private int currentToolDurability = 0;
     private GameObject currentToolVisual;
+
+    // Real hammer mesh references
+    private GameObject hammerSceneObject;
+    private Transform hammerHeadTransform;
+    private Transform hammerHandleTransform;
+    private bool holdingRealHammer = false;
 
     // HUD
     private Canvas hudCanvas;
@@ -77,6 +90,7 @@ public class Level10_ItemDegradation : LevelManager
         InitTasks();
         CreateHUD();
         UpdateTaskList();
+        InitHammer();
     }
 
     private void Update()
@@ -111,6 +125,33 @@ public class Level10_ItemDegradation : LevelManager
         };
     }
 
+    private void InitHammer()
+    {
+        hammerSceneObject = GameObject.Find("hammer");
+        if (hammerSceneObject == null)
+        {
+            Debug.LogWarning("[Level10] Could not find 'hammer' object in scene");
+            return;
+        }
+
+        hammerHeadTransform = hammerSceneObject.transform.Find("hammerhead");
+        hammerHandleTransform = hammerSceneObject.transform.Find("hammerhandle");
+
+        if (hammerHeadTransform == null || hammerHandleTransform == null)
+            Debug.LogWarning("[Level10] Hammer children not found (expected 'hammerhead' and 'hammerhandle')");
+
+        foreach (var meshFilter in hammerSceneObject.GetComponentsInChildren<MeshFilter>())
+        {
+            if (meshFilter.GetComponent<Collider>() == null)
+            {
+                var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
+                mc.convex = true;
+            }
+        }
+
+        Debug.Log("[Level10] Hammer initialized from scene object");
+    }
+
     // =========================================================================
     // Interaction
     // =========================================================================
@@ -127,8 +168,19 @@ public class Level10_ItemDegradation : LevelManager
         {
             string hitName = hit.collider.gameObject.name;
 
+            // Check if looking at the scene hammer
+            if (hammerSceneObject != null && !holdingRealHammer &&
+                (hit.collider.gameObject == hammerSceneObject ||
+                 hit.collider.transform.IsChildOf(hammerSceneObject.transform)))
+            {
+                showPrompt = true;
+                promptText.text = "Press [E] to pick up Hammer";
+
+                if (Input.GetKeyDown(KeyCode.E))
+                    PickUpHammer();
+            }
             // Check if looking at tool rack
-            if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
+            else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
             {
                 showPrompt = true;
 
@@ -209,7 +261,9 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpTool(string toolName)
     {
-        // Drop current tool visual
+        if (holdingRealHammer)
+            DropRealHammer();
+
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
 
@@ -290,13 +344,14 @@ public class Level10_ItemDegradation : LevelManager
 
         Debug.Log($"[Level10] {msg}");
 
-        // Show break message
         StartCoroutine(ShowBreakMessage(msg));
 
-        // Destroy tool visual
-        if (currentToolVisual != null)
+        if (holdingRealHammer)
         {
-            // Shake and destroy
+            BreakHammer();
+        }
+        else if (currentToolVisual != null)
+        {
             StartCoroutine(BreakAnimation(currentToolVisual));
         }
 
@@ -334,6 +389,105 @@ public class Level10_ItemDegradation : LevelManager
             yield return null;
         }
         breakText.text = "";
+    }
+
+    // =========================================================================
+    // Hammer Mesh Handling
+    // =========================================================================
+
+    private void PickUpHammer()
+    {
+        if (currentToolVisual != null)
+            Destroy(currentToolVisual);
+
+        currentToolName = "Hammer";
+        currentToolDurability = Random.Range(1, maxDurability + 1);
+        holdingRealHammer = true;
+
+        Camera cam = Camera.main;
+        if (cam != null && hammerSceneObject != null)
+        {
+            hammerSceneObject.transform.SetParent(cam.transform);
+            hammerSceneObject.transform.localPosition = hammerHeldPosition;
+            hammerSceneObject.transform.localRotation = Quaternion.Euler(hammerHeldRotation);
+            hammerSceneObject.transform.localScale = hammerHeldScale;
+
+            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+        }
+
+        Debug.Log($"[Level10] Picked up real Hammer with {currentToolDurability} durability");
+    }
+
+    private void BreakHammer()
+    {
+        holdingRealHammer = false;
+        Camera cam = Camera.main;
+
+        if (hammerHeadTransform != null)
+        {
+            hammerHeadTransform.SetParent(null);
+
+            foreach (var col in hammerHeadTransform.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (hammerHeadTransform.GetComponent<Collider>() == null)
+                hammerHeadTransform.gameObject.AddComponent<BoxCollider>();
+
+            Rigidbody rb = hammerHeadTransform.gameObject.AddComponent<Rigidbody>();
+
+            Vector3 launchDir = cam != null
+                ? cam.transform.forward + Vector3.up * 0.5f
+                : Vector3.forward + Vector3.up * 0.5f;
+            rb.AddForce(launchDir.normalized * hammerHeadLaunchForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * hammerHeadTorque, ForceMode.Impulse);
+
+            Destroy(hammerHeadTransform.gameObject, 5f);
+            hammerHeadTransform = null;
+        }
+
+        if (hammerSceneObject != null)
+            StartCoroutine(DropHandleAfterDelay(0.8f));
+    }
+
+    private IEnumerator DropHandleAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (hammerSceneObject != null)
+        {
+            hammerSceneObject.transform.SetParent(null);
+
+            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (hammerSceneObject.GetComponent<Collider>() == null)
+                hammerSceneObject.AddComponent<BoxCollider>();
+
+            hammerSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(hammerSceneObject, 5f);
+            hammerSceneObject = null;
+            hammerHandleTransform = null;
+        }
+    }
+
+    private void DropRealHammer()
+    {
+        holdingRealHammer = false;
+
+        if (hammerSceneObject != null)
+        {
+            hammerSceneObject.transform.SetParent(null);
+
+            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+
+            hammerSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(hammerSceneObject, 5f);
+            hammerSceneObject = null;
+            hammerHeadTransform = null;
+            hammerHandleTransform = null;
+        }
     }
 
     private void CheckAllTasksComplete()
