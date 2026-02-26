@@ -198,6 +198,11 @@ public class Level10_ItemDegradation : LevelManager
                 {
                     var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
                     mc.convex = true;
+                    mc.isTrigger = true;
+                }
+                else
+                {
+                    meshFilter.GetComponent<Collider>().isTrigger = true;
                 }
             }
 
@@ -708,6 +713,23 @@ public class Level10_ItemDegradation : LevelManager
         promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
     }
 
+    private void IgnorePlayerCollision(GameObject obj)
+    {
+        if (obj == null) return;
+        Collider[] playerColliders = null;
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            Transform root = cam.transform.root;
+            playerColliders = root.GetComponentsInChildren<Collider>();
+        }
+        if (playerColliders == null || playerColliders.Length == 0) return;
+
+        foreach (var hammerCol in obj.GetComponentsInChildren<Collider>())
+            foreach (var playerCol in playerColliders)
+                Physics.IgnoreCollision(hammerCol, playerCol, true);
+    }
+
     private void BreakHammer()
     {
         holdingRealHammer = false;
@@ -721,6 +743,8 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = true;
             if (hammerHeadTransform.GetComponent<Collider>() == null)
                 hammerHeadTransform.gameObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(hammerHeadTransform.gameObject);
 
             Rigidbody rb = hammerHeadTransform.gameObject.AddComponent<Rigidbody>();
 
@@ -751,6 +775,8 @@ public class Level10_ItemDegradation : LevelManager
             if (hammerSceneObject.GetComponent<Collider>() == null)
                 hammerSceneObject.AddComponent<BoxCollider>();
 
+            IgnorePlayerCollision(hammerSceneObject);
+
             hammerSceneObject.AddComponent<Rigidbody>();
 
             Destroy(hammerSceneObject, 5f);
@@ -769,6 +795,8 @@ public class Level10_ItemDegradation : LevelManager
 
             foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
                 col.enabled = true;
+
+            IgnorePlayerCollision(hammerSceneObject);
 
             hammerSceneObject.AddComponent<Rigidbody>();
 
