@@ -26,6 +26,7 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private Vector3 hammerHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
     [SerializeField] private Vector3 hammerHeldRotation = new Vector3(0f, 180f, -30f);
     [SerializeField] private Vector3 hammerHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float hammerHitDistance = 0.5f;
     [SerializeField] private float hammerHeadLaunchForce = 8f;
     [SerializeField] private float hammerHeadTorque = 10f;
 
@@ -431,6 +432,8 @@ public class Level10_ItemDegradation : LevelManager
             float returnTime = 0.2f;
             float t = 0f;
 
+            bool isHammerTask = tasks[taskIndex].toolName == "Hammer" && nailTransform != null;
+
             while (t < windUpTime)
             {
                 t += Time.deltaTime;
@@ -438,14 +441,33 @@ public class Level10_ItemDegradation : LevelManager
                 yield return null;
             }
 
-            UseTool(taskIndex);
+            if (!isHammerTask)
+                UseTool(taskIndex);
+
+            bool hammerHitNail = false;
 
             t = 0f;
             while (t < swingTime)
             {
                 t += Time.deltaTime;
                 swingTarget.localRotation = Quaternion.Slerp(windUp, swingDown, t / swingTime);
+
+                if (isHammerTask && !hammerHitNail && hammerHeadTransform != null)
+                {
+                    float dist = Vector3.Distance(hammerHeadTransform.position, nailTransform.position);
+                    if (dist <= hammerHitDistance)
+                        hammerHitNail = true;
+                }
+
                 yield return null;
+            }
+
+            if (isHammerTask)
+            {
+                if (hammerHitNail)
+                    UseTool(taskIndex);
+                else
+                    StartCoroutine(ShowBreakMessage("Swing missed! Try again."));
             }
 
             t = 0f;

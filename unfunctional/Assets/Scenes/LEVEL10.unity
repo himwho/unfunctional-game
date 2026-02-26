@@ -3335,7 +3335,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 054223e3628e46640b5af9ec2ea7abf7,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.227
+      value: -2.66
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 054223e3628e46640b5af9ec2ea7abf7,
         type: 3}
@@ -3380,8 +3380,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 054223e3628e46640b5af9ec2ea7abf7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1295866165}
   m_SourcePrefab: {fileID: 100100000, guid: 054223e3628e46640b5af9ec2ea7abf7, type: 3}
+--- !u!1 &1295866164 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 054223e3628e46640b5af9ec2ea7abf7,
+    type: 3}
+  m_PrefabInstance: {fileID: 1295866163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1295866165
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1295866164}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.018993698, y: 0.0033519927, z: 0.0034026536}
+  m_Center: {x: 0.000010230111, y: 0.000010575052, z: -0.00000959501}
 --- !u!1001 &1448263310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3418,7 +3449,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.224
+      value: -2.657
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0,
         type: 3}
@@ -3463,13 +3494,44 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0,
         type: 3}
       propertyPath: m_Name
-      value: Wood 2x4
+      value: Station_Hammer
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1448263312}
   m_SourcePrefab: {fileID: 100100000, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0, type: 3}
+--- !u!1 &1448263311 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1835ab3dc0d3d3a42a22c7045ba05ad0,
+    type: 3}
+  m_PrefabInstance: {fileID: 1448263310}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1448263312
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1448263311}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.02, y: 0.04, z: 0.05}
+  m_Center: {x: 0.000009649957, y: 0.000010659103, z: -0.000009689946}
 --- !u!43 &1562686984
 Mesh:
   m_ObjectHideFlags: 0
@@ -4117,7 +4179,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 4d7d8cfc7069b4449b0f0461b1b6b94a,
         type: 3}
       propertyPath: m_Name
-      value: Station_Hammer
+      value: Work Bench
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4197,6 +4259,7 @@ MonoBehaviour:
   hammerHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
   hammerHeldRotation: {x: 0, y: -90, z: -30}
   hammerHeldScale: {x: 0.2551392, y: 0.2551392, z: 0.2551392}
+  hammerHitDistance: 0.25
   hammerHeadLaunchForce: 8
   hammerHeadTorque: 10
   nailTotalDrop: 0.0763
