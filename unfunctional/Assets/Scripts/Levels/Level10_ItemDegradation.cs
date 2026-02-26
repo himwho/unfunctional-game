@@ -75,8 +75,6 @@ public class Level10_ItemDegradation : LevelManager
 
         InitToolColors();
         InitTasks();
-        CreateTaskStations();
-        CreateToolRack();
         CreateHUD();
         UpdateTaskList();
     }
@@ -376,81 +374,6 @@ public class Level10_ItemDegradation : LevelManager
             text += $"  {status} {task.name} ({task.toolName})\n";
         }
         taskListText.text = text;
-    }
-
-    private void CreateTaskStations()
-    {
-        Material stationMat = CreateMat(new Color(0.4f, 0.35f, 0.3f));
-
-        foreach (var task in tasks)
-        {
-            // Workbench
-            GameObject station = new GameObject(task.name.Replace(" ", ""));
-            station.transform.position = task.stationPosition;
-
-            GameObject bench = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            bench.name = $"{task.name}_Bench";
-            bench.transform.SetParent(station.transform);
-            bench.transform.localPosition = new Vector3(0, 0.5f, 0);
-            bench.transform.localScale = new Vector3(1.2f, 1f, 0.8f);
-            bench.GetComponent<Renderer>().sharedMaterial = stationMat;
-
-            // Task label (small quad on top)
-            GameObject label = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            label.name = $"{task.name}_Label";
-            label.transform.SetParent(station.transform);
-            label.transform.localPosition = new Vector3(0, 1.05f, 0);
-            label.transform.localScale = new Vector3(0.8f, 0.3f, 1f);
-            label.transform.rotation = Quaternion.Euler(90, 0, 0);
-            label.GetComponent<Renderer>().sharedMaterial = CreateMat(new Color(0.9f, 0.85f, 0.7f));
-
-            // Progress indicator
-            GameObject progress = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            progress.name = $"{task.name}_Progress";
-            progress.transform.SetParent(station.transform);
-            progress.transform.localPosition = new Vector3(0, 1.1f, -0.3f);
-            progress.transform.localScale = new Vector3(0.01f, 0.1f, 0.1f);
-            progress.GetComponent<Renderer>().sharedMaterial = CreateMat(new Color(0.8f, 0.6f, 0.2f));
-
-            task.stationObject = station;
-            task.progressIndicator = progress;
-        }
-    }
-
-    private void CreateToolRack()
-    {
-        toolRackPosition = new Vector3(0, 0, -4.5f);
-
-        Material rackMat = CreateMat(new Color(0.35f, 0.25f, 0.2f));
-
-        // Rack frame
-        CreateBox("ToolRack_Frame", toolRackPosition + new Vector3(0, 1.5f, 0),
-            new Vector3(5f, 2.5f, 0.3f), rackMat);
-
-        // Individual tool slots
-        string[] toolNames = { "Shovel", "Hammer", "Saw", "Wrench", "Broom" };
-        float startX = -2f;
-        float spacing = 1f;
-
-        for (int i = 0; i < toolNames.Length; i++)
-        {
-            float x = startX + i * spacing;
-            Color toolColor = toolColors.ContainsKey(toolNames[i]) ? toolColors[toolNames[i]] : Color.grey;
-
-            // Tool visual on the rack
-            GameObject tool = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            tool.name = $"Tool_{toolNames[i]}";
-            tool.transform.position = toolRackPosition + new Vector3(x, 1.5f, 0.2f);
-            tool.transform.localScale = new Vector3(0.15f, 0.8f, 0.15f);
-            tool.GetComponent<Renderer>().sharedMaterial = CreateMat(toolColor);
-
-            // Label
-            GameObject labelObj = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            labelObj.name = $"ToolLabel_{toolNames[i]}";
-            labelObj.transform.position = toolRackPosition + new Vector3(x, 0.5f, 0.16f);
-            labelObj.transform.localScale = new Vector3(0.6f, 0.2f, 1f);
-            labelObj.GetComponent<Renderer>().sharedMaterial = CreateMat(new Color(0.9f, 0.85f, 0.7f));
-        }
     }
 
     // =========================================================================
