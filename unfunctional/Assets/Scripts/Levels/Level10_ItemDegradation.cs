@@ -55,6 +55,7 @@ public class Level10_ItemDegradation : LevelManager
     private Transform hammerHeadTransform;
     private Transform hammerHandleTransform;
     private bool holdingRealHammer = false;
+    private bool isSwinging = false;
 
     // HUD
     private Canvas hudCanvas;
@@ -117,12 +118,28 @@ public class Level10_ItemDegradation : LevelManager
     {
         tasks = new List<Task>
         {
-            new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5, stationPosition = new Vector3(-3f, 0f, 2f) },
-            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 4, stationPosition = new Vector3(-1f, 0f, 3.5f) },
-            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 6, stationPosition = new Vector3(1f, 0f, 3.5f) },
-            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3, stationPosition = new Vector3(3f, 0f, 2f) },
-            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 5, stationPosition = new Vector3(0f, 0f, 1f) },
+            new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
+            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 4 },
+            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 6 },
+            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
+            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 5 },
         };
+
+        foreach (var task in tasks)
+        {
+            string stationName = "Station_" + task.toolName;
+            GameObject station = GameObject.Find(stationName);
+            if (station != null)
+            {
+                task.stationObject = station;
+                task.stationPosition = station.transform.position;
+                Debug.Log($"[Level10] Found station '{stationName}'");
+            }
+            else
+            {
+                Debug.LogWarning($"[Level10] Station not found: '{stationName}' — create a GameObject with this name in the scene");
+            }
+        }
     }
 
     private void InitHammer()
@@ -208,10 +225,10 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
-                            promptText.text = $"Press [E] to use {currentToolName} ({currentToolDurability} uses left)";
+                            promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
-                            if (Input.GetKeyDown(KeyCode.E))
-                                UseTool(i);
+                            if (Input.GetMouseButtonDown(0) && !isSwinging)
+                                StartCoroutine(SwingAndUseTool(i));
                         }
                         else if (string.IsNullOrEmpty(currentToolName))
                         {
@@ -371,6 +388,60 @@ public class Level10_ItemDegradation : LevelManager
         Destroy(tool);
     }
 
+    private IEnumerator SwingAndUseTool(int taskIndex)
+    {
+        isSwinging = true;
+
+        Transform swingTarget = holdingRealHammer && hammerSceneObject != null
+            ? hammerSceneObject.transform
+            : currentToolVisual != null ? currentToolVisual.transform : null;
+
+        if (swingTarget != null)
+        {
+            Quaternion startRot = swingTarget.localRotation;
+            Quaternion windUp = startRot * Quaternion.Euler(0f, 0f, 20f);
+            Quaternion swingDown = startRot * Quaternion.Euler(0f, 0f, -60f);
+
+            float windUpTime = 0.1f;
+            float swingTime = 0.12f;
+            float returnTime = 0.2f;
+            float t = 0f;
+
+            while (t < windUpTime)
+            {
+                t += Time.deltaTime;
+                swingTarget.localRotation = Quaternion.Slerp(startRot, windUp, t / windUpTime);
+                yield return null;
+            }
+
+            UseTool(taskIndex);
+
+            t = 0f;
+            while (t < swingTime)
+            {
+                t += Time.deltaTime;
+                swingTarget.localRotation = Quaternion.Slerp(windUp, swingDown, t / swingTime);
+                yield return null;
+            }
+
+            t = 0f;
+            while (t < returnTime)
+            {
+                t += Time.deltaTime;
+                swingTarget.localRotation = Quaternion.Slerp(swingDown, startRot, t / returnTime);
+                yield return null;
+            }
+
+            swingTarget.localRotation = startRot;
+        }
+        else
+        {
+            UseTool(taskIndex);
+        }
+
+        isSwinging = false;
+    }
+
     private IEnumerator ShowBreakMessage(string msg)
     {
         if (breakText == null) yield break;
@@ -401,7 +472,7 @@ public class Level10_ItemDegradation : LevelManager
             Destroy(currentToolVisual);
 
         currentToolName = "Hammer";
-        currentToolDurability = Random.Range(1, maxDurability + 1);
+        currentToolDurability = maxDurability;
         holdingRealHammer = true;
 
         Camera cam = Camera.main;
