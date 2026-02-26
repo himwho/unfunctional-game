@@ -360,6 +360,10 @@ public class Level2_SettingsPuzzle : LevelManager
     private void GoToStep(int step)
     {
         // Tear down current step
+        if (currentStep == 2 && step3Content != null)
+        { step3Content.offsetMin = Vector2.zero; step3Content.offsetMax = Vector2.zero; }
+        if (currentStep == 3 && step4Content != null)
+        { step4Content.offsetMin = Vector2.zero; step4Content.offsetMax = Vector2.zero; }
         if (currentStep == 4) { if (step5Audio) step5Audio.Stop(); }
         if (currentStep == 5) { if (step6Audio) step6Audio.Stop(); }
         if (currentStep == 6) StopMic();
@@ -679,32 +683,19 @@ public class Level2_SettingsPuzzle : LevelManager
         GameObject panel = MakeStepPanel(2, "EDGE CALIBRATION (L / T / B)",
             "Adjust the screen edges to reveal the NEXT button.");
 
-        step3Left = MakeSlider(panel, "Left Edge", 0.55f);
-        step3Top = MakeSlider(panel, "Top Edge", 0.45f);
-        step3Bottom = MakeSlider(panel, "Bottom Edge", 0.35f);
+        step3Left = MakeSlider(panel, "Left Edge", 0.55f, 0.25f, 0.75f);
+        step3Top = MakeSlider(panel, "Top Edge", 0.45f, 0.25f, 0.75f);
+        step3Bottom = MakeSlider(panel, "Bottom Edge", 0.35f, 0.25f, 0.75f);
 
-        // Masked viewport area
-        GameObject maskObj = MakeChild(panel, "MaskArea");
-        Pos(maskObj, new Vector2(0.15f, 0.05f), new Vector2(0.85f, 0.28f));
-        Image maskBg = maskObj.AddComponent<Image>();
-        maskBg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
-        maskObj.AddComponent<RectMask2D>();
+        // The entire panel shifts — sliders move the whole screen
+        step3Content = panel.GetComponent<RectTransform>();
 
-        // Content inside the mask - larger than the mask, shifted so NEXT is hidden
-        GameObject content = MakeChild(maskObj, "Content");
-        step3Content = content.GetComponent<RectTransform>();
-        step3Content.anchorMin = Vector2.zero;
-        step3Content.anchorMax = Vector2.one;
-        // Start offset so button is out of view (bottom-left)
-        step3Content.offsetMin = new Vector2(-200, -150);
-        step3Content.offsetMax = new Vector2(200, 150);
-
-        MakeText(content, "The button is around here somewhere...", 18,
+        MakeText(panel, "The button is around here somewhere...", 18,
             TextAnchor.MiddleCenter, new Color(0.5f, 0.5f, 0.5f),
-            new Vector2(0.1f, 0.4f), new Vector2(0.9f, 0.7f));
+            new Vector2(0.1f, 0.15f), new Vector2(0.9f, 0.25f));
 
-        // NEXT button placed at the far bottom-left of the content
-        step3Next = MakeButton(content, "NEXT", Vector2.zero, new Vector2(120, 40),
+        // NEXT button placed at the far bottom-left of the panel (off-screen at default offsets)
+        step3Next = MakeButton(panel, "NEXT", Vector2.zero, new Vector2(120, 40),
             new Color(0.2f, 0.45f, 0.2f, 1f));
         RectTransform btn3Rect = step3Next.GetComponent<RectTransform>();
         btn3Rect.anchorMin = new Vector2(0f, 0f);
@@ -719,27 +710,17 @@ public class Level2_SettingsPuzzle : LevelManager
         GameObject panel = MakeStepPanel(3, "EDGE CALIBRATION (RIGHT)",
             "Adjust the right screen edge.");
 
-        step4Right = MakeSlider(panel, "Right Edge", 0.45f);
+        step4Right = MakeSlider(panel, "Right Edge", 0.45f, 0.25f, 0.75f);
 
-        GameObject maskObj = MakeChild(panel, "MaskArea");
-        Pos(maskObj, new Vector2(0.15f, 0.1f), new Vector2(0.85f, 0.35f));
-        Image maskBg = maskObj.AddComponent<Image>();
-        maskBg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
-        maskObj.AddComponent<RectMask2D>();
+        // The entire panel shifts — slider moves the whole screen
+        step4Content = panel.GetComponent<RectTransform>();
 
-        GameObject content = MakeChild(maskObj, "Content");
-        step4Content = content.GetComponent<RectTransform>();
-        step4Content.anchorMin = Vector2.zero;
-        step4Content.anchorMax = Vector2.one;
-        step4Content.offsetMin = new Vector2(-200, -50);
-        step4Content.offsetMax = new Vector2(200, 50);
-
-        MakeText(content, "Almost there...", 18,
+        MakeText(panel, "Almost there...", 18,
             TextAnchor.MiddleCenter, new Color(0.5f, 0.5f, 0.5f),
-            new Vector2(0.1f, 0.3f), new Vector2(0.9f, 0.7f));
+            new Vector2(0.1f, 0.15f), new Vector2(0.9f, 0.3f));
 
-        // NEXT button at the far right of the content
-        step4Next = MakeButton(content, "NEXT", Vector2.zero, new Vector2(120, 40),
+        // NEXT button at the far right of the panel (off-screen at default offsets)
+        step4Next = MakeButton(panel, "NEXT", Vector2.zero, new Vector2(120, 40),
             new Color(0.2f, 0.45f, 0.2f, 1f));
         RectTransform btn4Rect = step4Next.GetComponent<RectTransform>();
         btn4Rect.anchorMin = new Vector2(1f, 0.5f);
@@ -1496,16 +1477,17 @@ public class Level2_SettingsPuzzle : LevelManager
         return panel;
     }
 
-    private Slider MakeSlider(GameObject parent, string label, float yCenter)
+    private Slider MakeSlider(GameObject parent, string label, float yCenter,
+        float xMin = 0.15f, float xMax = 0.85f)
     {
         float h = 0.06f;
         // Label
         MakeText(parent, label, 16, TextAnchor.LowerLeft, new Color(0.75f, 0.75f, 0.75f),
-            new Vector2(0.15f, yCenter + h * 0.2f), new Vector2(0.85f, yCenter + h + 0.02f));
+            new Vector2(xMin, yCenter + h * 0.2f), new Vector2(xMax, yCenter + h + 0.02f));
 
         // Slider root
         GameObject sliderObj = MakeChild(parent, $"Slider_{label.Replace(" ", "")}");
-        Pos(sliderObj, new Vector2(0.15f, yCenter - h), new Vector2(0.85f, yCenter + h * 0.2f));
+        Pos(sliderObj, new Vector2(xMin, yCenter - h), new Vector2(xMax, yCenter + h * 0.2f));
         sliderObj.AddComponent<Image>().color = new Color(0.12f, 0.12f, 0.18f);
 
         // Track
