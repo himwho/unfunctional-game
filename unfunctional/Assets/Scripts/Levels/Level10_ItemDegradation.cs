@@ -57,6 +57,11 @@ public class Level10_ItemDegradation : LevelManager
     private bool holdingRealHammer = false;
     private bool isSwinging = false;
 
+    // Nail
+    private Transform nailTransform;
+    private Vector3 nailStartPos;
+    [SerializeField] private float nailTotalDrop = 0.0763f;
+
     // HUD
     private Canvas hudCanvas;
     private Text promptText;
@@ -139,6 +144,18 @@ public class Level10_ItemDegradation : LevelManager
             {
                 Debug.LogWarning($"[Level10] Station not found: '{stationName}' — create a GameObject with this name in the scene");
             }
+        }
+
+        GameObject nailObj = GameObject.Find("Metal Nail");
+        if (nailObj != null)
+        {
+            nailTransform = nailObj.transform;
+            nailStartPos = nailTransform.position;
+            Debug.Log("[Level10] Found 'Metal Nail'");
+        }
+        else
+        {
+            Debug.LogWarning("[Level10] 'Metal Nail' not found in scene");
         }
     }
 
@@ -320,6 +337,13 @@ public class Level10_ItemDegradation : LevelManager
 
         Debug.Log($"[Level10] Used {currentToolName} on '{task.name}' ({task.currentUses}/{task.requiredUses}), durability: {currentToolDurability}");
 
+        if (task.toolName == "Hammer" && nailTransform != null)
+        {
+            float dropPerSwing = nailTotalDrop / task.requiredUses;
+            Vector3 targetPos = nailStartPos + Vector3.down * dropPerSwing * task.currentUses;
+            StartCoroutine(PushNailDown(targetPos));
+        }
+
         // Check if tool broke
         if (currentToolDurability <= 0)
         {
@@ -440,6 +464,20 @@ public class Level10_ItemDegradation : LevelManager
         }
 
         isSwinging = false;
+    }
+
+    private IEnumerator PushNailDown(Vector3 targetPos)
+    {
+        Vector3 from = nailTransform.position;
+        float duration = 0.15f;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            nailTransform.position = Vector3.Lerp(from, targetPos, t / duration);
+            yield return null;
+        }
+        nailTransform.position = targetPos;
     }
 
     private IEnumerator ShowBreakMessage(string msg)
