@@ -52,6 +52,14 @@ public class Level10_ItemDegradation : LevelManager
     private GameObject currentToolVisual;
 
     // Real hammer mesh references
+    private class HammerInfo
+    {
+        public GameObject gameObject;
+        public Transform headTransform;
+        public Transform handleTransform;
+    }
+
+    private List<HammerInfo> availableHammers = new List<HammerInfo>();
     private GameObject hammerSceneObject;
     private Transform hammerHeadTransform;
     private Transform hammerHandleTransform;
@@ -126,7 +134,7 @@ public class Level10_ItemDegradation : LevelManager
         tasks = new List<Task>
         {
             new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
-            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 4 },
+            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 6 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
             new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 5 },
@@ -163,29 +171,42 @@ public class Level10_ItemDegradation : LevelManager
 
     private void InitHammer()
     {
-        hammerSceneObject = GameObject.Find("hammer");
-        if (hammerSceneObject == null)
+        string[] hammerNames = { "hammer", "hammer (1)", "hammer (2)" };
+
+        foreach (string hammerName in hammerNames)
         {
-            Debug.LogWarning("[Level10] Could not find 'hammer' object in scene");
-            return;
-        }
-
-        hammerHeadTransform = hammerSceneObject.transform.Find("hammerhead");
-        hammerHandleTransform = hammerSceneObject.transform.Find("hammerhandle");
-
-        if (hammerHeadTransform == null || hammerHandleTransform == null)
-            Debug.LogWarning("[Level10] Hammer children not found (expected 'hammerhead' and 'hammerhandle')");
-
-        foreach (var meshFilter in hammerSceneObject.GetComponentsInChildren<MeshFilter>())
-        {
-            if (meshFilter.GetComponent<Collider>() == null)
+            GameObject hammerObj = GameObject.Find(hammerName);
+            if (hammerObj == null)
             {
-                var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
-                mc.convex = true;
+                Debug.LogWarning($"[Level10] Could not find '{hammerName}' object in scene");
+                continue;
             }
+
+            var info = new HammerInfo
+            {
+                gameObject = hammerObj,
+                headTransform = hammerObj.transform.Find("hammerhead"),
+                handleTransform = hammerObj.transform.Find("hammerhandle")
+            };
+
+            if (info.headTransform == null || info.handleTransform == null)
+                Debug.LogWarning($"[Level10] Hammer '{hammerName}' children not found (expected 'hammerhead' and 'hammerhandle')");
+
+            foreach (var meshFilter in hammerObj.GetComponentsInChildren<MeshFilter>())
+            {
+                if (meshFilter.GetComponent<Collider>() == null)
+                {
+                    var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
+                    mc.convex = true;
+                }
+            }
+
+            availableHammers.Add(info);
+            Debug.Log($"[Level10] Hammer '{hammerName}' initialized from scene object");
         }
 
-        Debug.Log("[Level10] Hammer initialized from scene object");
+        if (availableHammers.Count == 0)
+            Debug.LogWarning("[Level10] No hammers found in scene");
     }
 
     // =========================================================================
@@ -204,16 +225,29 @@ public class Level10_ItemDegradation : LevelManager
         {
             string hitName = hit.collider.gameObject.name;
 
-            // Check if looking at the scene hammer
-            if (hammerSceneObject != null && !holdingRealHammer &&
-                (hit.collider.gameObject == hammerSceneObject ||
-                 hit.collider.transform.IsChildOf(hammerSceneObject.transform)))
+            // Check if looking at any available scene hammer
+            HammerInfo hitHammer = null;
+            if (!holdingRealHammer)
+            {
+                foreach (var h in availableHammers)
+                {
+                    if (h.gameObject != null &&
+                        (hit.collider.gameObject == h.gameObject ||
+                         hit.collider.transform.IsChildOf(h.gameObject.transform)))
+                    {
+                        hitHammer = h;
+                        break;
+                    }
+                }
+            }
+
+            if (hitHammer != null)
             {
                 showPrompt = true;
                 promptText.text = "Press [E] to pick up Hammer";
 
                 if (Input.GetKeyDown(KeyCode.E))
-                    PickUpHammer();
+                    PickUpHammer(hitHammer);
             }
             // Check if looking at tool rack
             else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
@@ -472,10 +506,11 @@ public class Level10_ItemDegradation : LevelManager
             {
                 if (hammerHitNail)
                 {
-                    int usesLeft = currentToolDurability - 1;
+                    int durabilityBefore = currentToolDurability;
                     UseTool(taskIndex);
-                    if (usesLeft > 0)
-                        StartBreakMessage($"Hit! ({usesLeft} to go)", new Color(0.3f, 1f, 0.3f, 1f));
+                    bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+                    if (!toolBroke)
+                        StartBreakMessage("Hit!", new Color(0.3f, 1f, 0.3f, 1f));
                 }
                 else
                     StartBreakMessage("Swing missed! Try again.");
@@ -547,10 +582,15 @@ public class Level10_ItemDegradation : LevelManager
     // Hammer Mesh Handling
     // =========================================================================
 
-    private void PickUpHammer()
+    private void PickUpHammer(HammerInfo info)
     {
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
+
+        availableHammers.Remove(info);
+        hammerSceneObject = info.gameObject;
+        hammerHeadTransform = info.headTransform;
+        hammerHandleTransform = info.handleTransform;
 
         currentToolName = "Hammer";
         currentToolDurability = maxDurability;
