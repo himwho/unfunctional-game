@@ -278,7 +278,7 @@ public class Level10_ItemDegradation : LevelManager
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
-            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 9999 },
+            new Task { name = "Sweep the Trash Under the Table", toolName = "Broom", requiredUses = 9999 },
         };
 
         foreach (var task in tasks)
@@ -1828,8 +1828,10 @@ public class Level10_ItemDegradation : LevelManager
         string text = "TASKS:\n";
         foreach (var task in tasks)
         {
-            string status = task.completed ? "[DONE]" : $"[{task.currentUses}/{task.requiredUses}]";
-            text += $"  {status} {task.name} ({task.toolName})\n";
+            if (task.completed)
+                text += $"  <color=#88FF88>{task.name} ({task.toolName}) \u2713</color>\n";
+            else
+                text += $"  {task.name} ({task.toolName})\n";
         }
         taskListText.text = text;
     }
