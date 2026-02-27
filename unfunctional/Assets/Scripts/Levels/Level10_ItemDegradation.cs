@@ -237,7 +237,7 @@ public class Level10_ItemDegradation : LevelManager
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
-            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 5 },
+            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 6 },
         };
 
         foreach (var task in tasks)
@@ -1064,14 +1064,15 @@ public class Level10_ItemDegradation : LevelManager
 
         float returnTime = 0.15f;
         float t = 0f;
-        Quaternion currentRot = swingTarget.localRotation;
-        while (t < returnTime)
+        Quaternion currentRot = swingTarget != null ? swingTarget.localRotation : startRot;
+        while (t < returnTime && swingTarget != null)
         {
             t += Time.deltaTime;
             swingTarget.localRotation = Quaternion.Slerp(currentRot, startRot, t / returnTime);
             yield return null;
         }
-        swingTarget.localRotation = startRot;
+        if (swingTarget != null)
+            swingTarget.localRotation = startRot;
     }
 
     private IEnumerator PushNailDown(Vector3 targetPos)
@@ -1528,56 +1529,45 @@ public class Level10_ItemDegradation : LevelManager
     private void BreakBroom()
     {
         holdingRealBroom = false;
+
+        if (broomSceneObject == null) return;
+
         Camera cam = Camera.main;
+        Vector3 baseDir = cam != null
+            ? cam.transform.forward + Vector3.up * 0.5f
+            : Vector3.forward + Vector3.up * 0.5f;
 
-        if (broomHeadTransform != null)
+        broomSceneObject.transform.SetParent(null);
+
+        List<Transform> children = new List<Transform>();
+        foreach (Transform child in broomSceneObject.transform)
+            children.Add(child);
+
+        foreach (Transform child in children)
         {
-            broomHeadTransform.SetParent(null);
+            child.SetParent(null);
 
-            foreach (var col in broomHeadTransform.GetComponentsInChildren<Collider>())
+            foreach (var col in child.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
-            if (broomHeadTransform.GetComponent<Collider>() == null)
-                broomHeadTransform.gameObject.AddComponent<BoxCollider>();
+                col.isTrigger = false;
+            }
+            if (child.GetComponentsInChildren<Collider>().Length == 0)
+                child.gameObject.AddComponent<BoxCollider>();
 
-            IgnorePlayerCollision(broomHeadTransform.gameObject);
+            IgnorePlayerCollision(child.gameObject);
 
-            Rigidbody rb = broomHeadTransform.gameObject.AddComponent<Rigidbody>();
+            Rigidbody rb = child.gameObject.AddComponent<Rigidbody>();
+            rb.AddForce(Random.insideUnitSphere * 0.5f, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
 
-            Vector3 launchDir = cam != null
-                ? cam.transform.forward + Vector3.up * 0.5f
-                : Vector3.forward + Vector3.up * 0.5f;
-            rb.AddForce(launchDir.normalized * broomHeadLaunchForce, ForceMode.Impulse);
-            rb.AddTorque(Random.insideUnitSphere * broomHeadTorque, ForceMode.Impulse);
-
-            Destroy(broomHeadTransform.gameObject, 5f);
-            broomHeadTransform = null;
+            Destroy(child.gameObject, 5f);
         }
 
-        if (broomSceneObject != null)
-            StartCoroutine(DropBroomHandleAfterDelay(0.8f));
-    }
-
-    private IEnumerator DropBroomHandleAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (broomSceneObject != null)
-        {
-            broomSceneObject.transform.SetParent(null);
-
-            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
-                col.enabled = true;
-            if (broomSceneObject.GetComponent<Collider>() == null)
-                broomSceneObject.AddComponent<BoxCollider>();
-
-            IgnorePlayerCollision(broomSceneObject);
-
-            broomSceneObject.AddComponent<Rigidbody>();
-
-            Destroy(broomSceneObject, 5f);
-            broomSceneObject = null;
-            broomHandleTransform = null;
-        }
+        Destroy(broomSceneObject);
+        broomSceneObject = null;
+        broomHeadTransform = null;
+        broomHandleTransform = null;
     }
 
     private void DropRealBroom()
