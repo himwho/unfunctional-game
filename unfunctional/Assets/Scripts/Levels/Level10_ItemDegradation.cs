@@ -519,7 +519,7 @@ public class Level10_ItemDegradation : LevelManager
             }
 
             PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
-            bouncyMat.bounciness = 0.6f;
+            bouncyMat.bounciness = 0.3f;
             bouncyMat.dynamicFriction = 0.3f;
             bouncyMat.staticFriction = 0.3f;
             bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;
