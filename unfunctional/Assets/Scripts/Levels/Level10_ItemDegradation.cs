@@ -45,6 +45,9 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private float broomHeadLaunchForce = 8f;
     [SerializeField] private float broomHeadTorque = 10f;
     [SerializeField, Range(0f, 1f)] private float broomPitchFollowFactor = 0.3f;
+    [SerializeField] private float sweepAngle = 30f;
+    [SerializeField] private float sweepStrokeTime = 0.2f;
+    [SerializeField] private int sweepStrokes = 4;
 
     // Task definitions
     [System.Serializable]
@@ -200,7 +203,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void UpdateBroomPitchDamp()
     {
-        if (!holdingRealBroom || broomSceneObject == null) return;
+        if (!holdingRealBroom || broomSceneObject == null || isSwinging) return;
 
         Camera cam = Camera.main;
         if (cam == null) return;
@@ -610,6 +613,14 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
+        // Broom can sweep anywhere with left click
+        if (holdingRealBroom && !isSwinging && Input.GetMouseButtonDown(0))
+        {
+            int broomTaskIndex = tasks.FindIndex(t => t.toolName == "Broom");
+            if (broomTaskIndex >= 0 && !tasks[broomTaskIndex].completed)
+                StartCoroutine(SwingAndUseTool(broomTaskIndex));
+        }
+
         bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom;
 
         if (!showPrompt)
@@ -813,10 +824,18 @@ public class Level10_ItemDegradation : LevelManager
         isSwinging = true;
 
         bool isSawTask = tasks[taskIndex].toolName == "Saw" && plankTransform != null;
+        bool isBroomTask = tasks[taskIndex].toolName == "Broom";
 
         if (isSawTask)
         {
             yield return StartCoroutine(SawAndUseTool(taskIndex));
+            isSwinging = false;
+            yield break;
+        }
+
+        if (isBroomTask)
+        {
+            yield return StartCoroutine(SweepAndUseTool(taskIndex));
             isSwinging = false;
             yield break;
         }
@@ -990,6 +1009,68 @@ public class Level10_ItemDegradation : LevelManager
             yield return null;
         }
         swingTarget.localPosition = startPos;
+        swingTarget.localRotation = startRot;
+    }
+
+    private IEnumerator SweepAndUseTool(int taskIndex)
+    {
+        Transform swingTarget = null;
+        if (holdingRealBroom && broomSceneObject != null)
+            swingTarget = broomSceneObject.transform;
+        else if (currentToolVisual != null)
+            swingTarget = currentToolVisual.transform;
+
+        if (swingTarget == null)
+        {
+            UseTool(taskIndex);
+            yield break;
+        }
+
+        Quaternion startRot = swingTarget.localRotation;
+
+        for (int i = 0; i < sweepStrokes; i++)
+        {
+            float angle = (i % 2 == 0) ? sweepAngle : -sweepAngle;
+            float elapsed = 0f;
+            Quaternion from = swingTarget.localRotation;
+            Quaternion to = startRot * Quaternion.Euler(angle, 0f, 0f);
+
+            while (elapsed < sweepStrokeTime)
+            {
+                elapsed += Time.deltaTime;
+                swingTarget.localRotation = Quaternion.Slerp(from, to, elapsed / sweepStrokeTime);
+                yield return null;
+            }
+        }
+
+        bool nearStation = false;
+        Camera sweepCam = Camera.main;
+        Task broomTask = tasks[taskIndex];
+        if (sweepCam != null && broomTask.stationObject != null)
+        {
+            float dist = Vector3.Distance(sweepCam.transform.position, broomTask.stationObject.transform.position);
+            nearStation = dist <= interactRange;
+        }
+
+        if (nearStation)
+        {
+            int durabilityBefore = currentToolDurability;
+            UseTool(taskIndex);
+            bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+
+            if (!toolBroke && !broomTask.completed)
+                StartBreakMessage("Sweeping...", new Color(0.6f, 0.9f, 0.5f, 1f));
+        }
+
+        float returnTime = 0.15f;
+        float t = 0f;
+        Quaternion currentRot = swingTarget.localRotation;
+        while (t < returnTime)
+        {
+            t += Time.deltaTime;
+            swingTarget.localRotation = Quaternion.Slerp(currentRot, startRot, t / returnTime);
+            yield return null;
+        }
         swingTarget.localRotation = startRot;
     }
 
