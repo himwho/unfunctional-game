@@ -502,58 +502,55 @@ public class Level10_ItemDegradation : LevelManager
 
     private void InitSodaCans()
     {
-        string[] canNames = {
+        PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
+        bouncyMat.bounciness = 0.3f;
+        bouncyMat.dynamicFriction = 0.3f;
+        bouncyMat.staticFriction = 0.3f;
+        bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;
+
+        HashSet<string> trashNames = new HashSet<string> {
             "soda can", "soda can (1)", "soda can (2)", "soda can (3)",
             "soda can (4)", "soda can (5)", "soda can (6)",
             "crumpled paper", "crumpled paper (1)", "crumpled paper (2)",
             "crumpled paper (3)", "crumpled paper (4)"
         };
 
-        foreach (string canName in canNames)
+        GameObject tableObj = null;
+
+        foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
-            GameObject canObj = GameObject.Find(canName);
-            if (canObj == null)
-            {
-                Debug.LogWarning($"[Level10] Could not find '{canName}' in scene");
-                continue;
-            }
+            if (go.scene != gameObject.scene) continue;
 
-            PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
-            bouncyMat.bounciness = 0.3f;
-            bouncyMat.dynamicFriction = 0.3f;
-            bouncyMat.staticFriction = 0.3f;
-            bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;
-
-            foreach (var col in canObj.GetComponentsInChildren<Collider>())
+            if (trashNames.Contains(go.name))
             {
-                col.isTrigger = false;
-                col.material = bouncyMat;
-            }
+                trashNames.Remove(go.name);
 
-            if (canObj.GetComponentsInChildren<Collider>().Length == 0)
-            {
-                foreach (var mf in canObj.GetComponentsInChildren<MeshFilter>())
+                foreach (var col in go.GetComponentsInChildren<Collider>())
                 {
-                    if (mf.sharedMesh != null)
-                    {
-                        var mc = mf.gameObject.AddComponent<MeshCollider>();
-                        mc.convex = true;
-                        mc.material = bouncyMat;
-                    }
+                    col.isTrigger = false;
+                    col.material = bouncyMat;
                 }
+
+                if (go.GetComponentsInChildren<Collider>().Length == 0)
+                {
+                    var bc = go.AddComponent<BoxCollider>();
+                    bc.material = bouncyMat;
+                }
+
+                Rigidbody rb = go.GetComponent<Rigidbody>();
+                if (rb == null)
+                    rb = go.AddComponent<Rigidbody>();
+                rb.mass = 0.3f;
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+                sodaCanBodies.Add(rb);
             }
-
-            Rigidbody rb = canObj.GetComponent<Rigidbody>();
-            if (rb == null)
-                rb = canObj.AddComponent<Rigidbody>();
-            rb.mass = 0.3f;
-            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-
-            sodaCanBodies.Add(rb);
-            Debug.Log($"[Level10] Soda can '{canName}' initialized with physics");
+            else if (go.name == "Wooden Table" && tableObj == null)
+            {
+                tableObj = go;
+            }
         }
 
-        GameObject tableObj = GameObject.Find("Wooden Table");
         if (tableObj != null)
         {
             Renderer[] renderers = tableObj.GetComponentsInChildren<Renderer>();
@@ -563,13 +560,14 @@ public class Level10_ItemDegradation : LevelManager
                 foreach (var r in renderers)
                     tableBounds.Encapsulate(r.bounds);
                 hasTable = true;
-                Debug.Log($"[Level10] Found 'Wooden Table' with bounds {tableBounds}");
             }
         }
         else
         {
             Debug.LogWarning("[Level10] 'Wooden Table' not found in scene");
         }
+
+        Debug.Log($"[Level10] Initialized {sodaCanBodies.Count} trash objects with physics");
     }
 
     // =========================================================================
