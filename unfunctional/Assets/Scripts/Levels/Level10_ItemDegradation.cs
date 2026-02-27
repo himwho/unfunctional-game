@@ -542,6 +542,7 @@ public class Level10_ItemDegradation : LevelManager
             if (rb == null)
                 rb = canObj.AddComponent<Rigidbody>();
             rb.mass = 0.3f;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             sodaCanBodies.Add(rb);
             Debug.Log($"[Level10] Soda can '{canName}' initialized with physics");
