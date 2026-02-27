@@ -916,14 +916,20 @@ public class Level10_ItemDegradation : LevelManager
 
     private IEnumerator BreakAnimation(GameObject tool)
     {
-        // Quick shake
         Vector3 originalPos = tool.transform.localPosition;
         for (int i = 0; i < 8; i++)
         {
             tool.transform.localPosition = originalPos + Random.insideUnitSphere * 0.05f;
             yield return new WaitForSeconds(0.03f);
         }
-        Destroy(tool);
+
+        tool.transform.SetParent(null);
+        Rigidbody rb = tool.AddComponent<Rigidbody>();
+        IgnorePlayerCollision(tool);
+        if (tool.GetComponent<Collider>() == null)
+            tool.AddComponent<BoxCollider>();
+        rb.AddForce(Random.insideUnitSphere * 2f, ForceMode.Impulse);
+        rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
     }
 
     private IEnumerator SwingAndUseTool(int taskIndex)
@@ -1429,7 +1435,6 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(launchDir.normalized * hammerHeadLaunchForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * hammerHeadTorque, ForceMode.Impulse);
 
-            Destroy(hammerHeadTransform.gameObject, 5f);
             hammerHeadTransform = null;
         }
 
@@ -1454,7 +1459,6 @@ public class Level10_ItemDegradation : LevelManager
 
             hammerSceneObject.AddComponent<Rigidbody>();
 
-            Destroy(hammerSceneObject, 5f);
             hammerSceneObject = null;
             hammerHandleTransform = null;
         }
@@ -1475,7 +1479,6 @@ public class Level10_ItemDegradation : LevelManager
 
             hammerSceneObject.AddComponent<Rigidbody>();
 
-            Destroy(hammerSceneObject, 5f);
             hammerSceneObject = null;
             hammerHeadTransform = null;
             hammerHandleTransform = null;
@@ -1549,7 +1552,6 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(launchDir.normalized * sawBladeLaunchForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * sawBladeTorque, ForceMode.Impulse);
 
-            Destroy(sawBladeTransform.gameObject, 5f);
             sawBladeTransform = null;
         }
 
@@ -1574,7 +1576,6 @@ public class Level10_ItemDegradation : LevelManager
 
             sawSceneObject.AddComponent<Rigidbody>();
 
-            Destroy(sawSceneObject, 5f);
             sawSceneObject = null;
             sawHandleTransform = null;
         }
@@ -1597,7 +1598,6 @@ public class Level10_ItemDegradation : LevelManager
 
             sawSceneObject.AddComponent<Rigidbody>();
 
-            Destroy(sawSceneObject, 5f);
             sawSceneObject = null;
             sawBladeTransform = null;
             sawHandleTransform = null;
@@ -1679,7 +1679,6 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(Random.insideUnitSphere * 0.5f, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
 
-            Destroy(child.gameObject, 5f);
         }
 
         Destroy(broomSceneObject);
@@ -1703,7 +1702,6 @@ public class Level10_ItemDegradation : LevelManager
 
             broomSceneObject.AddComponent<Rigidbody>();
 
-            Destroy(broomSceneObject, 5f);
             broomSceneObject = null;
             broomHeadTransform = null;
             broomHandleTransform = null;
