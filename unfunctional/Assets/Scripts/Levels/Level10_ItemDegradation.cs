@@ -1674,7 +1674,17 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (child.GetComponentsInChildren<Collider>().Length == 0)
+
+            bool hasNonTriggerCollider = false;
+            foreach (var col in child.GetComponentsInChildren<Collider>())
+            {
+                if (col.enabled && !col.isTrigger)
+                {
+                    hasNonTriggerCollider = true;
+                    break;
+                }
+            }
+            if (!hasNonTriggerCollider)
                 child.gameObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(child.gameObject);
