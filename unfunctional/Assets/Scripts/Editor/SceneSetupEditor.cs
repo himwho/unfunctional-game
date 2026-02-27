@@ -1270,14 +1270,15 @@ public class SceneSetupEditor : EditorWindow
         rngScript.needsPlayer = true;
         rngScript.wantsCursorLocked = true;
 
-        DoorController doorCtrl = null;
-        GameObject doorInstance = FindDoorInstance();
-        if (doorInstance != null)
-        {
-            doorCtrl = doorInstance.GetComponent<DoorController>();
-            if (rngScript.doorController == null)
-                rngScript.doorController = doorCtrl;
-        }
+        // Find Option A door (LEVEL_DOOR 1)
+        GameObject doorA = GameObject.Find("LEVEL_DOOR 1");
+        if (doorA != null && rngScript.optionADoor == null)
+            rngScript.optionADoor = doorA.GetComponent<DoorController>();
+
+        // Find Option B door (LEVEL_DOOR 2)
+        GameObject doorB = GameObject.Find("LEVEL_DOOR 2");
+        if (doorB != null && rngScript.optionBDoor == null)
+            rngScript.optionBDoor = doorB.GetComponent<DoorController>();
 
         EnsureEventSystem();
         EditorSceneManager.MarkSceneDirty(scene);

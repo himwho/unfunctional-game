@@ -1,88 +1,171 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using System.Collections.Generic;
 
 /// <summary>
-/// LEVEL 11: Bad RNG door. The player enters a room with two big buttons.
-/// Option A spawns an "Easy Room" (75% chance of a door, 25% no door -- forcing
-/// restart). Option B says "Difficult Room" but is "COMING SOON - Requires
-/// Premium DLC" and is not interactable. The player must gamble on Option A
-/// repeatedly. Each fail taunts them. When a door spawns, it auto-opens.
+/// LEVEL 11: Bad RNG door. Two doors: Option A has 75% chance of opening,
+/// Option B is "DLC locked" and never works. If Option A fails, the player
+/// must restart the ENTIRE GAME (no level restart allowed).
 ///
-/// Builds the room, buttons, HUD, and spawned rooms at runtime.
-/// Attach to root GameObject in LEVEL11 scene.
+/// Uses existing scene geometry - just add door references in the inspector.
 /// </summary>
 public class Level11_BadRNG : LevelManager
 {
     [Header("Level 11 - Bad RNG")]
-    public DoorController doorController;
+    [Tooltip("Option A door (left) - 75% chance to open")]
+    public DoorController optionADoor;
+
+    [Tooltip("Option B door (right) - DLC locked, never opens")]
+    public DoorController optionBDoor;
 
     [Header("RNG Settings")]
     [Range(0f, 1f)]
     public float doorSpawnChance = 0.75f;
 
-    // Runtime
+    [Header("Timing")]
+    public float tauntDisplayTime = 2.5f;
+
+    // Runtime UI
     private Canvas hudCanvas;
     private Text statusText;
-    private Text attemptText;
     private Text tauntText;
-    private Text optionALabel;
-    private Text optionBLabel;
-    private GameObject choiceRoom;
-    private GameObject spawnedRoom;
-    private GameObject optionAButton;
-    private GameObject optionBButton;
-    private GameObject dlcSignObj;
+    private Text attemptText;
 
+    // State
     private int attemptCount = 0;
-    private bool isChoosing = true;
-    private bool roomSpawned = false;
+    private bool hasChosen = false;
+    private bool doorOpened = false;
 
-    // Taunt messages
+    // Taunt messages for failure
     private readonly string[] tauntMessages = new string[]
     {
         "No door this time! Better luck next time!",
         "The RNG gods frown upon you.",
-        "NOPE. Try again.",
+        "NOPE. Try again... from the beginning.",
         "So close! (Not really.)",
-        "The door was in the other room. Just kidding, there is no other room.",
         "75% chance and you STILL missed? Incredible.",
         "Maybe the door is a metaphor. Nah, it's just bad luck.",
         "Door machine broke. Understandable, have a nice day.",
         "You'd think 75% would be generous. You'd be wrong.",
-        "Fun fact: you have a better chance of this working than a gacha pull.",
         "The door sends its regards. From somewhere else.",
-        "Try turning it off and on again. Oh wait.",
+        "Have you tried being luckier?",
+        "Error 404: Door not found.",
+        "You're in the 25%. Congratulations?",
+        "The universe has spoken. It said 'no'.",
+        "Back to the start with you!",
+        "This is why we can't have nice things.",
+        "Your luck stat is clearly a dump stat.",
     };
 
     protected override void Start()
     {
         base.Start();
         levelDisplayName = "RNG Casino";
-        levelDescription = "Pick a door. Or don't. Your odds are... concerning.";
+        levelDescription = "Pick a door. Your odds are... concerning.";
         needsPlayer = true;
         wantsCursorLocked = true;
 
+        FindDoors();
+        ActivateDoors();
+        DisableRestartButton();
         CreateHUD();
-        ShowChoicePhase();
+        EnsureSpawnPoint();
     }
 
     private void Update()
     {
         if (levelComplete) return;
 
-        if (isChoosing)
+        if (!hasChosen)
         {
-            UpdateChoiceInteraction();
+            UpdateDoorInteraction();
+        }
+        else if (doorOpened)
+        {
+            CheckLevelCompletion();
         }
     }
 
     // =========================================================================
-    // Choice Phase
+    // Setup
     // =========================================================================
 
-    private void UpdateChoiceInteraction()
+    private void FindDoors()
+    {
+        // Try to find doors by name if not assigned in inspector
+        if (optionADoor == null)
+        {
+            GameObject doorA = GameObject.Find("LEVEL_DOOR 1");
+            if (doorA != null)
+                optionADoor = doorA.GetComponent<DoorController>();
+        }
+
+        if (optionBDoor == null)
+        {
+            GameObject doorB = GameObject.Find("LEVEL_DOOR 2");
+            if (doorB != null)
+                optionBDoor = doorB.GetComponent<DoorController>();
+        }
+
+        if (optionADoor == null || optionBDoor == null)
+        {
+            Debug.LogWarning("[Level11] Could not find both doors! Assign them in the inspector.");
+        }
+    }
+
+    private void ActivateDoors()
+    {
+        // Ensure both doors are active and visible
+        if (optionADoor != null)
+        {
+            optionADoor.gameObject.SetActive(true);
+            optionADoor.unlockMethod = DoorController.UnlockMethod.None;
+            optionADoor.ApplyUnlockMethod();
+        }
+
+        if (optionBDoor != null)
+        {
+            optionBDoor.gameObject.SetActive(true);
+            optionBDoor.unlockMethod = DoorController.UnlockMethod.None;
+            optionBDoor.ApplyUnlockMethod();
+        }
+    }
+
+    private void EnsureSpawnPoint()
+    {
+        if (playerSpawnPoint == null)
+        {
+            GameObject sp = new GameObject("PlayerSpawnPoint");
+            sp.transform.position = new Vector3(0f, 1f, -2f);
+            sp.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            playerSpawnPoint = sp.transform;
+        }
+    }
+
+    private void DisableRestartButton()
+    {
+        GamePauseMenu pauseMenu = FindAnyObjectByType<GamePauseMenu>();
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetRestartButtonEnabled(false);
+            Debug.Log("[Level11] Restart button disabled - no mercy!");
+        }
+    }
+
+    private void ReenableRestartButton()
+    {
+        GamePauseMenu pauseMenu = FindAnyObjectByType<GamePauseMenu>();
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetRestartButtonEnabled(true);
+        }
+    }
+
+    // =========================================================================
+    // Interaction
+    // =========================================================================
+
+    private void UpdateDoorInteraction()
     {
         Camera cam = Camera.main;
         if (cam == null) return;
@@ -93,13 +176,13 @@ public class Level11_BadRNG : LevelManager
 
         if (Physics.Raycast(ray, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Collide))
         {
-            if (hit.collider.gameObject == optionAButton ||
-                hit.collider.transform.IsChildOf(optionAButton.transform))
+            Transform hitRoot = hit.collider.transform.root;
+
+            if (optionADoor != null && hitRoot == optionADoor.transform)
             {
                 lookingAtA = true;
             }
-            else if (hit.collider.gameObject == optionBButton ||
-                     hit.collider.transform.IsChildOf(optionBButton.transform))
+            else if (optionBDoor != null && hitRoot == optionBDoor.transform)
             {
                 lookingAtB = true;
             }
@@ -107,52 +190,137 @@ public class Level11_BadRNG : LevelManager
 
         if (lookingAtA)
         {
-            statusText.text = "Press [E] to choose EASY ROOM (75% chance of door)";
+            statusText.text = "Press [E] - EASY ROOM (75% chance)";
+            statusText.color = new Color(0.5f, 1f, 0.5f);
+
             if (Input.GetKeyDown(KeyCode.E))
+            {
                 OnChooseOptionA();
+            }
         }
         else if (lookingAtB)
         {
-            statusText.text = "COMING SOON - Requires Premium DLC ($49.99)";
+            statusText.text = "COMING SOON - Premium DLC ($49.99)";
+            statusText.color = new Color(1f, 0.5f, 0.5f);
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                OnChooseOptionB();
+            }
         }
         else
         {
-            statusText.text = "Look at a button and press [E]";
+            statusText.text = "Look at a door and press [E]";
+            statusText.color = Color.white;
         }
     }
 
     private void OnChooseOptionA()
     {
-        isChoosing = false;
+        hasChosen = true;
         attemptCount++;
+        UpdateAttemptDisplay();
 
-        bool hasDoor = Random.value <= doorSpawnChance;
+        bool success = Random.value <= doorSpawnChance;
+        Debug.Log($"[Level11] Attempt #{attemptCount}: Success = {success}");
 
-        Debug.Log($"[Level11] Attempt #{attemptCount}: Door spawned = {hasDoor}");
-    }
-
-    private void MovePlayerTo(Vector3 position, Quaternion rotation)
-    {
-        if (GameManager.Instance != null && GameManager.Instance.CurrentPlayer != null)
+        if (success)
         {
-            CharacterController cc = GameManager.Instance.CurrentPlayer.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-            GameManager.Instance.CurrentPlayer.transform.position = position;
-            GameManager.Instance.CurrentPlayer.transform.rotation = rotation;
-            if (cc != null) cc.enabled = true;
+            // Door opens!
+            doorOpened = true;
+            statusText.text = "The door opens! Walk through!";
+            statusText.color = new Color(0.3f, 1f, 0.5f);
+            tauntText.text = "";
+
+            if (optionADoor != null)
+            {
+                optionADoor.OpenDoor();
+            }
+        }
+        else
+        {
+            // Failure - shake and restart game
+            statusText.text = "FAILURE!";
+            statusText.color = new Color(1f, 0.3f, 0.3f);
+
+            string taunt = tauntMessages[Random.Range(0, tauntMessages.Length)];
+            tauntText.text = taunt;
+
+            if (optionADoor != null)
+            {
+                optionADoor.ShakeDoor(0.5f, 0.05f);
+            }
+
+            StartCoroutine(RestartGameSequence());
         }
     }
 
-    private void ShowChoicePhase()
+    private void OnChooseOptionB()
     {
-        isChoosing = true;
-        UpdateAttemptDisplay();
+        // DLC door - just mock the player
+        statusText.text = "This door requires PREMIUM DLC!";
+        statusText.color = new Color(1f, 0.6f, 0.2f);
+        tauntText.text = "Purchase for only $49.99! (Not really available)";
+
+        if (optionBDoor != null)
+        {
+            optionBDoor.ShakeDoor(0.3f, 0.02f);
+        }
+
+        // Let them try again
+        StartCoroutine(ResetAfterDLCTaunt());
     }
 
-    private void UpdateAttemptDisplay()
+    private IEnumerator ResetAfterDLCTaunt()
     {
-        if (attemptText != null)
-            attemptText.text = $"Attempts: {attemptCount}";
+        yield return new WaitForSeconds(1.5f);
+        tauntText.text = "";
+    }
+
+    private IEnumerator RestartGameSequence()
+    {
+        yield return new WaitForSeconds(tauntDisplayTime);
+
+        statusText.text = "Restarting game...";
+        tauntText.text = "No restarts allowed. Back to the beginning!";
+
+        yield return new WaitForSeconds(1f);
+
+        // Go back to level 0 (main menu)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.LoadLevel(0);
+        }
+    }
+
+    // =========================================================================
+    // Level Completion
+    // =========================================================================
+
+    private void CheckLevelCompletion()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.CurrentPlayer == null)
+            return;
+
+        // Check if player walked through the door
+        Vector3 playerPos = GameManager.Instance.CurrentPlayer.transform.position;
+
+        // The doors are at z ~= 3.8, so check if player is past z = 5
+        if (playerPos.z > 5f)
+        {
+            CompleteLevel();
+        }
+    }
+
+    public override void CompleteLevel()
+    {
+        if (levelComplete) return;
+
+        statusText.text = "LEVEL COMPLETE!";
+        statusText.color = new Color(0.3f, 1f, 0.5f);
+        tauntText.text = $"Cleared in {attemptCount} attempt{(attemptCount == 1 ? "" : "s")}!";
+
+        base.CompleteLevel();
     }
 
     // =========================================================================
@@ -171,34 +339,29 @@ public class Level11_BadRNG : LevelManager
         scaler.referenceResolution = new Vector2(1920, 1080);
 
         // Status text (center)
-        statusText = MakeText(canvasObj.transform, "StatusText", "",
-            new Vector2(0.15f, 0.4f), new Vector2(0.85f, 0.5f),
-            24, Color.white, TextAnchor.MiddleCenter);
+        statusText = CreateText(canvasObj.transform, "StatusText", "Look at a door and press [E]",
+            new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.45f),
+            28, Color.white, TextAnchor.MiddleCenter);
 
-        // Attempt counter
-        attemptText = MakeText(canvasObj.transform, "AttemptText", "Attempts: 0",
-            new Vector2(0.02f, 0.92f), new Vector2(0.2f, 0.97f),
-            20, new Color(0.7f, 0.7f, 0.8f), TextAnchor.MiddleLeft);
+        // Attempt counter (top-left)
+        attemptText = CreateText(canvasObj.transform, "AttemptText", "Attempts: 0",
+            new Vector2(0.02f, 0.92f), new Vector2(0.25f, 0.98f),
+            22, new Color(0.7f, 0.7f, 0.8f), TextAnchor.MiddleLeft);
 
-        // Taunt text
-        tauntText = MakeText(canvasObj.transform, "TauntText", "",
-            new Vector2(0.1f, 0.55f), new Vector2(0.9f, 0.65f),
-            22, new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleCenter);
+        // Taunt text (below status)
+        tauntText = CreateText(canvasObj.transform, "TauntText", "",
+            new Vector2(0.1f, 0.2f), new Vector2(0.9f, 0.32f),
+            22, new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleCenter);
         tauntText.fontStyle = FontStyle.Italic;
-
-        // Option labels (screen-space, since we can't use TextMesh easily)
-        optionALabel = MakeText(canvasObj.transform, "OptionALabel",
-            "OPTION A\nEasy Room\n75% chance of door",
-            new Vector2(0.15f, 0.7f), new Vector2(0.45f, 0.88f),
-            18, new Color(0.3f, 0.8f, 0.3f), TextAnchor.MiddleCenter);
-
-        optionBLabel = MakeText(canvasObj.transform, "OptionBLabel",
-            "OPTION B\nDifficult Room\nCOMING SOON\n(Requires Premium DLC)",
-            new Vector2(0.55f, 0.7f), new Vector2(0.85f, 0.88f),
-            18, new Color(0.6f, 0.4f, 0.4f), TextAnchor.MiddleCenter);
     }
 
-    private Text MakeText(Transform parent, string name, string content,
+    private void UpdateAttemptDisplay()
+    {
+        if (attemptText != null)
+            attemptText.text = $"Attempts: {attemptCount}";
+    }
+
+    private Text CreateText(Transform parent, string name, string content,
         Vector2 anchorMin, Vector2 anchorMax, int fontSize, Color color, TextAnchor anchor)
     {
         GameObject obj = new GameObject(name);
@@ -219,25 +382,12 @@ public class Level11_BadRNG : LevelManager
     }
 
     // =========================================================================
-    // Helpers
+    // Cleanup
     // =========================================================================
 
-    private void CreateBoxChild(GameObject parent, string name, Vector3 pos, Vector3 scale, Material mat)
+    protected override void OnDestroy()
     {
-        GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        obj.name = name;
-        obj.transform.SetParent(parent.transform);
-        obj.transform.position = pos;
-        obj.transform.localScale = scale;
-        obj.GetComponent<Renderer>().sharedMaterial = mat;
-    }
-
-    private Material CreateMat(Color color)
-    {
-        Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        if (mat.shader == null || mat.shader.name == "Hidden/InternalErrorShader")
-            mat = new Material(Shader.Find("Standard"));
-        mat.color = color;
-        return mat;
+        ReenableRestartButton();
+        base.OnDestroy();
     }
 }
