@@ -105,4 +105,14 @@ public class GamePauseMenu : MonoBehaviour
         Application.Quit();
 #endif
     }
+
+    /// <summary>
+    /// Show or hide the restart button. Used by levels that want to prevent
+    /// restarting (e.g., Level 11's RNG punishment mechanic).
+    /// </summary>
+    public void SetRestartButtonEnabled(bool enabled)
+    {
+        if (restartButton != null)
+            restartButton.gameObject.SetActive(enabled);
+    }
 }
