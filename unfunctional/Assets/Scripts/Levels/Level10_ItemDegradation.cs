@@ -94,6 +94,25 @@ public class Level10_ItemDegradation : LevelManager
     private Vector3 nailStartPos;
     [SerializeField] private float nailTotalDrop = 0.0763f;
 
+    // Wood Plank (two child halves under "Wood Plank")
+    private Transform plankTransform;
+    private Transform plankChildA;
+    private Transform plankChildB;
+    private bool plankSplit = false;
+    [SerializeField] private float plankSplitForce = 2f;
+    [SerializeField] private float sawingAmplitude = 0.08f;
+
+    [Header("Saw Cut Line")]
+    [SerializeField] private Vector3 sawCutLineOffset = Vector3.zero;
+    [SerializeField] private Vector3 sawCutLineRotation = Vector3.zero;
+    [SerializeField] private Vector3 sawCutLineScale = new Vector3(0.3f, 0.05f, 1f);
+    [SerializeField] private Color sawCutLineColor = new Color(1f, 0.7f, 0.1f);
+    [SerializeField] private float sawCutLineGlowIntensity = 2f;
+    [SerializeField] private float sawCutLinePulseSpeed = 3f;
+
+    private GameObject sawCutLine;
+    private Material sawCutLineMaterial;
+
     // HUD
     private Canvas hudCanvas;
     private Text promptText;
@@ -130,6 +149,7 @@ public class Level10_ItemDegradation : LevelManager
         UpdateTaskList();
         InitHammer();
         InitSaw();
+        InitPlank();
     }
 
     private void Update()
@@ -137,6 +157,18 @@ public class Level10_ItemDegradation : LevelManager
         if (levelComplete) return;
 
         UpdateInteraction();
+        UpdateSawGuideGlow();
+    }
+
+    private void UpdateSawGuideGlow()
+    {
+        if (sawCutLineMaterial == null || sawCutLine == null) return;
+
+        float pulse = (Mathf.Sin(Time.time * sawCutLinePulseSpeed) + 1f) * 0.5f;
+        Color dimmed = sawCutLineColor * 0.6f;
+        Color glow = Color.Lerp(dimmed, sawCutLineColor, pulse);
+        sawCutLineMaterial.color = glow;
+        sawCutLineMaterial.SetColor("_EmissionColor", glow * (sawCutLineGlowIntensity * (0.7f + pulse * 0.3f)));
     }
 
     // =========================================================================
@@ -158,7 +190,7 @@ public class Level10_ItemDegradation : LevelManager
         {
             new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
-            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 6 },
+            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
             new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 5 },
         };
@@ -282,6 +314,61 @@ public class Level10_ItemDegradation : LevelManager
             Debug.LogWarning("[Level10] No saws found in scene");
     }
 
+    private void InitPlank()
+    {
+        GameObject plankObj = GameObject.Find("Wood Plank");
+        if (plankObj == null)
+        {
+            Debug.LogWarning("[Level10] 'Wood Plank' not found in scene");
+            return;
+        }
+
+        plankTransform = plankObj.transform;
+
+        if (plankTransform.childCount >= 2)
+        {
+            plankChildA = plankTransform.GetChild(0);
+            plankChildB = plankTransform.GetChild(1);
+            Debug.Log($"[Level10] Found 'Wood Plank' with children '{plankChildA.name}' and '{plankChildB.name}'");
+        }
+        else
+        {
+            Debug.LogWarning("[Level10] 'Wood Plank' needs at least 2 child objects (the two halves)");
+        }
+
+        CreateSawCutLine();
+    }
+
+    private void CreateSawCutLine()
+    {
+        if (plankChildA == null || plankChildB == null) return;
+
+        Vector3 seamCenter = (plankChildA.position + plankChildB.position) * 0.5f;
+
+        sawCutLine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        sawCutLine.name = "SawGuide";
+        Destroy(sawCutLine.GetComponent<Collider>());
+
+        sawCutLine.transform.SetParent(plankTransform);
+        sawCutLine.transform.position = seamCenter + plankTransform.TransformDirection(sawCutLineOffset);
+        sawCutLine.transform.rotation = plankTransform.rotation * Quaternion.Euler(sawCutLineRotation);
+        sawCutLine.transform.localScale = sawCutLineScale;
+
+        var renderer = sawCutLine.GetComponent<Renderer>();
+        Material mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        if (mat.shader == null || mat.shader.name == "Hidden/InternalErrorShader")
+            mat = new Material(Shader.Find("Unlit/Color"));
+        mat.color = sawCutLineColor;
+        mat.EnableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", sawCutLineColor * sawCutLineGlowIntensity);
+        renderer.material = mat;
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        sawCutLineMaterial = mat;
+
+        sawCutLine.SetActive(false);
+    }
+
     // =========================================================================
     // Interaction
     // =========================================================================
@@ -363,9 +450,17 @@ public class Level10_ItemDegradation : LevelManager
             {
                 for (int i = 0; i < tasks.Count; i++)
                 {
-                    if (tasks[i].stationObject != null &&
+                    bool hitStation = tasks[i].stationObject != null &&
                         (hit.collider.gameObject == tasks[i].stationObject ||
-                         hit.collider.transform.IsChildOf(tasks[i].stationObject.transform)))
+                         hit.collider.transform.IsChildOf(tasks[i].stationObject.transform));
+
+                    if (!hitStation && tasks[i].toolName == "Saw" && plankTransform != null)
+                    {
+                        hitStation = hit.collider.gameObject == plankTransform.gameObject ||
+                                     hit.collider.transform.IsChildOf(plankTransform);
+                    }
+
+                    if (hitStation)
                     {
                         showPrompt = true;
 
@@ -380,9 +475,12 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
-                            promptText.text = (holdingRealHammer || holdingRealSaw)
-                                ? ""
-                                : $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
+                            if (holdingRealHammer)
+                                promptText.text = "";
+                            else if (holdingRealSaw)
+                                promptText.text = $"Left Click to saw ({currentToolDurability} uses left)";
+                            else
+                                promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
                             if (Input.GetMouseButtonDown(0) && !isSwinging)
                                 StartCoroutine(SwingAndUseTool(i));
@@ -492,6 +590,11 @@ public class Level10_ItemDegradation : LevelManager
             StartCoroutine(PushNailDown(targetPos));
         }
 
+        if (task.toolName == "Saw" && sawCutLine != null && !plankSplit)
+        {
+            UpdateSawCutProgress(task);
+        }
+
         // Check if tool broke
         if (currentToolDurability <= 0)
         {
@@ -515,6 +618,11 @@ public class Level10_ItemDegradation : LevelManager
                 DropRealSaw();
                 currentToolName = "";
                 currentToolDurability = 0;
+            }
+
+            if (task.toolName == "Saw" && !plankSplit)
+            {
+                SplitPlank();
             }
 
             // Visual feedback on station
@@ -581,6 +689,15 @@ public class Level10_ItemDegradation : LevelManager
     private IEnumerator SwingAndUseTool(int taskIndex)
     {
         isSwinging = true;
+
+        bool isSawTask = tasks[taskIndex].toolName == "Saw" && plankTransform != null;
+
+        if (isSawTask)
+        {
+            yield return StartCoroutine(SawAndUseTool(taskIndex));
+            isSwinging = false;
+            yield break;
+        }
 
         Transform swingTarget = null;
         if (holdingRealHammer && hammerSceneObject != null)
@@ -661,6 +778,77 @@ public class Level10_ItemDegradation : LevelManager
         }
 
         isSwinging = false;
+    }
+
+    private IEnumerator SawAndUseTool(int taskIndex)
+    {
+        Transform swingTarget = null;
+        if (holdingRealSaw && sawSceneObject != null)
+            swingTarget = sawSceneObject.transform;
+        else if (currentToolVisual != null)
+            swingTarget = currentToolVisual.transform;
+
+        if (swingTarget == null)
+        {
+            UseTool(taskIndex);
+            yield break;
+        }
+
+        Vector3 startPos = swingTarget.localPosition;
+        Quaternion startRot = swingTarget.localRotation;
+
+        // Tilt saw slightly forward to meet the plank
+        Quaternion sawAngle = startRot * Quaternion.Euler(15f, 0f, 0f);
+        float tiltTime = 0.1f;
+        float t = 0f;
+        while (t < tiltTime)
+        {
+            t += Time.deltaTime;
+            swingTarget.localRotation = Quaternion.Slerp(startRot, sawAngle, t / tiltTime);
+            yield return null;
+        }
+
+        // Back-and-forth sawing strokes
+        int strokes = 4;
+        float strokeTime = 0.15f;
+
+        for (int i = 0; i < strokes; i++)
+        {
+            float target = (i % 2 == 0) ? sawingAmplitude : -sawingAmplitude;
+            float elapsed = 0f;
+            Vector3 from = swingTarget.localPosition;
+            Vector3 to = startPos + swingTarget.localRotation * new Vector3(0f, 0f, target);
+
+            while (elapsed < strokeTime)
+            {
+                elapsed += Time.deltaTime;
+                swingTarget.localPosition = Vector3.Lerp(from, to, elapsed / strokeTime);
+                yield return null;
+            }
+        }
+
+        int durabilityBefore = currentToolDurability;
+        UseTool(taskIndex);
+        bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+
+        if (!toolBroke && !tasks[taskIndex].completed)
+            StartBreakMessage("Sawing...", new Color(1f, 0.85f, 0.4f, 1f));
+
+        // Return to rest position
+        t = 0f;
+        float returnTime = 0.15f;
+        Vector3 currentPos = swingTarget.localPosition;
+        Quaternion currentRot = swingTarget.localRotation;
+        while (t < returnTime)
+        {
+            t += Time.deltaTime;
+            float frac = t / returnTime;
+            swingTarget.localPosition = Vector3.Lerp(currentPos, startPos, frac);
+            swingTarget.localRotation = Quaternion.Slerp(currentRot, startRot, frac);
+            yield return null;
+        }
+        swingTarget.localPosition = startPos;
+        swingTarget.localRotation = startRot;
     }
 
     private IEnumerator PushNailDown(Vector3 targetPos)
@@ -963,6 +1151,9 @@ public class Level10_ItemDegradation : LevelManager
         currentToolDurability = maxDurability;
         holdingRealSaw = true;
 
+        if (sawCutLine != null && !plankSplit)
+            sawCutLine.SetActive(true);
+
         Camera cam = Camera.main;
         if (cam != null && sawSceneObject != null)
         {
@@ -984,6 +1175,8 @@ public class Level10_ItemDegradation : LevelManager
     private void BreakSaw()
     {
         holdingRealSaw = false;
+        if (sawCutLine != null)
+            sawCutLine.SetActive(false);
         Camera cam = Camera.main;
 
         if (sawBladeTransform != null)
@@ -1039,6 +1232,8 @@ public class Level10_ItemDegradation : LevelManager
     private void DropRealSaw()
     {
         holdingRealSaw = false;
+        if (sawCutLine != null)
+            sawCutLine.SetActive(false);
 
         if (sawSceneObject != null)
         {
@@ -1056,6 +1251,85 @@ public class Level10_ItemDegradation : LevelManager
             sawBladeTransform = null;
             sawHandleTransform = null;
         }
+    }
+
+    // =========================================================================
+    // Wood Plank / Sawing
+    // =========================================================================
+
+    private void UpdateSawCutProgress(Task task)
+    {
+        if (plankChildA == null || plankChildB == null) return;
+
+        float progress = (float)task.currentUses / task.requiredUses;
+
+        Vector3 dirAway = (plankChildA.position - plankChildB.position).normalized;
+        if (dirAway.sqrMagnitude < 0.001f)
+            dirAway = plankTransform != null ? plankTransform.right : Vector3.right;
+
+        float separation = progress * 0.003f;
+        plankChildA.localPosition += dirAway * separation;
+        plankChildB.localPosition -= dirAway * separation;
+    }
+
+    private void SplitPlank()
+    {
+        if (plankSplit) return;
+        plankSplit = true;
+
+        Debug.Log("[Level10] Plank split!");
+
+        if (sawCutLine != null)
+            Destroy(sawCutLine);
+        sawCutLineMaterial = null;
+
+        if (plankChildA != null)
+            StartCoroutine(ReleasePlankHalf(plankChildA, 1f));
+        if (plankChildB != null)
+            StartCoroutine(ReleasePlankHalf(plankChildB, -1f));
+    }
+
+    private IEnumerator ReleasePlankHalf(Transform half, float sideSign)
+    {
+        half.SetParent(null);
+
+        foreach (var existingCollider in half.GetComponentsInChildren<Collider>())
+        {
+            existingCollider.isTrigger = false;
+            existingCollider.enabled = true;
+        }
+
+        bool hasCollider = half.GetComponentsInChildren<Collider>().Length > 0;
+        if (!hasCollider)
+        {
+            foreach (var mf in half.GetComponentsInChildren<MeshFilter>())
+            {
+                if (mf.sharedMesh != null)
+                {
+                    var mc = mf.gameObject.AddComponent<MeshCollider>();
+                    mc.convex = true;
+                }
+            }
+
+            if (half.GetComponentsInChildren<Collider>().Length == 0)
+                half.gameObject.AddComponent<BoxCollider>();
+        }
+
+        IgnorePlayerCollision(half.gameObject);
+
+        Rigidbody rb = half.gameObject.AddComponent<Rigidbody>();
+        rb.mass = 2f;
+
+        yield return new WaitForFixedUpdate();
+
+        Vector3 pushDir = Vector3.zero;
+        if (plankTransform != null)
+            pushDir = plankTransform.right * sideSign;
+        else
+            pushDir = Vector3.right * sideSign;
+
+        rb.AddForce((pushDir + Vector3.down * 0.3f) * plankSplitForce, ForceMode.Impulse);
+        rb.AddTorque(Random.insideUnitSphere * 1.5f, ForceMode.Impulse);
     }
 
     private void CheckAllTasksComplete()

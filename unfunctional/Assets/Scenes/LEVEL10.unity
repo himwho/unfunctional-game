@@ -190,8 +190,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bb98a90c73470284f987c461ed3fc57e,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 63478796}
   m_SourcePrefab: {fileID: 100100000, guid: bb98a90c73470284f987c461ed3fc57e, type: 3}
+--- !u!1 &63478795 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: bb98a90c73470284f987c461ed3fc57e,
+    type: 3}
+  m_PrefabInstance: {fileID: 63478794}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &63478796
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 63478795}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.018993739, y: 0.018025555, z: 0.016617715}
+  m_Center: {x: 0.000009790063, y: 0.000010446182, z: -0.000008083882}
 --- !u!1 &145123177
 GameObject:
   m_ObjectHideFlags: 0
@@ -5029,6 +5060,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2027205091}
+  - component: {fileID: 2027205092}
   m_Layer: 0
   m_Name: Wood Plank
   m_TagString: Untagged
@@ -5053,6 +5085,27 @@ Transform:
   - {fileID: 337820659}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -50.883, y: 0, z: 0}
+--- !u!65 &2027205092
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2027205090}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.9, y: 0.1, z: 0.25}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!43 &2041104980
 Mesh:
   m_ObjectHideFlags: 0
@@ -5855,6 +5908,14 @@ MonoBehaviour:
   sawBladeLaunchForce: 8
   sawBladeTorque: 10
   nailTotalDrop: 0.0763
+  plankSplitForce: 2
+  sawingAmplitude: 0.08
+  sawCutLineOffset: {x: -0.5, y: 0, z: 0}
+  sawCutLineRotation: {x: 0, y: 90, z: 0}
+  sawCutLineScale: {x: 0.22, y: 0.05, z: 0.01}
+  sawCutLineColor: {r: 1, g: 0.7, b: 0.1, a: 1}
+  sawCutLineGlowIntensity: 2
+  sawCutLinePulseSpeed: 3
 --- !u!4 &2124735147
 Transform:
   m_ObjectHideFlags: 0
