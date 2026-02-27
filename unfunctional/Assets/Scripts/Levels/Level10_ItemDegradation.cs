@@ -277,9 +277,12 @@ public class Level10_ItemDegradation : LevelManager
                     {
                         showPrompt = true;
 
+                        bool isHammerStation = tasks[i].toolName == "Hammer";
+
                         if (tasks[i].completed)
                         {
-                            promptText.text = $"{tasks[i].name} - DONE";
+                            if (!isHammerStation)
+                                promptText.text = $"{tasks[i].name} - DONE";
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
@@ -292,7 +295,8 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (string.IsNullOrEmpty(currentToolName))
                         {
-                            promptText.text = $"Need: {tasks[i].toolName} (pick one up from the rack)";
+                            if (!isHammerStation)
+                                promptText.text = $"Need: {tasks[i].toolName} (pick one up from the rack)";
                         }
                         else
                         {
@@ -402,12 +406,20 @@ public class Level10_ItemDegradation : LevelManager
             task.completed = true;
             Debug.Log($"[Level10] Task '{task.name}' completed!");
 
+            if (holdingRealHammer && task.toolName == "Hammer")
+            {
+                DropRealHammer();
+                currentToolName = "";
+                currentToolDurability = 0;
+            }
+
             // Visual feedback on station
             if (task.progressIndicator != null)
             {
                 task.progressIndicator.GetComponent<Renderer>().material.color = Color.green;
             }
 
+            StartBreakMessage($"'{task.name}' complete!", new Color(0.3f, 1f, 0.3f, 1f), 3f);
             CheckAllTasksComplete();
         }
         else
@@ -514,7 +526,7 @@ public class Level10_ItemDegradation : LevelManager
                     int durabilityBefore = currentToolDurability;
                     UseTool(taskIndex);
                     bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
-                    if (!toolBroke)
+                    if (!toolBroke && !tasks[taskIndex].completed)
                         StartBreakMessage("Hit!", new Color(0.3f, 1f, 0.3f, 1f));
                 }
                 else
@@ -565,12 +577,22 @@ public class Level10_ItemDegradation : LevelManager
         activeBreakMessage = StartCoroutine(ShowBreakMessage(msg, color));
     }
 
-    private IEnumerator ShowBreakMessage(string msg, Color color)
+    private void StartBreakMessage(string msg, Color color, float holdTime)
+    {
+        if (activeBreakMessage != null)
+            StopCoroutine(activeBreakMessage);
+        activeBreakMessage = StartCoroutine(ShowBreakMessage(msg, color, holdTime));
+    }
+
+    private IEnumerator ShowBreakMessage(string msg, Color color, float holdTime = 0f)
     {
         if (breakText == null) yield break;
 
         breakText.text = msg;
         breakText.color = color;
+
+        if (holdTime > 0f)
+            yield return new WaitForSeconds(holdTime);
 
         float fadeTime = 0.75f;
         float elapsed = 0f;
