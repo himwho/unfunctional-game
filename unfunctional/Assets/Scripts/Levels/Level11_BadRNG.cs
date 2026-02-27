@@ -3,11 +3,14 @@ using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// LEVEL 11: Bad RNG door. Two doors: Option A has 75% chance of opening,
-/// Option B is "DLC locked" and never works. If Option A fails, the player
-/// must restart the ENTIRE GAME (no level restart allowed).
+/// LEVEL 11: Bad RNG door. Two buttons: Option A has 75% chance of spawning
+/// a door, Option B is "DLC locked" and never works. If Option A fails, the
+/// player must restart the ENTIRE GAME (no level restart allowed).
 ///
-/// Uses existing scene geometry - just add door references in the inspector.
+/// Expects "Button1" and "Button2" GameObjects in the scene, each with a
+/// ButtonPedestal prefab instance (Column, Base, TopCap, ButtonTop, LED strips).
+/// If buttonPrefab is assigned and the buttons are empty, the prefab is
+/// instantiated at runtime as a fallback.
 /// </summary>
 public class Level11_BadRNG : LevelManager
 {
@@ -17,6 +20,16 @@ public class Level11_BadRNG : LevelManager
 
     [Tooltip("Option B door (right) - DLC locked, never opens")]
     public DoorController optionBDoor;
+
+    [Header("Buttons (scene objects)")]
+    [Tooltip("Option A button object in scene")]
+    public GameObject buttonA;
+
+    [Tooltip("Option B button object in scene")]
+    public GameObject buttonB;
+
+    [Tooltip("ButtonPedestal prefab (Tools > Create Button Pedestal Prefab)")]
+    public GameObject buttonPrefab;
 
     [Header("RNG Settings")]
     [Range(0f, 1f)]
@@ -31,12 +44,23 @@ public class Level11_BadRNG : LevelManager
     private Text tauntText;
     private Text attemptText;
 
+    // Button tops (child objects built at runtime for press animation)
+    private Transform buttonATop;
+    private Transform buttonBTop;
+
+    private readonly Color colorADefault = new Color(0.3f, 0.9f, 0.3f);
+    private readonly Color colorAHighlight = new Color(0.5f, 1f, 0.5f);
+    private readonly Color colorBDefault = new Color(0.9f, 0.3f, 0.3f);
+    private readonly Color colorBHighlight = new Color(1f, 0.5f, 0.5f);
+
+    // Front wall collider (disabled when door opens so player can walk through)
+    private BoxCollider frontWallCollider;
+
     // State
     private int attemptCount = 0;
     private bool hasChosen = false;
     private bool doorOpened = false;
 
-    // Taunt messages for failure
     private readonly string[] tauntMessages = new string[]
     {
         "No door this time! Better luck next time!",
@@ -65,9 +89,10 @@ public class Level11_BadRNG : LevelManager
         needsPlayer = true;
         wantsCursorLocked = true;
 
-        FindDoors();
+        FindFrontWall();
         ActivateDoors();
         DisableRestartButton();
+        SetupButtons();
         CreateHUD();
         EnsureSpawnPoint();
     }
@@ -78,7 +103,7 @@ public class Level11_BadRNG : LevelManager
 
         if (!hasChosen)
         {
-            UpdateDoorInteraction();
+            UpdateButtonInteraction();
         }
         else if (doorOpened)
         {
@@ -90,32 +115,20 @@ public class Level11_BadRNG : LevelManager
     // Setup
     // =========================================================================
 
-    private void FindDoors()
+    private void FindFrontWall()
     {
-        // Try to find doors by name if not assigned in inspector
-        if (optionADoor == null)
+        foreach (GameObject root in gameObject.scene.GetRootGameObjects())
         {
-            GameObject doorA = GameObject.Find("LEVEL_DOOR 1");
-            if (doorA != null)
-                optionADoor = doorA.GetComponent<DoorController>();
-        }
-
-        if (optionBDoor == null)
-        {
-            GameObject doorB = GameObject.Find("LEVEL_DOOR 2");
-            if (doorB != null)
-                optionBDoor = doorB.GetComponent<DoorController>();
-        }
-
-        if (optionADoor == null || optionBDoor == null)
-        {
-            Debug.LogWarning("[Level11] Could not find both doors! Assign them in the inspector.");
+            if (root.name == "Wall (2)")
+            {
+                frontWallCollider = root.GetComponent<BoxCollider>();
+                break;
+            }
         }
     }
 
     private void ActivateDoors()
     {
-        // Ensure both doors are active and visible
         if (optionADoor != null)
         {
             optionADoor.gameObject.SetActive(true);
@@ -156,8 +169,105 @@ public class Level11_BadRNG : LevelManager
     {
         GamePauseMenu pauseMenu = FindAnyObjectByType<GamePauseMenu>();
         if (pauseMenu != null)
-        {
             pauseMenu.SetRestartButtonEnabled(true);
+    }
+
+    // =========================================================================
+    // Buttons
+    // =========================================================================
+
+    private void SetupButtons()
+    {
+        if (buttonA != null)
+        {
+            EnsurePrefabChildren(buttonA);
+            ApplyButtonStyle(buttonA, colorADefault, "OPTION A\nEASY ROOM\n75% Chance");
+            buttonATop = buttonA.transform.Find("ButtonTop");
+        }
+
+        if (buttonB != null)
+        {
+            EnsurePrefabChildren(buttonB);
+            ApplyButtonStyle(buttonB, colorBDefault, "OPTION B\nDIFFICULT ROOM\nCOMING SOON");
+            buttonBTop = buttonB.transform.Find("ButtonTop");
+        }
+    }
+
+    /// <summary>
+    /// If the button object has no children yet (empty scene object) and a
+    /// buttonPrefab is assigned, instantiate the prefab as a child so it
+    /// gets the pedestal + top geometry.
+    /// </summary>
+    private void EnsurePrefabChildren(GameObject button)
+    {
+        if (button.transform.Find("ButtonTop") != null) return;
+        if (buttonPrefab == null) return;
+
+        GameObject instance = Instantiate(buttonPrefab, button.transform);
+        instance.name = buttonPrefab.name;
+        instance.transform.localPosition = Vector3.zero;
+        instance.transform.localRotation = Quaternion.identity;
+        instance.transform.localScale = Vector3.one;
+
+        // Re-parent the children directly under the button so
+        // transform.Find("ButtonTop") works and transform.root
+        // resolves to the button for raycasts.
+        for (int i = instance.transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = instance.transform.GetChild(i);
+            child.SetParent(button.transform, false);
+        }
+        Destroy(instance);
+    }
+
+    /// <summary>
+    /// Applies color and emission to the ButtonTop renderer and creates
+    /// a floating label above the button. The prefab's baked-in materials
+    /// (Column, Base, strips) are left untouched — only ButtonTop gets
+    /// a runtime color override so each button can be green or red.
+    /// </summary>
+    private void ApplyButtonStyle(GameObject button, Color topColor, string label)
+    {
+        // Color the button top with emission
+        Transform top = button.transform.Find("ButtonTop");
+        if (top != null)
+        {
+            Renderer topRend = top.GetComponent<Renderer>();
+            if (topRend != null)
+            {
+                topRend.material = new Material(Shader.Find("Standard"));
+                topRend.material.color = topColor;
+                topRend.material.EnableKeyword("_EMISSION");
+                topRend.material.SetColor("_EmissionColor", topColor * 0.3f);
+            }
+        }
+
+        // Add label if one doesn't already exist
+        Transform existingLabel = button.transform.Find("Label");
+        if (existingLabel != null) return;
+
+        // Use the LabelAnchor from the prefab if it exists, otherwise default position
+        Transform anchor = button.transform.Find("LabelAnchor");
+        Vector3 labelPos = anchor != null ? anchor.localPosition : new Vector3(0f, 1.7f, 0f);
+
+        GameObject labelObj = new GameObject("Label");
+        labelObj.transform.SetParent(button.transform, false);
+        labelObj.transform.localPosition = labelPos;
+        labelObj.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        TextMesh tm = labelObj.AddComponent<TextMesh>();
+        tm.text = label;
+        tm.fontSize = 28;
+        tm.characterSize = 0.08f;
+        tm.alignment = TextAlignment.Center;
+        tm.anchor = TextAnchor.LowerCenter;
+        tm.color = Color.white;
+        Font font = UIHelper.GetDefaultFont();
+        if (font != null)
+        {
+            tm.font = font;
+            MeshRenderer mr = labelObj.GetComponent<MeshRenderer>();
+            if (mr != null && font.material != null)
+                mr.material = font.material;
         }
     }
 
@@ -165,7 +275,7 @@ public class Level11_BadRNG : LevelManager
     // Interaction
     // =========================================================================
 
-    private void UpdateDoorInteraction()
+    private void UpdateButtonInteraction()
     {
         Camera cam = Camera.main;
         if (cam == null) return;
@@ -174,45 +284,53 @@ public class Level11_BadRNG : LevelManager
         bool lookingAtA = false;
         bool lookingAtB = false;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Collide))
+        if (Physics.Raycast(ray, out RaycastHit hit, 5f))
         {
             Transform hitRoot = hit.collider.transform.root;
 
-            if (optionADoor != null && hitRoot == optionADoor.transform)
-            {
+            if (buttonA != null && hitRoot == buttonA.transform)
                 lookingAtA = true;
-            }
-            else if (optionBDoor != null && hitRoot == optionBDoor.transform)
-            {
+            else if (buttonB != null && hitRoot == buttonB.transform)
                 lookingAtB = true;
-            }
         }
+
+        // Reset highlights
+        SetButtonEmission(buttonATop, colorADefault, false);
+        SetButtonEmission(buttonBTop, colorBDefault, false);
 
         if (lookingAtA)
         {
             statusText.text = "Press [E] - EASY ROOM (75% chance)";
             statusText.color = new Color(0.5f, 1f, 0.5f);
+            SetButtonEmission(buttonATop, colorAHighlight, true);
 
             if (Input.GetKeyDown(KeyCode.E))
-            {
                 OnChooseOptionA();
-            }
         }
         else if (lookingAtB)
         {
             statusText.text = "COMING SOON - Premium DLC ($49.99)";
             statusText.color = new Color(1f, 0.5f, 0.5f);
+            SetButtonEmission(buttonBTop, colorBHighlight, true);
 
             if (Input.GetKeyDown(KeyCode.E))
-            {
                 OnChooseOptionB();
-            }
         }
         else
         {
-            statusText.text = "Look at a door and press [E]";
+            statusText.text = "Choose a button and press [E]";
             statusText.color = Color.white;
         }
+    }
+
+    private void SetButtonEmission(Transform buttonTop, Color color, bool bright)
+    {
+        if (buttonTop == null) return;
+        Renderer rend = buttonTop.GetComponent<Renderer>();
+        if (rend == null) return;
+
+        rend.material.color = color;
+        rend.material.SetColor("_EmissionColor", color * (bright ? 0.6f : 0.3f));
     }
 
     private void OnChooseOptionA()
@@ -221,35 +339,29 @@ public class Level11_BadRNG : LevelManager
         attemptCount++;
         UpdateAttemptDisplay();
 
+        StartCoroutine(ButtonPressAnimation(buttonATop));
+
         bool success = Random.value <= doorSpawnChance;
         Debug.Log($"[Level11] Attempt #{attemptCount}: Success = {success}");
 
         if (success)
         {
-            // Door opens!
             doorOpened = true;
             statusText.text = "The door opens! Walk through!";
             statusText.color = new Color(0.3f, 1f, 0.5f);
             tauntText.text = "";
 
             if (optionADoor != null)
-            {
                 optionADoor.OpenDoor();
-            }
         }
         else
         {
-            // Failure - shake and restart game
             statusText.text = "FAILURE!";
             statusText.color = new Color(1f, 0.3f, 0.3f);
-
-            string taunt = tauntMessages[Random.Range(0, tauntMessages.Length)];
-            tauntText.text = taunt;
+            tauntText.text = tauntMessages[Random.Range(0, tauntMessages.Length)];
 
             if (optionADoor != null)
-            {
                 optionADoor.ShakeDoor(0.5f, 0.05f);
-            }
 
             StartCoroutine(RestartGameSequence());
         }
@@ -257,18 +369,46 @@ public class Level11_BadRNG : LevelManager
 
     private void OnChooseOptionB()
     {
-        // DLC door - just mock the player
-        statusText.text = "This door requires PREMIUM DLC!";
+        statusText.text = "This content requires PREMIUM DLC!";
         statusText.color = new Color(1f, 0.6f, 0.2f);
         tauntText.text = "Purchase for only $49.99! (Not really available)";
 
+        StartCoroutine(ButtonPressAnimation(buttonBTop));
+
         if (optionBDoor != null)
-        {
             optionBDoor.ShakeDoor(0.3f, 0.02f);
+
+        StartCoroutine(ResetAfterDLCTaunt());
+    }
+
+    private IEnumerator ButtonPressAnimation(Transform buttonTop)
+    {
+        if (buttonTop == null) yield break;
+
+        Vector3 originalPos = buttonTop.localPosition;
+        Vector3 pressedPos = originalPos + Vector3.down * 0.1f;
+
+        // Press down
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime * 8f;
+            buttonTop.localPosition = Vector3.Lerp(originalPos, pressedPos, t);
+            yield return null;
         }
 
-        // Let them try again
-        StartCoroutine(ResetAfterDLCTaunt());
+        yield return new WaitForSeconds(0.1f);
+
+        // Release back up
+        t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime * 4f;
+            buttonTop.localPosition = Vector3.Lerp(pressedPos, originalPos, t);
+            yield return null;
+        }
+
+        buttonTop.localPosition = originalPos;
     }
 
     private IEnumerator ResetAfterDLCTaunt()
@@ -286,30 +426,25 @@ public class Level11_BadRNG : LevelManager
 
         yield return new WaitForSeconds(1f);
 
-        // Go back to level 0 (main menu)
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.LoadLevel(0);
-        }
     }
 
     // =========================================================================
     // Level Completion
     // =========================================================================
-
+    
     private void CheckLevelCompletion()
     {
         if (GameManager.Instance == null || GameManager.Instance.CurrentPlayer == null)
             return;
 
-        // Check if player walked through the door
         Vector3 playerPos = GameManager.Instance.CurrentPlayer.transform.position;
+        float doorZ = optionADoor != null ? optionADoor.transform.position.z : 3.8f;
 
-        // The doors are at z ~= 3.8, so check if player is past z = 5
-        if (playerPos.z > 5f)
-        {
+        // Player has walked past the door
+        if (playerPos.z > doorZ + 0.5f)
             CompleteLevel();
-        }
     }
 
     public override void CompleteLevel()
@@ -339,7 +474,8 @@ public class Level11_BadRNG : LevelManager
         scaler.referenceResolution = new Vector2(1920, 1080);
 
         // Status text (center)
-        statusText = CreateText(canvasObj.transform, "StatusText", "Look at a door and press [E]",
+        statusText = CreateText(canvasObj.transform, "StatusText",
+            "Choose a button and press [E]",
             new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.45f),
             28, Color.white, TextAnchor.MiddleCenter);
 
