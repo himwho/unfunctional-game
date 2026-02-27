@@ -34,6 +34,7 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private Vector3 sawHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
     [SerializeField] private Vector3 sawHeldRotation = new Vector3(0f, 180f, -30f);
     [SerializeField] private Vector3 sawHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float sawAlignDistance = 0.5f;
     [SerializeField] private float sawBladeLaunchForce = 8f;
     [SerializeField] private float sawBladeTorque = 10f;
 
@@ -808,9 +809,12 @@ public class Level10_ItemDegradation : LevelManager
             yield return null;
         }
 
-        // Back-and-forth sawing strokes
+        // Back-and-forth sawing strokes, checking alignment during each stroke
         int strokes = 4;
         float strokeTime = 0.15f;
+        bool sawHitCutLine = false;
+
+        Transform bladetip = sawBladeTransform != null ? sawBladeTransform : swingTarget;
 
         for (int i = 0; i < strokes; i++)
         {
@@ -823,16 +827,31 @@ public class Level10_ItemDegradation : LevelManager
             {
                 elapsed += Time.deltaTime;
                 swingTarget.localPosition = Vector3.Lerp(from, to, elapsed / strokeTime);
+
+                if (!sawHitCutLine && sawCutLine != null)
+                {
+                    float dist = Vector3.Distance(bladetip.position, sawCutLine.transform.position);
+                    if (dist <= sawAlignDistance)
+                        sawHitCutLine = true;
+                }
+
                 yield return null;
             }
         }
 
-        int durabilityBefore = currentToolDurability;
-        UseTool(taskIndex);
-        bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+        if (sawHitCutLine)
+        {
+            int durabilityBefore = currentToolDurability;
+            UseTool(taskIndex);
+            bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
 
-        if (!toolBroke && !tasks[taskIndex].completed)
-            StartBreakMessage("Sawing...", new Color(1f, 0.85f, 0.4f, 1f));
+            if (!toolBroke && !tasks[taskIndex].completed)
+                StartBreakMessage("Sawing...", new Color(1f, 0.85f, 0.4f, 1f));
+        }
+        else
+        {
+            StartBreakMessage("Line up the saw with the cut line!", new Color(1f, 1f, 0.3f, 1f));
+        }
 
         // Return to rest position
         t = 0f;

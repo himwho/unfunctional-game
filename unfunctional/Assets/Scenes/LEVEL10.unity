@@ -221,7 +221,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.018993739, y: 0.018025555, z: 0.016617715}
+  m_Size: {x: 0.018993739, y: 0.018025555, z: 0.05}
   m_Center: {x: 0.000009790063, y: 0.000010446182, z: -0.000008083882}
 --- !u!1 &145123177
 GameObject:
@@ -5905,6 +5905,7 @@ MonoBehaviour:
   sawHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
   sawHeldRotation: {x: 0, y: -90, z: -30}
   sawHeldScale: {x: 1, y: 1, z: 1}
+  sawAlignDistance: 0.75
   sawBladeLaunchForce: 8
   sawBladeTorque: 10
   nailTotalDrop: 0.0763
