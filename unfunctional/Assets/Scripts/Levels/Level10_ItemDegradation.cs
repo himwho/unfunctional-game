@@ -48,6 +48,8 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private float sweepAngle = 30f;
     [SerializeField] private float sweepStrokeTime = 0.2f;
     [SerializeField] private int sweepStrokes = 4;
+    [SerializeField] private float sweepPushRadius = 0.5f;
+    [SerializeField] private float sweepPushForce = 15f;
 
     // Task definitions
     [System.Serializable]
@@ -111,6 +113,9 @@ public class Level10_ItemDegradation : LevelManager
     private Transform broomHeadTransform;
     private Transform broomHandleTransform;
     private bool holdingRealBroom = false;
+
+    // Soda cans
+    private List<Rigidbody> sodaCanBodies = new List<Rigidbody>();
 
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
@@ -178,6 +183,7 @@ public class Level10_ItemDegradation : LevelManager
         InitSaw();
         InitBroom();
         InitPlank();
+        InitSodaCans();
     }
 
     private void Update()
@@ -457,6 +463,44 @@ public class Level10_ItemDegradation : LevelManager
         sawCutLineMaterial = mat;
 
         sawCutLine.SetActive(false);
+    }
+
+    private void InitSodaCans()
+    {
+        string[] canNames = { "soda can", "soda can (1)", "soda can (2)", "soda can (3)" };
+
+        foreach (string canName in canNames)
+        {
+            GameObject canObj = GameObject.Find(canName);
+            if (canObj == null)
+            {
+                Debug.LogWarning($"[Level10] Could not find '{canName}' in scene");
+                continue;
+            }
+
+            foreach (var col in canObj.GetComponentsInChildren<Collider>())
+                col.isTrigger = false;
+
+            if (canObj.GetComponentsInChildren<Collider>().Length == 0)
+            {
+                foreach (var mf in canObj.GetComponentsInChildren<MeshFilter>())
+                {
+                    if (mf.sharedMesh != null)
+                    {
+                        var mc = mf.gameObject.AddComponent<MeshCollider>();
+                        mc.convex = true;
+                    }
+                }
+            }
+
+            Rigidbody rb = canObj.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = canObj.AddComponent<Rigidbody>();
+            rb.mass = 0.3f;
+
+            sodaCanBodies.Add(rb);
+            Debug.Log($"[Level10] Soda can '{canName}' initialized with physics");
+        }
     }
 
     // =========================================================================
@@ -1030,7 +1074,7 @@ public class Level10_ItemDegradation : LevelManager
 
         for (int i = 0; i < sweepStrokes; i++)
         {
-            float angle = (i % 2 == 0) ? sweepAngle : -sweepAngle;
+            float angle = (i % 2 == 0) ? -sweepAngle : sweepAngle;
             float elapsed = 0f;
             Quaternion from = swingTarget.localRotation;
             Quaternion to = startRot * Quaternion.Euler(angle, 0f, 0f);
@@ -1039,6 +1083,17 @@ public class Level10_ItemDegradation : LevelManager
             {
                 elapsed += Time.deltaTime;
                 swingTarget.localRotation = Quaternion.Slerp(from, to, elapsed / sweepStrokeTime);
+
+                Transform tip = broomHeadTransform != null ? broomHeadTransform : swingTarget;
+                Vector3 sweepDir = Camera.main != null ? Camera.main.transform.forward : swingTarget.forward;
+                Collider[] nearby = Physics.OverlapSphere(tip.position, sweepPushRadius);
+                foreach (var col in nearby)
+                {
+                    Rigidbody rb = col.attachedRigidbody;
+                    if (rb != null && sodaCanBodies.Contains(rb))
+                        rb.AddForce(sweepDir * sweepPushForce, ForceMode.Force);
+                }
+
                 yield return null;
             }
         }
