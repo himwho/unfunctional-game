@@ -113,6 +113,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private GameObject sawCutLine;
     private Material sawCutLineMaterial;
+    private float sawCutProgress = 0f;
 
     // HUD
     private Canvas hudCanvas;
@@ -166,8 +167,9 @@ public class Level10_ItemDegradation : LevelManager
         if (sawCutLineMaterial == null || sawCutLine == null) return;
 
         float pulse = (Mathf.Sin(Time.time * sawCutLinePulseSpeed) + 1f) * 0.5f;
-        Color dimmed = sawCutLineColor * 0.6f;
-        Color glow = Color.Lerp(dimmed, sawCutLineColor, pulse);
+        Color baseColor = Color.Lerp(sawCutLineColor, Color.red, sawCutProgress);
+        Color dimmed = baseColor * 0.6f;
+        Color glow = Color.Lerp(dimmed, baseColor, pulse);
         sawCutLineMaterial.color = glow;
         sawCutLineMaterial.SetColor("_EmissionColor", glow * (sawCutLineGlowIntensity * (0.7f + pulse * 0.3f)));
     }
@@ -476,10 +478,8 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
-                            if (holdingRealHammer)
+                            if (holdingRealHammer || holdingRealSaw)
                                 promptText.text = "";
-                            else if (holdingRealSaw)
-                                promptText.text = $"Left Click to saw ({currentToolDurability} uses left)";
                             else
                                 promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
@@ -998,6 +998,15 @@ public class Level10_ItemDegradation : LevelManager
         if (workBench != null) rendererList.AddRange(workBench.GetComponentsInChildren<Renderer>());
         if (target != null) rendererList.AddRange(target.GetComponentsInChildren<Renderer>());
         if (nailTransform != null) rendererList.AddRange(nailTransform.GetComponentsInChildren<Renderer>());
+        if (plankTransform != null)
+        {
+            Renderer sawGuideRenderer = sawCutLine != null ? sawCutLine.GetComponent<Renderer>() : null;
+            foreach (var r in plankTransform.GetComponentsInChildren<Renderer>())
+            {
+                if (r != sawGuideRenderer)
+                    rendererList.Add(r);
+            }
+        }
         Renderer[] renderers = rendererList.Count > 0 ? rendererList.ToArray() : null;
         Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
         Color highlightColor = new Color(1f, 0.9f, 0.4f);
@@ -1281,6 +1290,7 @@ public class Level10_ItemDegradation : LevelManager
         if (plankChildA == null || plankChildB == null) return;
 
         float progress = (float)task.currentUses / task.requiredUses;
+        sawCutProgress = progress;
 
         Vector3 dirAway = (plankChildA.position - plankChildB.position).normalized;
         if (dirAway.sqrMagnitude < 0.001f)
