@@ -114,8 +114,10 @@ public class Level10_ItemDegradation : LevelManager
     private Transform broomHandleTransform;
     private bool holdingRealBroom = false;
 
-    // Soda cans
+    // Soda cans and table
     private List<Rigidbody> sodaCanBodies = new List<Rigidbody>();
+    private Bounds tableBounds;
+    private bool hasTable = false;
 
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
@@ -193,6 +195,7 @@ public class Level10_ItemDegradation : LevelManager
         UpdateInteraction();
         UpdateSawGuideGlow();
         UpdateBroomPitchDamp();
+        CheckSodaCansUnderTable();
     }
 
     private void UpdateSawGuideGlow()
@@ -222,6 +225,38 @@ public class Level10_ItemDegradation : LevelManager
         broomSceneObject.transform.localRotation = Quaternion.Euler(pitchCorrection, 0f, 0f) * heldRot;
     }
 
+    private void CheckSodaCansUnderTable()
+    {
+        if (!hasTable || sodaCanBodies.Count == 0) return;
+
+        Task broomTask = tasks.Find(t => t.toolName == "Broom");
+        if (broomTask == null || broomTask.completed) return;
+
+        foreach (var rb in sodaCanBodies)
+        {
+            if (rb == null) continue;
+            Vector3 pos = rb.position;
+            if (pos.x < tableBounds.min.x || pos.x > tableBounds.max.x ||
+                pos.z < tableBounds.min.z || pos.z > tableBounds.max.z ||
+                pos.y > tableBounds.max.y)
+                return;
+        }
+
+        broomTask.completed = true;
+        Debug.Log("[Level10] All soda cans swept under the table! Task complete.");
+
+        if (holdingRealBroom)
+        {
+            DropRealBroom();
+            currentToolName = "";
+            currentToolDurability = 0;
+        }
+
+        StartBreakMessage("'Sweep the Floor' complete!", new Color(0.3f, 1f, 0.3f, 1f), 3f);
+        UpdateTaskList();
+        CheckAllTasksComplete();
+    }
+
     // =========================================================================
     // Initialization
     // =========================================================================
@@ -243,7 +278,7 @@ public class Level10_ItemDegradation : LevelManager
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
-            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 6 },
+            new Task { name = "Sweep the Floor", toolName = "Broom", requiredUses = 9999 },
         };
 
         foreach (var task in tasks)
@@ -367,7 +402,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void InitBroom()
     {
-        string[] broomNames = { "broomstick", "broomstick (1)" };
+        string[] broomNames = { "broomstick", "broomstick (1)", "broomstick (2)", "broomstick (3)", "broomstick (4)", "broomstick (5)", "broomstick (6)", "broomstick (7)" };
 
         foreach (string broomName in broomNames)
         {
@@ -478,8 +513,17 @@ public class Level10_ItemDegradation : LevelManager
                 continue;
             }
 
+            PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
+            bouncyMat.bounciness = 0.6f;
+            bouncyMat.dynamicFriction = 0.3f;
+            bouncyMat.staticFriction = 0.3f;
+            bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;
+
             foreach (var col in canObj.GetComponentsInChildren<Collider>())
+            {
                 col.isTrigger = false;
+                col.material = bouncyMat;
+            }
 
             if (canObj.GetComponentsInChildren<Collider>().Length == 0)
             {
@@ -489,6 +533,7 @@ public class Level10_ItemDegradation : LevelManager
                     {
                         var mc = mf.gameObject.AddComponent<MeshCollider>();
                         mc.convex = true;
+                        mc.material = bouncyMat;
                     }
                 }
             }
@@ -500,6 +545,24 @@ public class Level10_ItemDegradation : LevelManager
 
             sodaCanBodies.Add(rb);
             Debug.Log($"[Level10] Soda can '{canName}' initialized with physics");
+        }
+
+        GameObject tableObj = GameObject.Find("Wooden Table");
+        if (tableObj != null)
+        {
+            Renderer[] renderers = tableObj.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                tableBounds = renderers[0].bounds;
+                foreach (var r in renderers)
+                    tableBounds.Encapsulate(r.bounds);
+                hasTable = true;
+                Debug.Log($"[Level10] Found 'Wooden Table' with bounds {tableBounds}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[Level10] 'Wooden Table' not found in scene");
         }
     }
 
