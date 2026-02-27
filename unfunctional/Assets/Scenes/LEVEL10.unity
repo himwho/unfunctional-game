@@ -177,10 +177,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: bb98a90c73470284f987c461ed3fc57e,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 119a70b5690849b42a3521d6b5912611, type: 2}
     - target: {fileID: 919132149155446097, guid: bb98a90c73470284f987c461ed3fc57e,
         type: 3}
       propertyPath: m_Name
-      value: Sawbuck
+      value: Station_Saw
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1007,7 +1012,7 @@ GameObject:
   m_Component:
   - component: {fileID: 653425033}
   m_Layer: 0
-  m_Name: Saw (1)
+  m_Name: saw (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2185,7 +2190,7 @@ GameObject:
   m_Component:
   - component: {fileID: 992963553}
   m_Layer: 0
-  m_Name: Saw (2)
+  m_Name: saw (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3470,7 +3475,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1262288203}
   m_Layer: 0
-  m_Name: Saw
+  m_Name: saw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5844,6 +5849,11 @@ MonoBehaviour:
   hammerHitDistance: 0.25
   hammerHeadLaunchForce: 8
   hammerHeadTorque: 10
+  sawHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
+  sawHeldRotation: {x: 0, y: -90, z: -30}
+  sawHeldScale: {x: 1, y: 1, z: 1}
+  sawBladeLaunchForce: 8
+  sawBladeTorque: 10
   nailTotalDrop: 0.0763
 --- !u!4 &2124735147
 Transform:

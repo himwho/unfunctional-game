@@ -30,6 +30,13 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private float hammerHeadLaunchForce = 8f;
     [SerializeField] private float hammerHeadTorque = 10f;
 
+    [Header("Saw Mesh")]
+    [SerializeField] private Vector3 sawHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
+    [SerializeField] private Vector3 sawHeldRotation = new Vector3(0f, 180f, -30f);
+    [SerializeField] private Vector3 sawHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float sawBladeLaunchForce = 8f;
+    [SerializeField] private float sawBladeTorque = 10f;
+
     // Task definitions
     [System.Serializable]
     public class Task
@@ -64,6 +71,21 @@ public class Level10_ItemDegradation : LevelManager
     private Transform hammerHeadTransform;
     private Transform hammerHandleTransform;
     private bool holdingRealHammer = false;
+
+    // Real saw mesh references
+    private class SawInfo
+    {
+        public GameObject gameObject;
+        public Transform bladeTransform;
+        public Transform handleTransform;
+    }
+
+    private List<SawInfo> availableSaws = new List<SawInfo>();
+    private GameObject sawSceneObject;
+    private Transform sawBladeTransform;
+    private Transform sawHandleTransform;
+    private bool holdingRealSaw = false;
+
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
 
@@ -107,6 +129,7 @@ public class Level10_ItemDegradation : LevelManager
         CreateHUD();
         UpdateTaskList();
         InitHammer();
+        InitSaw();
     }
 
     private void Update()
@@ -214,6 +237,51 @@ public class Level10_ItemDegradation : LevelManager
             Debug.LogWarning("[Level10] No hammers found in scene");
     }
 
+    private void InitSaw()
+    {
+        string[] sawNames = { "saw", "saw (1)", "saw (2)" };
+
+        foreach (string sawName in sawNames)
+        {
+            GameObject sawObj = GameObject.Find(sawName);
+            if (sawObj == null)
+            {
+                Debug.LogWarning($"[Level10] Could not find '{sawName}' object in scene");
+                continue;
+            }
+
+            var info = new SawInfo
+            {
+                gameObject = sawObj,
+                bladeTransform = sawObj.transform.Find("sawblade"),
+                handleTransform = sawObj.transform.Find("sawhandle")
+            };
+
+            if (info.bladeTransform == null || info.handleTransform == null)
+                Debug.LogWarning($"[Level10] Saw '{sawName}' children not found (expected 'sawblade' and 'sawhandle')");
+
+            foreach (var meshFilter in sawObj.GetComponentsInChildren<MeshFilter>())
+            {
+                if (meshFilter.GetComponent<Collider>() == null)
+                {
+                    var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
+                    mc.convex = true;
+                    mc.isTrigger = true;
+                }
+                else
+                {
+                    meshFilter.GetComponent<Collider>().isTrigger = true;
+                }
+            }
+
+            availableSaws.Add(info);
+            Debug.Log($"[Level10] Saw '{sawName}' initialized from scene object");
+        }
+
+        if (availableSaws.Count == 0)
+            Debug.LogWarning("[Level10] No saws found in scene");
+    }
+
     // =========================================================================
     // Interaction
     // =========================================================================
@@ -246,6 +314,22 @@ public class Level10_ItemDegradation : LevelManager
                 }
             }
 
+            // Check if looking at any available scene saw
+            SawInfo hitSaw = null;
+            if (!holdingRealSaw)
+            {
+                foreach (var s in availableSaws)
+                {
+                    if (s.gameObject != null &&
+                        (hit.collider.gameObject == s.gameObject ||
+                         hit.collider.transform.IsChildOf(s.gameObject.transform)))
+                    {
+                        hitSaw = s;
+                        break;
+                    }
+                }
+            }
+
             if (hitHammer != null)
             {
                 showPrompt = true;
@@ -253,6 +337,14 @@ public class Level10_ItemDegradation : LevelManager
 
                 if (Input.GetKeyDown(KeyCode.E))
                     PickUpHammer(hitHammer);
+            }
+            else if (hitSaw != null)
+            {
+                showPrompt = true;
+                promptText.text = "Press [E] to pick up Saw";
+
+                if (Input.GetKeyDown(KeyCode.E))
+                    PickUpSaw(hitSaw);
             }
             // Check if looking at tool rack
             else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
@@ -278,15 +370,17 @@ public class Level10_ItemDegradation : LevelManager
                         showPrompt = true;
 
                         bool isHammerStation = tasks[i].toolName == "Hammer";
+                        bool isSawStation = tasks[i].toolName == "Saw";
+                        bool isRealToolStation = isHammerStation || isSawStation;
 
                         if (tasks[i].completed)
                         {
-                            if (!isHammerStation)
+                            if (!isRealToolStation)
                                 promptText.text = $"{tasks[i].name} - DONE";
                         }
                         else if (currentToolName == tasks[i].toolName)
                         {
-                            promptText.text = holdingRealHammer
+                            promptText.text = (holdingRealHammer || holdingRealSaw)
                                 ? ""
                                 : $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
@@ -295,7 +389,7 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else if (string.IsNullOrEmpty(currentToolName))
                         {
-                            if (!isHammerStation)
+                            if (!isRealToolStation)
                                 promptText.text = $"Need: {tasks[i].toolName} (pick one up from the rack)";
                         }
                         else
@@ -308,18 +402,20 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
+        bool holdingRealTool = holdingRealHammer || holdingRealSaw;
+
         if (!showPrompt)
         {
-            if (!holdingRealHammer && !string.IsNullOrEmpty(currentToolName))
+            if (!holdingRealTool && !string.IsNullOrEmpty(currentToolName))
                 promptText.text = $"Holding: {currentToolName} ({currentToolDurability} uses left)";
-            else if (!holdingRealHammer)
+            else if (!holdingRealTool)
                 promptText.text = "";
         }
 
         // Update tool display
         if (toolText != null)
         {
-            if (holdingRealHammer)
+            if (holdingRealTool)
                 toolText.text = "";
             else if (string.IsNullOrEmpty(currentToolName))
                 toolText.text = "No tool equipped";
@@ -347,6 +443,8 @@ public class Level10_ItemDegradation : LevelManager
     {
         if (holdingRealHammer)
             DropRealHammer();
+        if (holdingRealSaw)
+            DropRealSaw();
 
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
@@ -412,6 +510,12 @@ public class Level10_ItemDegradation : LevelManager
                 currentToolName = "";
                 currentToolDurability = 0;
             }
+            else if (holdingRealSaw && task.toolName == "Saw")
+            {
+                DropRealSaw();
+                currentToolName = "";
+                currentToolDurability = 0;
+            }
 
             // Visual feedback on station
             if (task.progressIndicator != null)
@@ -449,6 +553,10 @@ public class Level10_ItemDegradation : LevelManager
         {
             BreakHammer();
         }
+        else if (holdingRealSaw)
+        {
+            BreakSaw();
+        }
         else if (currentToolVisual != null)
         {
             StartCoroutine(BreakAnimation(currentToolVisual));
@@ -474,9 +582,13 @@ public class Level10_ItemDegradation : LevelManager
     {
         isSwinging = true;
 
-        Transform swingTarget = holdingRealHammer && hammerSceneObject != null
-            ? hammerSceneObject.transform
-            : currentToolVisual != null ? currentToolVisual.transform : null;
+        Transform swingTarget = null;
+        if (holdingRealHammer && hammerSceneObject != null)
+            swingTarget = hammerSceneObject.transform;
+        else if (holdingRealSaw && sawSceneObject != null)
+            swingTarget = sawSceneObject.transform;
+        else if (currentToolVisual != null)
+            swingTarget = currentToolVisual.transform;
 
         if (swingTarget != null)
         {
@@ -611,6 +723,8 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpHammer(HammerInfo info)
     {
+        if (holdingRealSaw)
+            DropRealSaw();
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
 
@@ -826,6 +940,121 @@ public class Level10_ItemDegradation : LevelManager
             hammerSceneObject = null;
             hammerHeadTransform = null;
             hammerHandleTransform = null;
+        }
+    }
+
+    // =========================================================================
+    // Saw Mesh Handling
+    // =========================================================================
+
+    private void PickUpSaw(SawInfo info)
+    {
+        if (holdingRealHammer)
+            DropRealHammer();
+        if (currentToolVisual != null)
+            Destroy(currentToolVisual);
+
+        availableSaws.Remove(info);
+        sawSceneObject = info.gameObject;
+        sawBladeTransform = info.bladeTransform;
+        sawHandleTransform = info.handleTransform;
+
+        currentToolName = "Saw";
+        currentToolDurability = maxDurability;
+        holdingRealSaw = true;
+
+        Camera cam = Camera.main;
+        if (cam != null && sawSceneObject != null)
+        {
+            sawSceneObject.transform.SetParent(cam.transform);
+            sawSceneObject.transform.localPosition = sawHeldPosition;
+            sawSceneObject.transform.localRotation = Quaternion.Euler(sawHeldRotation);
+            sawSceneObject.transform.localScale = sawHeldScale;
+
+            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+        }
+
+        Task sawTask = tasks.Find(t => t.toolName == "Saw");
+        Transform stationTransform = sawTask?.stationObject != null ? sawTask.stationObject.transform : null;
+        StartCoroutine(ShowPromptUntilNearby("Saw the plank at the workbench.", stationTransform, interactRange * 0.6f, 1f));
+        Debug.Log($"[Level10] Picked up real Saw with {currentToolDurability} durability");
+    }
+
+    private void BreakSaw()
+    {
+        holdingRealSaw = false;
+        Camera cam = Camera.main;
+
+        if (sawBladeTransform != null)
+        {
+            sawBladeTransform.SetParent(null);
+
+            foreach (var col in sawBladeTransform.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (sawBladeTransform.GetComponent<Collider>() == null)
+                sawBladeTransform.gameObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(sawBladeTransform.gameObject);
+
+            Rigidbody rb = sawBladeTransform.gameObject.AddComponent<Rigidbody>();
+
+            Vector3 launchDir = cam != null
+                ? cam.transform.forward + Vector3.up * 0.5f
+                : Vector3.forward + Vector3.up * 0.5f;
+            rb.AddForce(launchDir.normalized * sawBladeLaunchForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * sawBladeTorque, ForceMode.Impulse);
+
+            Destroy(sawBladeTransform.gameObject, 5f);
+            sawBladeTransform = null;
+        }
+
+        if (sawSceneObject != null)
+            StartCoroutine(DropSawHandleAfterDelay(0.8f));
+    }
+
+    private IEnumerator DropSawHandleAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (sawSceneObject != null)
+        {
+            sawSceneObject.transform.SetParent(null);
+
+            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (sawSceneObject.GetComponent<Collider>() == null)
+                sawSceneObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(sawSceneObject);
+
+            sawSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(sawSceneObject, 5f);
+            sawSceneObject = null;
+            sawHandleTransform = null;
+        }
+    }
+
+    private void DropRealSaw()
+    {
+        holdingRealSaw = false;
+
+        if (sawSceneObject != null)
+        {
+            sawSceneObject.transform.SetParent(null);
+
+            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+
+            IgnorePlayerCollision(sawSceneObject);
+
+            sawSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(sawSceneObject, 5f);
+            sawSceneObject = null;
+            sawBladeTransform = null;
+            sawHandleTransform = null;
         }
     }
 
