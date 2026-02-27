@@ -502,7 +502,12 @@ public class Level10_ItemDegradation : LevelManager
 
     private void InitSodaCans()
     {
-        string[] canNames = { "soda can", "soda can (1)", "soda can (2)", "soda can (3)" };
+        string[] canNames = {
+            "soda can", "soda can (1)", "soda can (2)", "soda can (3)",
+            "soda can (4)", "soda can (5)", "soda can (6)",
+            "crumpled paper", "crumpled paper (1)", "crumpled paper (2)",
+            "crumpled paper (3)", "crumpled paper (4)"
+        };
 
         foreach (string canName in canNames)
         {
