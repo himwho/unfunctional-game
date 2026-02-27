@@ -38,6 +38,14 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private float sawBladeLaunchForce = 8f;
     [SerializeField] private float sawBladeTorque = 10f;
 
+    [Header("Broom Mesh")]
+    [SerializeField] private Vector3 broomHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
+    [SerializeField] private Vector3 broomHeldRotation = new Vector3(0f, 180f, -30f);
+    [SerializeField] private Vector3 broomHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float broomHeadLaunchForce = 8f;
+    [SerializeField] private float broomHeadTorque = 10f;
+    [SerializeField, Range(0f, 1f)] private float broomPitchFollowFactor = 0.3f;
+
     // Task definitions
     [System.Serializable]
     public class Task
@@ -86,6 +94,20 @@ public class Level10_ItemDegradation : LevelManager
     private Transform sawBladeTransform;
     private Transform sawHandleTransform;
     private bool holdingRealSaw = false;
+
+    // Real broom mesh references
+    private class BroomInfo
+    {
+        public GameObject gameObject;
+        public Transform headTransform;
+        public Transform handleTransform;
+    }
+
+    private List<BroomInfo> availableBrooms = new List<BroomInfo>();
+    private GameObject broomSceneObject;
+    private Transform broomHeadTransform;
+    private Transform broomHandleTransform;
+    private bool holdingRealBroom = false;
 
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
@@ -151,6 +173,7 @@ public class Level10_ItemDegradation : LevelManager
         UpdateTaskList();
         InitHammer();
         InitSaw();
+        InitBroom();
         InitPlank();
     }
 
@@ -160,6 +183,7 @@ public class Level10_ItemDegradation : LevelManager
 
         UpdateInteraction();
         UpdateSawGuideGlow();
+        UpdateBroomPitchDamp();
     }
 
     private void UpdateSawGuideGlow()
@@ -172,6 +196,21 @@ public class Level10_ItemDegradation : LevelManager
         Color glow = Color.Lerp(dimmed, baseColor, pulse);
         sawCutLineMaterial.color = glow;
         sawCutLineMaterial.SetColor("_EmissionColor", glow * (sawCutLineGlowIntensity * (0.7f + pulse * 0.3f)));
+    }
+
+    private void UpdateBroomPitchDamp()
+    {
+        if (!holdingRealBroom || broomSceneObject == null) return;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        float cameraPitch = cam.transform.eulerAngles.x;
+        if (cameraPitch > 180f) cameraPitch -= 360f;
+
+        float pitchCorrection = -cameraPitch * (1f - broomPitchFollowFactor);
+        Quaternion heldRot = Quaternion.Euler(broomHeldRotation);
+        broomSceneObject.transform.localRotation = Quaternion.Euler(pitchCorrection, 0f, 0f) * heldRot;
     }
 
     // =========================================================================
@@ -317,6 +356,51 @@ public class Level10_ItemDegradation : LevelManager
             Debug.LogWarning("[Level10] No saws found in scene");
     }
 
+    private void InitBroom()
+    {
+        string[] broomNames = { "broomstick", "broomstick (1)" };
+
+        foreach (string broomName in broomNames)
+        {
+            GameObject broomObj = GameObject.Find(broomName);
+            if (broomObj == null)
+            {
+                Debug.LogWarning($"[Level10] Could not find '{broomName}' object in scene");
+                continue;
+            }
+
+            var info = new BroomInfo
+            {
+                gameObject = broomObj,
+                headTransform = broomObj.transform.Find("broomhead"),
+                handleTransform = broomObj.transform.Find("broomhandle")
+            };
+
+            if (info.headTransform == null || info.handleTransform == null)
+                Debug.LogWarning($"[Level10] Broom '{broomName}' children not found (expected 'broomhead' and 'broomhandle')");
+
+            foreach (var meshFilter in broomObj.GetComponentsInChildren<MeshFilter>())
+            {
+                if (meshFilter.GetComponent<Collider>() == null)
+                {
+                    var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
+                    mc.convex = true;
+                    mc.isTrigger = true;
+                }
+                else
+                {
+                    meshFilter.GetComponent<Collider>().isTrigger = true;
+                }
+            }
+
+            availableBrooms.Add(info);
+            Debug.Log($"[Level10] Broom '{broomName}' initialized from scene object");
+        }
+
+        if (availableBrooms.Count == 0)
+            Debug.LogWarning("[Level10] No brooms found in scene");
+    }
+
     private void InitPlank()
     {
         GameObject plankObj = GameObject.Find("Wood Plank");
@@ -420,6 +504,22 @@ public class Level10_ItemDegradation : LevelManager
                 }
             }
 
+            // Check if looking at any available scene broom
+            BroomInfo hitBroom = null;
+            if (!holdingRealBroom)
+            {
+                foreach (var b in availableBrooms)
+                {
+                    if (b.gameObject != null &&
+                        (hit.collider.gameObject == b.gameObject ||
+                         hit.collider.transform.IsChildOf(b.gameObject.transform)))
+                    {
+                        hitBroom = b;
+                        break;
+                    }
+                }
+            }
+
             if (hitHammer != null)
             {
                 showPrompt = true;
@@ -435,6 +535,14 @@ public class Level10_ItemDegradation : LevelManager
 
                 if (Input.GetKeyDown(KeyCode.E))
                     PickUpSaw(hitSaw);
+            }
+            else if (hitBroom != null)
+            {
+                showPrompt = true;
+                promptText.text = "Press [E] to pick up Broom";
+
+                if (Input.GetKeyDown(KeyCode.E))
+                    PickUpBroom(hitBroom);
             }
             // Check if looking at tool rack
             else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
@@ -469,16 +577,17 @@ public class Level10_ItemDegradation : LevelManager
 
                         bool isHammerStation = tasks[i].toolName == "Hammer";
                         bool isSawStation = tasks[i].toolName == "Saw";
-                        bool isRealToolStation = isHammerStation || isSawStation;
+                        bool isBroomStation = tasks[i].toolName == "Broom";
+                        bool isRealToolStation = isHammerStation || isSawStation || isBroomStation;
 
                         if (tasks[i].completed)
                         {
                             if (!isRealToolStation)
                                 promptText.text = $"{tasks[i].name} - DONE";
                         }
-                        else if (currentToolName == tasks[i].toolName)
+                        else                         if (currentToolName == tasks[i].toolName)
                         {
-                            if (holdingRealHammer || holdingRealSaw)
+                            if (holdingRealHammer || holdingRealSaw || holdingRealBroom)
                                 promptText.text = "";
                             else
                                 promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
@@ -501,7 +610,7 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
-        bool holdingRealTool = holdingRealHammer || holdingRealSaw;
+        bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom;
 
         if (!showPrompt)
         {
@@ -544,6 +653,8 @@ public class Level10_ItemDegradation : LevelManager
             DropRealHammer();
         if (holdingRealSaw)
             DropRealSaw();
+        if (holdingRealBroom)
+            DropRealBroom();
 
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
@@ -620,6 +731,12 @@ public class Level10_ItemDegradation : LevelManager
                 currentToolName = "";
                 currentToolDurability = 0;
             }
+            else if (holdingRealBroom && task.toolName == "Broom")
+            {
+                DropRealBroom();
+                currentToolName = "";
+                currentToolDurability = 0;
+            }
 
             if (task.toolName == "Saw" && !plankSplit)
             {
@@ -666,6 +783,10 @@ public class Level10_ItemDegradation : LevelManager
         {
             BreakSaw();
         }
+        else if (holdingRealBroom)
+        {
+            BreakBroom();
+        }
         else if (currentToolVisual != null)
         {
             StartCoroutine(BreakAnimation(currentToolVisual));
@@ -705,6 +826,8 @@ public class Level10_ItemDegradation : LevelManager
             swingTarget = hammerSceneObject.transform;
         else if (holdingRealSaw && sawSceneObject != null)
             swingTarget = sawSceneObject.transform;
+        else if (holdingRealBroom && broomSceneObject != null)
+            swingTarget = broomSceneObject.transform;
         else if (currentToolVisual != null)
             swingTarget = currentToolVisual.transform;
 
@@ -1278,6 +1401,123 @@ public class Level10_ItemDegradation : LevelManager
             sawSceneObject = null;
             sawBladeTransform = null;
             sawHandleTransform = null;
+        }
+    }
+
+    // =========================================================================
+    // Broom Mesh Handling
+    // =========================================================================
+
+    private void PickUpBroom(BroomInfo info)
+    {
+        if (holdingRealHammer)
+            DropRealHammer();
+        if (holdingRealSaw)
+            DropRealSaw();
+        if (currentToolVisual != null)
+            Destroy(currentToolVisual);
+
+        availableBrooms.Remove(info);
+        broomSceneObject = info.gameObject;
+        broomHeadTransform = info.headTransform;
+        broomHandleTransform = info.handleTransform;
+
+        currentToolName = "Broom";
+        currentToolDurability = maxDurability;
+        holdingRealBroom = true;
+
+        Camera cam = Camera.main;
+        if (cam != null && broomSceneObject != null)
+        {
+            broomSceneObject.transform.SetParent(cam.transform);
+            broomSceneObject.transform.localPosition = broomHeldPosition;
+            broomSceneObject.transform.localRotation = Quaternion.Euler(broomHeldRotation);
+            broomSceneObject.transform.localScale = broomHeldScale;
+
+            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+        }
+
+        Task broomTask = tasks.Find(t => t.toolName == "Broom");
+        Transform stationTransform = broomTask?.stationObject != null ? broomTask.stationObject.transform : null;
+        StartCoroutine(ShowPromptUntilNearby("Sweep the floor at the station.", stationTransform, interactRange * 0.6f, 1f));
+        Debug.Log($"[Level10] Picked up real Broom with {currentToolDurability} durability");
+    }
+
+    private void BreakBroom()
+    {
+        holdingRealBroom = false;
+        Camera cam = Camera.main;
+
+        if (broomHeadTransform != null)
+        {
+            broomHeadTransform.SetParent(null);
+
+            foreach (var col in broomHeadTransform.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (broomHeadTransform.GetComponent<Collider>() == null)
+                broomHeadTransform.gameObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(broomHeadTransform.gameObject);
+
+            Rigidbody rb = broomHeadTransform.gameObject.AddComponent<Rigidbody>();
+
+            Vector3 launchDir = cam != null
+                ? cam.transform.forward + Vector3.up * 0.5f
+                : Vector3.forward + Vector3.up * 0.5f;
+            rb.AddForce(launchDir.normalized * broomHeadLaunchForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * broomHeadTorque, ForceMode.Impulse);
+
+            Destroy(broomHeadTransform.gameObject, 5f);
+            broomHeadTransform = null;
+        }
+
+        if (broomSceneObject != null)
+            StartCoroutine(DropBroomHandleAfterDelay(0.8f));
+    }
+
+    private IEnumerator DropBroomHandleAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (broomSceneObject != null)
+        {
+            broomSceneObject.transform.SetParent(null);
+
+            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+            if (broomSceneObject.GetComponent<Collider>() == null)
+                broomSceneObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(broomSceneObject);
+
+            broomSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(broomSceneObject, 5f);
+            broomSceneObject = null;
+            broomHandleTransform = null;
+        }
+    }
+
+    private void DropRealBroom()
+    {
+        holdingRealBroom = false;
+
+        if (broomSceneObject != null)
+        {
+            broomSceneObject.transform.SetParent(null);
+
+            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = true;
+
+            IgnorePlayerCollision(broomSceneObject);
+
+            broomSceneObject.AddComponent<Rigidbody>();
+
+            Destroy(broomSceneObject, 5f);
+            broomSceneObject = null;
+            broomHeadTransform = null;
+            broomHandleTransform = null;
         }
     }
 
