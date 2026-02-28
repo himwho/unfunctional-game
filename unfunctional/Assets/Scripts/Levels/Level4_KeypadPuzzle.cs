@@ -561,15 +561,31 @@ public class Level4_KeypadPuzzle : LevelManager
         yield return new WaitForSeconds(0.5f);
         if (keypad != null) keypad.Close();
 
-        // Slide door up using DoorController if available
-        if (doorController != null)
+        if (doorController != null && doorController.doorPanel != null)
         {
-            doorController.OpenDoor();
-            while (doorController.IsAnimating)
-                yield return null;
+            GameObject panel = doorController.doorPanel;
+            panel.transform.SetParent(null);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(3f);
         }
 
-        yield return new WaitForSeconds(1f);
         ShowNarration("Well done. Rodney says hi.", 3f);
         yield return new WaitForSeconds(2f);
         CompleteLevel();
