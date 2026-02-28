@@ -513,7 +513,7 @@ public class Level10_ItemDegradation : LevelManager
     private void InitSodaCans()
     {
         PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
-        bouncyMat.bounciness = 0.3f;
+            bouncyMat.bounciness = 0.45f;
         bouncyMat.dynamicFriction = 0.3f;
         bouncyMat.staticFriction = 0.3f;
         bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;

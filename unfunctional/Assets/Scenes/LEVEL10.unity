@@ -7756,8 +7756,8 @@ MonoBehaviour:
   sweepAngle: 30
   sweepStrokeTime: 0.2
   sweepStrokes: 1
-  sweepPushRadius: 0.8
-  sweepPushForce: 5
+  sweepPushRadius: 1.8
+  sweepPushForce: 10
   nailTotalDrop: 0.0763
   plankSplitForce: 2
   sawingAmplitude: 0.08
