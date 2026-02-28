@@ -753,7 +753,7 @@ public class Level10_ItemDegradation : LevelManager
             if (holdingRealTool)
                 toolText.text = "";
             else if (string.IsNullOrEmpty(currentToolName))
-                toolText.text = "No tool equipped";
+                toolText.text = "";
             else
                 toolText.text = $"{currentToolName} [{currentToolDurability}/{maxDurability}]";
         }
@@ -1892,7 +1892,7 @@ public class Level10_ItemDegradation : LevelManager
             22, Color.white, TextAnchor.MiddleCenter);
 
         // Tool display
-        toolText = MakeText(canvasObj.transform, "ToolText", "No tool equipped",
+        toolText = MakeText(canvasObj.transform, "ToolText", "",
             new Vector2(0.02f, 0.88f), new Vector2(0.3f, 0.93f),
             18, new Color(0.7f, 0.7f, 0.5f), TextAnchor.MiddleLeft);
 
