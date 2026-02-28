@@ -21,6 +21,8 @@ public class Level10_ItemDegradation : LevelManager
     [Header("Tool Settings")]
     public int maxDurability = 3;           // Uses before tool breaks
     public float interactRange = 3.5f;
+    [Tooltip("Radius of the interaction sphere cast — larger = easier to target tools")]
+    public float interactRadius = 0.15f;
 
     [Header("Hammer Mesh")]
     [SerializeField] private Vector3 hammerHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
@@ -582,7 +584,7 @@ public class Level10_ItemDegradation : LevelManager
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         bool showPrompt = false;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, ~0, QueryTriggerInteraction.Collide))
+        if (Physics.SphereCast(ray, interactRadius, out RaycastHit hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
             string hitName = hit.collider.gameObject.name;
 
