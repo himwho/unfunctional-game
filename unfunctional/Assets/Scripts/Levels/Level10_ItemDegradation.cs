@@ -1720,6 +1720,10 @@ public class Level10_ItemDegradation : LevelManager
         broomSceneObject = null;
         broomHeadTransform = null;
         broomHandleTransform = null;
+
+        Task broomTask = tasks.Find(t => t.toolName == "Broom");
+        if (broomTask != null && !broomTask.completed && availableBrooms.Count == 0)
+            StartBreakMessage("Oops! You ran out of brooms. Guess you have to restart the level now.", new Color(1f, 0.3f, 0.3f, 1f), 5f);
     }
 
     private void DropRealBroom()
