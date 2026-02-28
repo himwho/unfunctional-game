@@ -1627,7 +1627,7 @@ public class Level10_ItemDegradation : LevelManager
 
         Task broomTask = tasks.Find(t => t.toolName == "Broom");
         Transform stationTransform = broomTask?.stationObject != null ? broomTask.stationObject.transform : null;
-        StartCoroutine(ShowPromptUntilNearby("Sweep the floor at the station.", stationTransform, interactRange * 0.6f, 1f));
+        StartCoroutine(ShowPromptUntilNearby("Sweep the trash under the table.", stationTransform, interactRange * 0.6f, 1f));
         Debug.Log($"[Level10] Picked up real Broom with {currentToolDurability} durability");
     }
 
