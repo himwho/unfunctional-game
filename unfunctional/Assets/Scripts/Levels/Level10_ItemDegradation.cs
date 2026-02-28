@@ -116,10 +116,11 @@ public class Level10_ItemDegradation : LevelManager
     private Transform broomHandleTransform;
     private bool holdingRealBroom = false;
 
-    // Soda cans and table
+    // Soda cans, table, and scene props
     private List<Rigidbody> sodaCanBodies = new List<Rigidbody>();
     private Bounds tableBounds;
     private bool hasTable = false;
+    private GameObject tableObj;
 
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
@@ -189,6 +190,7 @@ public class Level10_ItemDegradation : LevelManager
         InitBroom();
         InitPlank();
         InitSodaCans();
+        InitScenePropsColliders();
     }
 
     private void Update()
@@ -520,8 +522,6 @@ public class Level10_ItemDegradation : LevelManager
             "crumpled paper (3)", "crumpled paper (4)"
         };
 
-        GameObject tableObj = null;
-
         foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
             if (go.scene != gameObject.scene) continue;
@@ -573,6 +573,51 @@ public class Level10_ItemDegradation : LevelManager
         }
 
         Debug.Log($"[Level10] Initialized {sodaCanBodies.Count} trash objects with physics");
+    }
+
+    private void InitScenePropsColliders()
+    {
+        EnsureStaticColliders(tableObj, "Wooden Table");
+
+        GameObject pottedPlant = null;
+        foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
+        {
+            if (go.scene != gameObject.scene) continue;
+            if (go.name == "Potted Plant")
+            {
+                pottedPlant = go;
+                break;
+            }
+        }
+        EnsureStaticColliders(pottedPlant, "Potted Plant");
+    }
+
+    private void EnsureStaticColliders(GameObject obj, string label)
+    {
+        if (obj == null)
+        {
+            Debug.LogWarning($"[Level10] '{label}' not found — skipping collider setup");
+            return;
+        }
+
+        int added = 0;
+        foreach (var mf in obj.GetComponentsInChildren<MeshFilter>())
+        {
+            if (mf.GetComponent<Collider>() != null) continue;
+            if (mf.sharedMesh == null) continue;
+
+            var mc = mf.gameObject.AddComponent<MeshCollider>();
+            mc.sharedMesh = mf.sharedMesh;
+            added++;
+        }
+
+        if (added == 0 && obj.GetComponentsInChildren<Collider>().Length == 0)
+        {
+            obj.AddComponent<BoxCollider>();
+            added = 1;
+        }
+
+        Debug.Log($"[Level10] '{label}' collider setup: {added} collider(s) ensured");
     }
 
     // =========================================================================
