@@ -2173,6 +2173,91 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 801664053}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &808947686
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 407293230252366877, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.088
+      objectReference: {fileID: 0}
+    - target: {fileID: 3491991024644350340, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_Name
+      value: LEVEL_DOOR
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.56247
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.493
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -11.462
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23e3bca1494037c4e8f3b207ff613ea1, type: 3}
+--- !u!114 &808947687 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+    type: 3}
+  m_PrefabInstance: {fileID: 808947686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de270b5e1851ec54e80db4e040711b18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
 --- !u!1001 &812950962
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2958,7 +3043,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 4eb1944ba48dd2743b188f58b8181f33,
         type: 3}
       propertyPath: m_Name
-      value: Meshy_AI_potted_plant_0223180924_texture
+      value: Potted Plant
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8738,9 +8823,10 @@ MonoBehaviour:
   needsPlayer: 1
   playerSpawnPoint: {fileID: 1285376854}
   levelComplete: 0
-  doorController: {fileID: 0}
+  doorController: {fileID: 808947687}
   maxDurability: 3
   interactRange: 3.5
+  interactRadius: 0.15
   hammerHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
   hammerHeldRotation: {x: 0, y: -90, z: -30}
   hammerHeldScale: {x: 0.2551392, y: 0.2551392, z: 0.2551392}
@@ -8832,10 +8918,11 @@ SceneRoots:
   - {fileID: 575413816}
   - {fileID: 949503533}
   - {fileID: 931165263}
-  - {fileID: 1813954927}
   - {fileID: 1312597233}
   - {fileID: 290943683}
   - {fileID: 775954947}
   - {fileID: 812950962}
   - {fileID: 1570733507}
+  - {fileID: 1813954927}
   - {fileID: 917721768}
+  - {fileID: 808947686}

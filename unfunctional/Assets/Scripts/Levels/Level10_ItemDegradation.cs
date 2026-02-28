@@ -123,6 +123,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private bool isSwinging = false;
     private Coroutine activeBreakMessage;
+    private bool allTasksComplete = false;
 
     // Nail
     private Transform nailTransform;
@@ -195,6 +196,7 @@ public class Level10_ItemDegradation : LevelManager
         if (levelComplete) return;
 
         UpdateInteraction();
+        UpdateDoorInteraction();
         UpdateSawGuideGlow();
         UpdateBroomPitchDamp();
         CheckSodaCansUnderTable();
@@ -276,10 +278,11 @@ public class Level10_ItemDegradation : LevelManager
     {
         tasks = new List<Task>
         {
-            new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
+            // TODO: re-enable these two tasks
+            // new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
-            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
+            // new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
             new Task { name = "Sweep the Trash Under the Table", toolName = "Broom", requiredUses = 9999 },
         };
 
@@ -1841,17 +1844,56 @@ public class Level10_ItemDegradation : LevelManager
             if (!task.completed) return;
         }
 
-        // All tasks done!
-        Debug.Log("[Level10] All tasks complete! Opening door.");
+        if (allTasksComplete) return;
+        allTasksComplete = true;
 
         if (doorController != null)
         {
-            doorController.OpenDoor();
-            StartCoroutine(CompleteLevelDelay());
+            Debug.Log("[Level10] All tasks complete! Walk to the door and press E to open it.");
+            StartBreakMessage("All tasks done! Head to the door.", new Color(0.3f, 1f, 0.3f, 1f), 4f);
         }
         else
         {
+            Debug.Log("[Level10] All tasks complete! No door controller — completing level.");
             CompleteLevel();
+        }
+    }
+
+    private bool IsLookingAtDoor()
+    {
+        if (doorController == null) return false;
+        Camera cam = Camera.main;
+        if (cam == null) return false;
+
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+        if (Physics.SphereCast(ray, interactRadius, out RaycastHit hit, interactRange, ~0, QueryTriggerInteraction.Collide))
+        {
+            Transform t = hit.transform;
+            while (t != null)
+            {
+                if (t == doorController.transform) return true;
+                t = t.parent;
+            }
+        }
+        return false;
+    }
+
+    private void UpdateDoorInteraction()
+    {
+        if (!allTasksComplete || levelComplete) return;
+        if (doorController == null || doorController.IsOpen || doorController.IsAnimating) return;
+
+        if (IsLookingAtDoor())
+        {
+            promptText.text = "Press [E] to open door";
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                Debug.Log("[Level10] Player opened the door.");
+                doorController.OpenDoor();
+                promptText.text = "";
+                StartCoroutine(CompleteLevelDelay());
+            }
         }
     }
 
