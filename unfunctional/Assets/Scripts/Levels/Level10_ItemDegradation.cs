@@ -931,6 +931,7 @@ public class Level10_ItemDegradation : LevelManager
 
         tool.transform.SetParent(null);
         Rigidbody rb = tool.AddComponent<Rigidbody>();
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         IgnorePlayerCollision(tool);
         if (tool.GetComponent<Collider>() == null)
             tool.AddComponent<BoxCollider>();
@@ -1427,13 +1428,17 @@ public class Level10_ItemDegradation : LevelManager
             hammerHeadTransform.SetParent(null);
 
             foreach (var col in hammerHeadTransform.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
             if (hammerHeadTransform.GetComponent<Collider>() == null)
                 hammerHeadTransform.gameObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(hammerHeadTransform.gameObject);
 
             Rigidbody rb = hammerHeadTransform.gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             Vector3 launchDir = cam != null
                 ? cam.transform.forward + Vector3.up * 0.5f
@@ -1457,13 +1462,17 @@ public class Level10_ItemDegradation : LevelManager
             hammerSceneObject.transform.SetParent(null);
 
             foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
             if (hammerSceneObject.GetComponent<Collider>() == null)
                 hammerSceneObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(hammerSceneObject);
 
-            hammerSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = hammerSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             hammerSceneObject = null;
             hammerHandleTransform = null;
@@ -1479,11 +1488,15 @@ public class Level10_ItemDegradation : LevelManager
             hammerSceneObject.transform.SetParent(null);
 
             foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
 
             IgnorePlayerCollision(hammerSceneObject);
 
-            hammerSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = hammerSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             hammerSceneObject = null;
             hammerHeadTransform = null;
@@ -1544,13 +1557,17 @@ public class Level10_ItemDegradation : LevelManager
             sawBladeTransform.SetParent(null);
 
             foreach (var col in sawBladeTransform.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
             if (sawBladeTransform.GetComponent<Collider>() == null)
                 sawBladeTransform.gameObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(sawBladeTransform.gameObject);
 
             Rigidbody rb = sawBladeTransform.gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             Vector3 launchDir = cam != null
                 ? cam.transform.forward + Vector3.up * 0.5f
@@ -1574,13 +1591,17 @@ public class Level10_ItemDegradation : LevelManager
             sawSceneObject.transform.SetParent(null);
 
             foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
             if (sawSceneObject.GetComponent<Collider>() == null)
                 sawSceneObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(sawSceneObject);
 
-            sawSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = sawSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             sawSceneObject = null;
             sawHandleTransform = null;
@@ -1598,11 +1619,15 @@ public class Level10_ItemDegradation : LevelManager
             sawSceneObject.transform.SetParent(null);
 
             foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
 
             IgnorePlayerCollision(sawSceneObject);
 
-            sawSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = sawSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             sawSceneObject = null;
             sawBladeTransform = null;
@@ -1692,6 +1717,7 @@ public class Level10_ItemDegradation : LevelManager
             IgnorePlayerCollision(child.gameObject);
 
             Rigidbody rb = child.gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             rb.AddForce(Random.insideUnitSphere * 0.5f, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
 
@@ -1712,11 +1738,15 @@ public class Level10_ItemDegradation : LevelManager
             broomSceneObject.transform.SetParent(null);
 
             foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
+            {
                 col.enabled = true;
+                col.isTrigger = false;
+            }
 
             IgnorePlayerCollision(broomSceneObject);
 
-            broomSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = broomSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             broomSceneObject = null;
             broomHeadTransform = null;
