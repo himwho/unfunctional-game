@@ -1877,16 +1877,53 @@ public class Level10_ItemDegradation : LevelManager
             if (Input.GetKeyDown(KeyCode.E))
             {
                 Debug.Log("[Level10] Player opened the door.");
-                doorController.OpenDoor();
                 promptText.text = "";
-                StartCoroutine(CompleteLevelDelay());
+                StartCoroutine(DoorFallAndComplete());
             }
         }
     }
 
-    private IEnumerator CompleteLevelDelay()
+    private IEnumerator DoorFallAndComplete()
     {
-        yield return new WaitForSeconds(2f);
+        if (doorController != null && doorController.doorPanel != null)
+        {
+            GameObject panel = doorController.doorPanel;
+            panel.transform.SetParent(null);
+
+            // Disable any colliders on the door frame so they don't block the fall
+            if (doorController.frameLeft != null)
+                doorController.frameLeft.SetActive(false);
+            if (doorController.frameRight != null)
+                doorController.frameRight.SetActive(false);
+            if (doorController.frameTop != null)
+                doorController.frameTop.SetActive(false);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.constraints = RigidbodyConstraints.None;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            yield return new WaitForFixedUpdate();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+            rb.AddTorque(panel.transform.right * 80f, ForceMode.Impulse);
+
+            Debug.Log($"[Level10] Door physics: forward={panel.transform.forward}, pushDir={pushDir}, pos={panel.transform.position}");
+
+            yield return new WaitForSeconds(3f);
+        }
+
         CompleteLevel();
     }
 

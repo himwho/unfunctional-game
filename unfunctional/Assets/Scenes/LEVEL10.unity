@@ -751,7 +751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 0.5, y: 0.5}
+  tiling: {x: 0.25, y: 0.5}
   scaleCompensation: 1
   offset: {x: 0, y: 0}
   debugLog: 0
@@ -941,6 +941,21 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2489159159464621496, guid: e90afd818fcf3554aa3d9feac8c1e1c0,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 101.409996
+      objectReference: {fileID: 0}
+    - target: {fileID: 2489159159464621496, guid: e90afd818fcf3554aa3d9feac8c1e1c0,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2489159159464621496, guid: e90afd818fcf3554aa3d9feac8c1e1c0,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.1763
+      objectReference: {fileID: 0}
     - target: {fileID: 2511811754567536238, guid: e90afd818fcf3554aa3d9feac8c1e1c0,
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -1078,7 +1093,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 0.5, y: 0.5}
+  tiling: {x: 0.25, y: 0.5}
   scaleCompensation: 1
   offset: {x: 0, y: 0}
   debugLog: 0
@@ -1095,7 +1110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 0.5, y: 0.5}
+  tiling: {x: 0.25, y: 0.5}
   scaleCompensation: 1
   offset: {x: 0, y: 0}
   debugLog: 0
@@ -1112,7 +1127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 0.5, y: 0.5}
+  tiling: {x: 0.25, y: 0.5}
   scaleCompensation: 1
   offset: {x: 0, y: 0}
   debugLog: 0
@@ -2446,12 +2461,12 @@ PrefabInstance:
     - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.068
+      value: -0.019
       objectReference: {fileID: 0}
     - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 12.549
+      value: 12.532
       objectReference: {fileID: 0}
     - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
