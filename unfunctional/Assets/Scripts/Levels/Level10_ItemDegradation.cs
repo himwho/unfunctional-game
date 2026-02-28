@@ -1177,24 +1177,13 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
-        bool nearStation = false;
-        Camera sweepCam = Camera.main;
         Task broomTask = tasks[taskIndex];
-        if (sweepCam != null && broomTask.stationObject != null)
-        {
-            float dist = Vector3.Distance(sweepCam.transform.position, broomTask.stationObject.transform.position);
-            nearStation = dist <= interactRange;
-        }
+        int durabilityBefore = currentToolDurability;
+        UseTool(taskIndex);
+        bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
 
-        if (nearStation)
-        {
-            int durabilityBefore = currentToolDurability;
-            UseTool(taskIndex);
-            bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
-
-            if (!toolBroke && !broomTask.completed)
-                StartBreakMessage("Sweeping...", new Color(0.6f, 0.9f, 0.5f, 1f));
-        }
+        if (!toolBroke && !broomTask.completed)
+            StartBreakMessage("Sweeping...", new Color(0.6f, 0.9f, 0.5f, 1f));
 
         float returnTime = 0.15f;
         float t = 0f;
