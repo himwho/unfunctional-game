@@ -1332,33 +1332,6 @@ public class Level10_ItemDegradation : LevelManager
         Color startColor = promptText.color;
         promptText.color = new Color(startColor.r, startColor.g, startColor.b, 1f);
 
-        List<Renderer> rendererList = new List<Renderer>();
-        GameObject workBench = GameObject.Find("Work Bench");
-        if (workBench != null) rendererList.AddRange(workBench.GetComponentsInChildren<Renderer>());
-        if (target != null) rendererList.AddRange(target.GetComponentsInChildren<Renderer>());
-        if (nailTransform != null) rendererList.AddRange(nailTransform.GetComponentsInChildren<Renderer>());
-        if (plankTransform != null)
-        {
-            Renderer sawGuideRenderer = sawCutLine != null ? sawCutLine.GetComponent<Renderer>() : null;
-            foreach (var r in plankTransform.GetComponentsInChildren<Renderer>())
-            {
-                if (r != sawGuideRenderer)
-                    rendererList.Add(r);
-            }
-        }
-        Renderer[] renderers = rendererList.Count > 0 ? rendererList.ToArray() : null;
-        Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
-        Color highlightColor = new Color(1f, 0.9f, 0.4f);
-
-        if (renderers != null)
-        {
-            foreach (var r in renderers)
-            {
-                originalColors[r] = r.material.color;
-                r.material.EnableKeyword("_EMISSION");
-            }
-        }
-
         Camera cam = Camera.main;
         while (target != null && cam != null)
         {
@@ -1366,27 +1339,7 @@ public class Level10_ItemDegradation : LevelManager
             if (dist <= range)
                 break;
 
-            if (renderers != null)
-            {
-                float pulse = (Mathf.Sin(Time.time * 3f) + 1f) * 0.5f;
-                Color glow = Color.Lerp(new Color(1f, 0.7f, 0.1f), new Color(1f, 1f, 0.5f), pulse) * (0.3f + pulse * 0.4f);
-                foreach (var r in renderers)
-                {
-                    if (r != null)
-                        r.material.SetColor("_EmissionColor", glow);
-                }
-            }
-
             yield return null;
-        }
-
-        if (renderers != null)
-        {
-            foreach (var r in renderers)
-            {
-                if (r == null) continue;
-                r.material.SetColor("_EmissionColor", Color.black);
-            }
         }
 
         if (promptText.text != msg) yield break;
