@@ -723,24 +723,35 @@ public class Level8_DLCDoor : LevelManager
 
         yield return new WaitForSeconds(0.5f);
 
-        if (doorController != null)
-        {
-            doorController.OpenDoor();
-            yield return new WaitForSeconds(2f);
-        }
+        GameObject panel = null;
+
+        if (doorController != null && doorController.doorPanel != null)
+            panel = doorController.doorPanel;
         else if (fallbackDoor != null)
+            panel = fallbackDoor;
+
+        if (panel != null)
         {
-            float elapsed = 0f;
-            Vector3 startPos = fallbackDoor.transform.position;
-            Vector3 endPos = startPos + Vector3.up * 3.5f;
-            while (elapsed < 1.5f)
-            {
-                elapsed += Time.deltaTime;
-                fallbackDoor.transform.position =
-                    Vector3.Lerp(startPos, endPos, elapsed / 1.5f);
-                yield return null;
-            }
-            yield return new WaitForSeconds(0.5f);
+            panel.transform.SetParent(null);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(3f);
         }
 
         CompleteLevel();
