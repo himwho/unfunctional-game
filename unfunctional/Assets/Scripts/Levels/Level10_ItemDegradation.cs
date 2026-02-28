@@ -223,6 +223,9 @@ public class Level10_ItemDegradation : LevelManager
         Camera cam = Camera.main;
         if (cam == null) return;
 
+        broomSceneObject.transform.localPosition = broomHeldPosition;
+        broomSceneObject.transform.localScale = broomHeldScale;
+
         float cameraPitch = cam.transform.eulerAngles.x;
         if (cameraPitch > 180f) cameraPitch -= 360f;
 

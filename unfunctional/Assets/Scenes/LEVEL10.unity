@@ -7747,15 +7747,15 @@ MonoBehaviour:
   sawAlignDistance: 0.75
   sawBladeLaunchForce: 8
   sawBladeTorque: 10
-  broomHeldPosition: {x: 0.5, y: -0.45, z: 1.2}
-  broomHeldRotation: {x: 0, y: 0, z: -30}
+  broomHeldPosition: {x: 0.55, y: -0.1, z: 0.5}
+  broomHeldRotation: {x: -20, y: 0, z: -5}
   broomHeldScale: {x: 0.8, y: 0.8, z: 0.8}
   broomHeadLaunchForce: 8
   broomHeadTorque: 10
   broomPitchFollowFactor: 0.3
   sweepAngle: 30
   sweepStrokeTime: 0.2
-  sweepStrokes: 4
+  sweepStrokes: 1
   sweepPushRadius: 0.8
   sweepPushForce: 5
   nailTotalDrop: 0.0763
