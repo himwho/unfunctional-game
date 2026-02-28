@@ -1411,7 +1411,7 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (hammerSceneObject.GetComponent<Collider>() == null)
+            if (hammerSceneObject.GetComponentsInChildren<Collider>().Length == 0)
                 hammerSceneObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(hammerSceneObject);
@@ -1540,7 +1540,7 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (sawSceneObject.GetComponent<Collider>() == null)
+            if (sawSceneObject.GetComponentsInChildren<Collider>().Length == 0)
                 sawSceneObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(sawSceneObject);
