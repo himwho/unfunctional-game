@@ -186,6 +186,12 @@ public class Level10_ItemDegradation : LevelManager
     private Text taskListText;
     private Text breakText;
 
+    // Tool slot UI
+    private GameObject toolSlotPanel;
+    private Text toolSlotNameText;
+    private Image toolSlotBarFill;
+    private Image toolSlotIconBg;
+
     // Tool rack
     private Vector3 toolRackPosition;
     private Dictionary<string, Color> toolColors = new Dictionary<string, Color>();
@@ -232,6 +238,7 @@ public class Level10_ItemDegradation : LevelManager
         UpdateSawGuideGlow();
         UpdateBroomPitchDamp();
         UpdateWrenchHeldTransform();
+        UpdateToolSlotUI();
         CheckSodaCansUnderTable();
     }
 
@@ -272,6 +279,40 @@ public class Level10_ItemDegradation : LevelManager
         wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
         wrenchSceneObject.transform.localRotation = Quaternion.Euler(wrenchHeldRotation);
         wrenchSceneObject.transform.localScale = wrenchHeldScale;
+    }
+
+    private void UpdateToolSlotUI()
+    {
+        if (toolSlotPanel == null) return;
+
+        bool holdingTool = !string.IsNullOrEmpty(currentToolName);
+        bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom || holdingRealWrench;
+
+        if (!holdingTool && !holdingRealTool)
+        {
+            toolSlotPanel.SetActive(false);
+            return;
+        }
+
+        toolSlotPanel.SetActive(true);
+
+        string displayName = currentToolName;
+        Color iconColor = toolColors.ContainsKey(displayName) ? toolColors[displayName] : Color.grey;
+        toolSlotIconBg.color = iconColor;
+        toolSlotNameText.text = displayName;
+
+        float durabilityFrac = (float)currentToolDurability / maxDurability;
+        RectTransform fillRect = toolSlotBarFill.rectTransform;
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = new Vector2(durabilityFrac, 1f);
+
+        // Green -> yellow -> orange -> red gradient
+        Color barColor;
+        if (durabilityFrac > 0.5f)
+            barColor = Color.Lerp(Color.yellow, Color.green, (durabilityFrac - 0.5f) * 2f);
+        else
+            barColor = Color.Lerp(Color.red, Color.yellow, durabilityFrac * 2f);
+        toolSlotBarFill.color = barColor;
     }
 
     private void CheckSodaCansUnderTable()
@@ -960,16 +1001,7 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = "";
         }
 
-        // Update tool display
-        if (toolText != null)
-        {
-            if (holdingRealTool)
-                toolText.text = "";
-            else if (string.IsNullOrEmpty(currentToolName))
-                toolText.text = "";
-            else
-                toolText.text = $"{currentToolName} [{currentToolDurability}/{maxDurability}]";
-        }
+        // Tool display is now handled by UpdateToolSlotUI()
     }
 
     private string GetToolFromHit(RaycastHit hit)
@@ -2432,6 +2464,79 @@ public class Level10_ItemDegradation : LevelManager
             new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.65f),
             28, new Color(1f, 0.3f, 0.3f, 0f), TextAnchor.MiddleCenter);
         breakText.fontStyle = FontStyle.Bold;
+
+        CreateToolSlotUI(canvasObj.transform);
+    }
+
+    private void CreateToolSlotUI(Transform parent)
+    {
+        // Outer container — anchored to bottom center
+        GameObject slotObj = new GameObject("ToolSlot");
+        slotObj.transform.SetParent(parent, false);
+        RectTransform slotRect = slotObj.AddComponent<RectTransform>();
+        slotRect.anchorMin = new Vector2(0.5f, 0f);
+        slotRect.anchorMax = new Vector2(0.5f, 0f);
+        slotRect.pivot = new Vector2(0.5f, 0f);
+        slotRect.anchoredPosition = new Vector2(0f, 20f);
+        slotRect.sizeDelta = new Vector2(80f, 100f);
+        toolSlotPanel = slotObj;
+
+        // Dark background frame
+        Image frameBg = slotObj.AddComponent<Image>();
+        frameBg.color = new Color(0.12f, 0.12f, 0.12f, 0.85f);
+        frameBg.raycastTarget = false;
+
+        // Border using an outline effect
+        var outline = slotObj.AddComponent<Outline>();
+        outline.effectColor = new Color(0.35f, 0.35f, 0.35f, 0.9f);
+        outline.effectDistance = new Vector2(2f, 2f);
+
+        // Tool icon background (colored square representing the tool)
+        GameObject iconObj = new GameObject("ToolIcon");
+        iconObj.transform.SetParent(slotObj.transform, false);
+        RectTransform iconRect = iconObj.AddComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.1f, 0.25f);
+        iconRect.anchorMax = new Vector2(0.9f, 0.95f);
+        iconRect.offsetMin = Vector2.zero;
+        iconRect.offsetMax = Vector2.zero;
+        toolSlotIconBg = iconObj.AddComponent<Image>();
+        toolSlotIconBg.color = Color.grey;
+        toolSlotIconBg.raycastTarget = false;
+
+        // Tool name label over the icon
+        toolSlotNameText = MakeText(iconObj.transform, "ToolName", "",
+            new Vector2(0f, 0f), new Vector2(1f, 1f),
+            14, Color.white, TextAnchor.MiddleCenter);
+        toolSlotNameText.fontStyle = FontStyle.Bold;
+        var nameOutline = toolSlotNameText.gameObject.AddComponent<Outline>();
+        nameOutline.effectColor = Color.black;
+        nameOutline.effectDistance = new Vector2(1f, 1f);
+
+        // Durability bar background (dark strip at bottom)
+        GameObject barBgObj = new GameObject("BarBg");
+        barBgObj.transform.SetParent(slotObj.transform, false);
+        RectTransform barBgRect = barBgObj.AddComponent<RectTransform>();
+        barBgRect.anchorMin = new Vector2(0.1f, 0.05f);
+        barBgRect.anchorMax = new Vector2(0.9f, 0.2f);
+        barBgRect.offsetMin = Vector2.zero;
+        barBgRect.offsetMax = Vector2.zero;
+        Image barBgImg = barBgObj.AddComponent<Image>();
+        barBgImg.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+        barBgImg.raycastTarget = false;
+
+        // Durability bar fill
+        GameObject barFillObj = new GameObject("BarFill");
+        barFillObj.transform.SetParent(barBgObj.transform, false);
+        RectTransform barFillRect = barFillObj.AddComponent<RectTransform>();
+        barFillRect.anchorMin = Vector2.zero;
+        barFillRect.anchorMax = Vector2.one;
+        barFillRect.offsetMin = Vector2.zero;
+        barFillRect.offsetMax = Vector2.zero;
+        toolSlotBarFill = barFillObj.AddComponent<Image>();
+        toolSlotBarFill.color = Color.green;
+        toolSlotBarFill.raycastTarget = false;
+
+        toolSlotPanel.SetActive(false);
     }
 
     private Text MakeText(Transform parent, string name, string content,
