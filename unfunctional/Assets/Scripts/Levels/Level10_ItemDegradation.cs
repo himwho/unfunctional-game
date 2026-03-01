@@ -82,6 +82,7 @@ public class Level10_ItemDegradation : LevelManager
         public string toolName;        // null/empty = slot is free
         public bool hasItem;
         public int durability;
+        public int maxDurability;
     }
 
     private InventorySlot[] inventorySlots;
@@ -348,7 +349,7 @@ public class Level10_ItemDegradation : LevelManager
             if (slot.hasItem)
             {
                 slotBarFills[i].enabled = true;
-                float frac = (float)slot.durability / maxDurability;
+                float frac = slot.maxDurability > 0 ? (float)slot.durability / slot.maxDurability : 0f;
                 RectTransform fillRect = slotBarFills[i].rectTransform;
                 fillRect.anchorMin = Vector2.zero;
                 fillRect.anchorMax = new Vector2(frac, 1f);
@@ -418,6 +419,7 @@ public class Level10_ItemDegradation : LevelManager
                 durability = 0
             };
         }
+        activeSlotIndex = 0;
     }
 
     private void UpdateInventoryInput()
@@ -446,29 +448,20 @@ public class Level10_ItemDegradation : LevelManager
     private void SwitchToSlot(int slotIndex)
     {
         if (slotIndex == activeSlotIndex) return;
-        if (!inventorySlots[slotIndex].hasItem) return;
 
-        // Unequip current tool
         UnequipCurrentTool();
 
-        // Equip new tool from slot
         activeSlotIndex = slotIndex;
-        EquipFromSlot(slotIndex);
+
+        if (inventorySlots[slotIndex].hasItem)
+            EquipFromSlot(slotIndex);
     }
 
     private void CycleSlot(int direction)
     {
-        // Find next slot that has an item
         int start = activeSlotIndex < 0 ? 0 : activeSlotIndex;
-        for (int attempt = 0; attempt < 4; attempt++)
-        {
-            start = (start + direction + 4) % 4;
-            if (inventorySlots[start].hasItem)
-            {
-                SwitchToSlot(start);
-                return;
-            }
-        }
+        start = (start + direction + 4) % 4;
+        SwitchToSlot(start);
     }
 
     private void UnequipCurrentTool()
@@ -578,10 +571,22 @@ public class Level10_ItemDegradation : LevelManager
         return -1;
     }
 
+    private int preferredSlot = -1;
+
     private int GetOrAssignSlot(string toolName)
     {
         int existing = GetSlotIndexForTool(toolName);
-        if (existing >= 0) return existing;
+        if (existing >= 0) { preferredSlot = -1; return existing; }
+
+        // Prefer the slot the player had selected before pickup
+        if (preferredSlot >= 0 && !inventorySlots[preferredSlot].hasItem)
+        {
+            int slot = preferredSlot;
+            preferredSlot = -1;
+            return slot;
+        }
+
+        preferredSlot = -1;
         return GetFirstEmptySlot();
     }
 
@@ -1254,6 +1259,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpTool(string toolName)
     {
+        preferredSlot = activeSlotIndex;
         UnequipCurrentTool();
 
         int durability = Random.Range(1, maxDurability + 1);
@@ -1266,6 +1272,7 @@ public class Level10_ItemDegradation : LevelManager
             inventorySlots[slotIdx].toolName = toolName;
             inventorySlots[slotIdx].hasItem = true;
             inventorySlots[slotIdx].durability = durability;
+            inventorySlots[slotIdx].maxDurability = maxDurability;
             activeSlotIndex = slotIdx;
         }
 
@@ -1771,6 +1778,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpHammer(HammerInfo info)
     {
+        preferredSlot = activeSlotIndex;
         UnequipCurrentTool();
 
         // Drop the old hammer if one is stored in the slot
@@ -1790,6 +1798,7 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].toolName = "Hammer";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].maxDurability = maxDurability;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
@@ -1965,6 +1974,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpSaw(SawInfo info)
     {
+        preferredSlot = activeSlotIndex;
         UnequipCurrentTool();
 
         if (sawSceneObject != null)
@@ -1983,6 +1993,7 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].toolName = "Saw";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].maxDurability = maxDurability;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
@@ -2089,6 +2100,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpBroom(BroomInfo info)
     {
+        preferredSlot = activeSlotIndex;
         UnequipCurrentTool();
 
         if (broomSceneObject != null)
@@ -2107,6 +2119,7 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].toolName = "Broom";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = 3;
+        inventorySlots[slotIdx].maxDurability = 3;
 
         activeSlotIndex = slotIdx;
         currentToolDurability = 3;
@@ -2207,6 +2220,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpWrench(WrenchInfo info)
     {
+        preferredSlot = activeSlotIndex;
         UnequipCurrentTool();
 
         if (wrenchSceneObject != null)
@@ -2225,6 +2239,7 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].toolName = "Wrench";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].maxDurability = maxDurability;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
@@ -2728,7 +2743,7 @@ public class Level10_ItemDegradation : LevelManager
             iconObj.transform.SetParent(slotObj.transform, false);
             RectTransform iconRect = iconObj.AddComponent<RectTransform>();
             iconRect.anchorMin = new Vector2(0.05f, 0.22f);
-            iconRect.anchorMax = new Vector2(0.95f, 0.92f);
+            iconRect.anchorMax = new Vector2(0.95f, 0.80f);
             iconRect.offsetMin = Vector2.zero;
             iconRect.offsetMax = Vector2.zero;
             slotIcons[i] = iconObj.AddComponent<RawImage>();
