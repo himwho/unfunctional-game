@@ -287,7 +287,7 @@ public class Level10_ItemDegradation : LevelManager
             // new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
-            // new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
+            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
             new Task { name = "Sweep the Trash Under the Table", toolName = "Broom", requiredUses = 9999 },
         };
 
