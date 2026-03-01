@@ -1047,6 +1047,7 @@ public class Level10_ItemDegradation : LevelManager
 
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         bool showPrompt = false;
+        bool stationHandledClick = false;
 
         if (Physics.SphereCast(ray, interactRadius, out RaycastHit hit, interactRange, ~0, QueryTriggerInteraction.Collide))
         {
@@ -1204,7 +1205,10 @@ public class Level10_ItemDegradation : LevelManager
                                 promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
 
                             if (Input.GetMouseButtonDown(0) && !isSwinging)
+                            {
+                                stationHandledClick = true;
                                 StartCoroutine(SwingAndUseTool(i));
+                            }
                         }
                         else if (string.IsNullOrEmpty(currentToolName))
                         {
@@ -1221,12 +1225,33 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
-        // Broom can sweep anywhere with left click
-        if (holdingRealBroom && !isSwinging && Input.GetMouseButtonDown(0))
+        // Tools animate on left click anywhere; only apply durability at stations
+        if (!isSwinging && !stationHandledClick && Input.GetMouseButtonDown(0))
         {
-            int broomTaskIndex = tasks.FindIndex(t => t.toolName == "Broom");
-            if (broomTaskIndex >= 0 && !tasks[broomTaskIndex].completed)
-                StartCoroutine(SwingAndUseTool(broomTaskIndex));
+            if (holdingRealHammer)
+            {
+                int idx = tasks.FindIndex(t => t.toolName == "Hammer");
+                if (idx >= 0 && !tasks[idx].completed)
+                    StartCoroutine(SwingAndUseTool(idx, true));
+            }
+            else if (holdingRealSaw)
+            {
+                int idx = tasks.FindIndex(t => t.toolName == "Saw");
+                if (idx >= 0 && !tasks[idx].completed)
+                    StartCoroutine(SwingAndUseTool(idx, true));
+            }
+            else if (holdingRealBroom)
+            {
+                int idx = tasks.FindIndex(t => t.toolName == "Broom");
+                if (idx >= 0 && !tasks[idx].completed)
+                    StartCoroutine(SwingAndUseTool(idx));
+            }
+            else if (holdingRealWrench)
+            {
+                int idx = tasks.FindIndex(t => t.toolName == "Wrench");
+                if (idx >= 0 && !tasks[idx].completed)
+                    StartCoroutine(SwingAndUseTool(idx, true));
+            }
         }
 
         bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom || holdingRealWrench;
@@ -1454,7 +1479,7 @@ public class Level10_ItemDegradation : LevelManager
         rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
     }
 
-    private IEnumerator SwingAndUseTool(int taskIndex)
+    private IEnumerator SwingAndUseTool(int taskIndex, bool animationOnly = false)
     {
         isSwinging = true;
 
@@ -1464,7 +1489,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (isSawTask)
         {
-            yield return StartCoroutine(SawAndUseTool(taskIndex));
+            yield return StartCoroutine(SawAndUseTool(taskIndex, animationOnly));
             isSwinging = false;
             yield break;
         }
@@ -1478,7 +1503,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (isWrenchTask)
         {
-            yield return StartCoroutine(WrenchAndUseTool(taskIndex));
+            yield return StartCoroutine(WrenchAndUseTool(taskIndex, animationOnly));
             isSwinging = false;
             yield break;
         }
@@ -1513,7 +1538,7 @@ public class Level10_ItemDegradation : LevelManager
                 yield return null;
             }
 
-            if (!isHammerTask)
+            if (!animationOnly && !isHammerTask)
                 UseTool(taskIndex);
 
             bool hammerHitNail = false;
@@ -1524,7 +1549,7 @@ public class Level10_ItemDegradation : LevelManager
                 t += Time.deltaTime;
                 swingTarget.localRotation = Quaternion.Slerp(windUp, swingDown, t / swingTime);
 
-                if (isHammerTask && !hammerHitNail && hammerHeadTransform != null)
+                if (!animationOnly && isHammerTask && !hammerHitNail && hammerHeadTransform != null)
                 {
                     float dist = Vector3.Distance(hammerHeadTransform.position, nailTransform.position);
                     if (dist <= hammerHitDistance)
@@ -1534,7 +1559,7 @@ public class Level10_ItemDegradation : LevelManager
                 yield return null;
             }
 
-            if (isHammerTask)
+            if (!animationOnly && isHammerTask)
             {
                 if (hammerHitNail)
                 {
@@ -1558,7 +1583,7 @@ public class Level10_ItemDegradation : LevelManager
 
             swingTarget.localRotation = startRot;
         }
-        else
+        else if (!animationOnly)
         {
             UseTool(taskIndex);
         }
@@ -1566,7 +1591,7 @@ public class Level10_ItemDegradation : LevelManager
         isSwinging = false;
     }
 
-    private IEnumerator SawAndUseTool(int taskIndex)
+    private IEnumerator SawAndUseTool(int taskIndex, bool animationOnly = false)
     {
         Transform swingTarget = null;
         if (holdingRealSaw && sawSceneObject != null)
@@ -1576,7 +1601,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (swingTarget == null)
         {
-            UseTool(taskIndex);
+            if (!animationOnly) UseTool(taskIndex);
             yield break;
         }
 
@@ -1613,7 +1638,7 @@ public class Level10_ItemDegradation : LevelManager
                 elapsed += Time.deltaTime;
                 swingTarget.localPosition = Vector3.Lerp(from, to, elapsed / strokeTime);
 
-                if (!sawHitCutLine && sawCutLine != null)
+                if (!animationOnly && !sawHitCutLine && sawCutLine != null)
                 {
                     float dist = Vector3.Distance(bladetip.position, sawCutLine.transform.position);
                     if (dist <= sawAlignDistance)
@@ -1624,7 +1649,7 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
 
-        if (sawHitCutLine)
+        if (!animationOnly && sawHitCutLine)
         {
             int durabilityBefore = currentToolDurability;
             UseTool(taskIndex);
@@ -1633,7 +1658,7 @@ public class Level10_ItemDegradation : LevelManager
             if (!toolBroke && !tasks[taskIndex].completed)
                 StartBreakMessage("Sawing...", new Color(1f, 0.85f, 0.4f, 1f));
         }
-        else
+        else if (!animationOnly && !sawHitCutLine)
         {
             StartBreakMessage("Line up the saw with the cut line!", new Color(1f, 1f, 0.3f, 1f));
         }
@@ -2250,7 +2275,7 @@ public class Level10_ItemDegradation : LevelManager
         Debug.Log($"[Level10] Picked up real Wrench with {currentToolDurability} durability");
     }
 
-    private IEnumerator WrenchAndUseTool(int taskIndex)
+    private IEnumerator WrenchAndUseTool(int taskIndex, bool animationOnly = false)
     {
         Transform swingTarget = null;
         if (holdingRealWrench && wrenchSceneObject != null)
@@ -2260,7 +2285,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (swingTarget == null)
         {
-            UseTool(taskIndex);
+            if (!animationOnly) UseTool(taskIndex);
             yield break;
         }
 
@@ -2277,8 +2302,9 @@ public class Level10_ItemDegradation : LevelManager
             tipCenterWorld = tipRenderer != null ? tipRenderer.bounds.center : wrenchTipTransform.position;
         }
 
-        // Compute the tip center's offset in wrench-local space (stable reference)
+        // Store pivot in camera-local space so player movement doesn't cause drift
         Vector3 tipOffsetLocal = swingTarget.InverseTransformPoint(tipCenterWorld);
+        Vector3 tipCenterCamLocal = cam.transform.InverseTransformPoint(tipCenterWorld);
 
         Quaternion engageRot = Quaternion.Euler(0f, -15f, 0f) * startRot;
         Quaternion turnedRot = Quaternion.Euler(0f, 90f, 0f) * startRot;
@@ -2290,7 +2316,7 @@ public class Level10_ItemDegradation : LevelManager
         {
             t += Time.deltaTime;
             swingTarget.localRotation = Quaternion.Slerp(startRot, engageRot, t / windUpTime);
-            CorrectPositionForPivot(swingTarget, tipOffsetLocal, tipCenterWorld, cam);
+            CorrectPositionForPivotLocal(swingTarget, tipOffsetLocal, tipCenterCamLocal, cam);
             yield return null;
         }
 
@@ -2301,16 +2327,19 @@ public class Level10_ItemDegradation : LevelManager
         {
             t += Time.deltaTime;
             swingTarget.localRotation = Quaternion.Slerp(engageRot, turnedRot, t / turnTime);
-            CorrectPositionForPivot(swingTarget, tipOffsetLocal, tipCenterWorld, cam);
+            CorrectPositionForPivotLocal(swingTarget, tipOffsetLocal, tipCenterCamLocal, cam);
             yield return null;
         }
 
-        int durabilityBefore = currentToolDurability;
-        UseTool(taskIndex);
-        bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+        if (!animationOnly)
+        {
+            int durabilityBefore = currentToolDurability;
+            UseTool(taskIndex);
+            bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
 
-        if (!toolBroke && !tasks[taskIndex].completed)
-            StartBreakMessage("Turning...", new Color(0.4f, 0.7f, 1f, 1f));
+            if (!toolBroke && !tasks[taskIndex].completed)
+                StartBreakMessage("Turning...", new Color(0.4f, 0.7f, 1f, 1f));
+        }
 
         // Return to rest — animate back to original position and rotation
         float returnTime = 0.2f;
@@ -2332,12 +2361,11 @@ public class Level10_ItemDegradation : LevelManager
         }
     }
 
-    private void CorrectPositionForPivot(Transform wrench, Vector3 tipOffsetLocal, Vector3 originalTipWorld, Camera cam)
+    private void CorrectPositionForPivotLocal(Transform wrench, Vector3 tipOffsetLocal, Vector3 originalTipCamLocal, Camera cam)
     {
         Vector3 newTipWorld = wrench.TransformPoint(tipOffsetLocal);
-        Vector3 originalInCam = cam.transform.InverseTransformPoint(originalTipWorld);
-        Vector3 newInCam = cam.transform.InverseTransformPoint(newTipWorld);
-        wrench.localPosition += originalInCam - newInCam;
+        Vector3 newTipCamLocal = cam.transform.InverseTransformPoint(newTipWorld);
+        wrench.localPosition += originalTipCamLocal - newTipCamLocal;
     }
 
     private IEnumerator TurnNutDown(Vector3 targetPos, float targetYRotation)
