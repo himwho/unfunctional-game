@@ -10006,7 +10006,7 @@ MonoBehaviour:
   sawHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
   sawHeldRotation: {x: 0, y: -90, z: -30}
   sawHeldScale: {x: 1, y: 1, z: 1}
-  sawAlignDistance: 0.75
+  sawAlignDistance: 0.95
   sawBladeLaunchForce: 8
   sawBladeTorque: 10
   broomHeldPosition: {x: 0.55, y: -0.1, z: 0.5}

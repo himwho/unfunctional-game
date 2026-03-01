@@ -2443,18 +2443,8 @@ public class Level10_ItemDegradation : LevelManager
 
     private void UpdateSawCutProgress(Task task)
     {
-        if (plankChildA == null || plankChildB == null) return;
-
         float progress = (float)task.currentUses / task.requiredUses;
         sawCutProgress = progress;
-
-        Vector3 dirAway = (plankChildA.position - plankChildB.position).normalized;
-        if (dirAway.sqrMagnitude < 0.001f)
-            dirAway = plankTransform != null ? plankTransform.right : Vector3.right;
-
-        float separation = progress * 0.003f;
-        plankChildA.localPosition += dirAway * separation;
-        plankChildB.localPosition -= dirAway * separation;
     }
 
     private void SplitPlank()
