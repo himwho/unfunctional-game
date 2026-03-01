@@ -1213,7 +1213,7 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else
                         {
-                            promptText.text = $"Wrong tool! Need: {tasks[i].toolName}, have: {currentToolName}";
+                            promptText.text = "";
                         }
                         break;
                     }
