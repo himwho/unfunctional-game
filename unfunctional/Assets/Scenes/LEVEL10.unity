@@ -3949,6 +3949,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 4eb1944ba48dd2743b188f58b8181f33,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 4eb1944ba48dd2743b188f58b8181f33,
+        type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: ae9f98f408fe5334b92e735cf856b156, type: 2}
@@ -8494,6 +8499,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: b84db2d2bfef03f4586098e77521eded,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: b84db2d2bfef03f4586098e77521eded,
+        type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9a812a5cbf2a0b04692c57195fedbd96, type: 2}
@@ -9990,7 +10000,7 @@ MonoBehaviour:
   hammerHeldPosition: {x: 0.5, y: -0.35, z: 0.8}
   hammerHeldRotation: {x: 0, y: -90, z: -30}
   hammerHeldScale: {x: 0.2551392, y: 0.2551392, z: 0.2551392}
-  hammerHitDistance: 0.25
+  hammerHitDistance: 0.33
   hammerHeadLaunchForce: 8
   hammerHeadTorque: 10
   sawHeldPosition: {x: 0.5, y: -0.35, z: 0.8}

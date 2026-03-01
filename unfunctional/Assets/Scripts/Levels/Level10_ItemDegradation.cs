@@ -281,12 +281,13 @@ public class Level10_ItemDegradation : LevelManager
         Task broomTask = tasks.Find(t => t.toolName == "Broom");
         if (broomTask == null || broomTask.completed) return;
 
+        float margin = 0.5f;
         foreach (var rb in sodaCanBodies)
         {
             if (rb == null) continue;
             Vector3 pos = rb.position;
-            if (pos.x < tableBounds.min.x || pos.x > tableBounds.max.x ||
-                pos.z < tableBounds.min.z || pos.z > tableBounds.max.z ||
+            if (pos.x < tableBounds.min.x - margin || pos.x > tableBounds.max.x + margin ||
+                pos.z < tableBounds.min.z - margin || pos.z > tableBounds.max.z + margin ||
                 pos.y > tableBounds.max.y)
                 return;
         }
@@ -652,6 +653,8 @@ public class Level10_ItemDegradation : LevelManager
                 rb.mass = 0.3f;
                 rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
+                go.AddComponent<TrashWallBounce>();
+
                 sodaCanBodies.Add(rb);
             }
             else if (go.name == "Wooden Table" && tableObj == null)
@@ -676,6 +679,17 @@ public class Level10_ItemDegradation : LevelManager
             Debug.LogWarning("[Level10] 'Wooden Table' not found in scene");
         }
 
+        // Prevent trash objects from colliding with each other so they don't pile up
+        for (int i = 0; i < sodaCanBodies.Count; i++)
+        {
+            for (int j = i + 1; j < sodaCanBodies.Count; j++)
+            {
+                foreach (var colA in sodaCanBodies[i].GetComponentsInChildren<Collider>())
+                    foreach (var colB in sodaCanBodies[j].GetComponentsInChildren<Collider>())
+                        Physics.IgnoreCollision(colA, colB, true);
+            }
+        }
+
         Debug.Log($"[Level10] Initialized {sodaCanBodies.Count} trash objects with physics");
     }
 
@@ -694,6 +708,25 @@ public class Level10_ItemDegradation : LevelManager
             }
         }
         EnsureStaticColliders(pottedPlant, "Potted Plant");
+
+        IgnoreTrashCollisions(tableObj);
+        IgnoreTrashCollisions(pottedPlant);
+    }
+
+    private void IgnoreTrashCollisions(GameObject prop)
+    {
+        if (prop == null) return;
+
+        Collider[] propColliders = prop.GetComponentsInChildren<Collider>();
+        foreach (var rb in sodaCanBodies)
+        {
+            if (rb == null) continue;
+            foreach (var trashCol in rb.GetComponentsInChildren<Collider>())
+            {
+                foreach (var propCol in propColliders)
+                    Physics.IgnoreCollision(trashCol, propCol, true);
+            }
+        }
     }
 
     private void EnsureStaticColliders(GameObject obj, string label)
@@ -2441,5 +2474,46 @@ public class Level10_ItemDegradation : LevelManager
             mat = new Material(Shader.Find("Standard"));
         mat.color = color;
         return mat;
+    }
+}
+
+public class TrashWallBounce : MonoBehaviour
+{
+    private Rigidbody rb;
+    private const float wallNormalThreshold = 0.3f;
+    private const float impactForce = 0.5f;
+    private const float stayForce = 0.5f;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.rigidbody != null) return;
+
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            if (Mathf.Abs(contact.normal.y) < wallNormalThreshold)
+            {
+                rb.AddForce(contact.normal * impactForce, ForceMode.Impulse);
+                break;
+            }
+        }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.rigidbody != null) return;
+
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            if (Mathf.Abs(contact.normal.y) < wallNormalThreshold)
+            {
+                rb.AddForce(contact.normal * stayForce, ForceMode.Force);
+                break;
+            }
+        }
     }
 }
