@@ -419,28 +419,45 @@ public class Level9_WalkingSimulator : LevelManager
     // Wall Widening
     // =========================================================================
 
-    public void WidenWalls(float scaleDivisor = 1.5f, float duration = 3f)
+    public void WidenWalls(float duration = 3f)
     {
-        GameObject wallsParent = GameObject.Find("Walls");
-        if (wallsParent == null) return;
-        StartCoroutine(AnimateWallWiden(wallsParent.transform, scaleDivisor, duration));
+        Transform[] rightWalls = FindObjectsByNameContains("wall_right");
+        Transform[] leftWalls = FindObjectsByNameContains("wall_left");
+        if (rightWalls.Length == 0 && leftWalls.Length == 0) return;
+        StartCoroutine(AnimateWallWiden(rightWalls, -2f,
+                                        leftWalls, 2f, duration));
     }
 
-    private IEnumerator AnimateWallWiden(Transform wallsParent, float scaleDivisor, float duration)
+    private Transform[] FindObjectsByNameContains(string namePart)
     {
-        int childCount = wallsParent.childCount;
-        Vector3[] startScales = new Vector3[childCount];
-        Vector3[] targetScales = new Vector3[childCount];
-
-        for (int i = 0; i < childCount; i++)
+        var all = FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        var matches = new System.Collections.Generic.List<Transform>();
+        foreach (var t in all)
         {
-            Transform child = wallsParent.GetChild(i);
-            startScales[i] = child.localScale;
-            targetScales[i] = new Vector3(
-                child.localScale.x,
-                child.localScale.y,
-                child.localScale.z / scaleDivisor
-            );
+            if (t.name.IndexOf(namePart, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                matches.Add(t);
+        }
+        return matches.ToArray();
+    }
+
+    private IEnumerator AnimateWallWiden(Transform[] rightWalls, float rightOffsetX,
+                                         Transform[] leftWalls, float leftOffsetX,
+                                         float duration)
+    {
+        float[] rightStartX = new float[rightWalls.Length];
+        float[] rightEndX = new float[rightWalls.Length];
+        for (int i = 0; i < rightWalls.Length; i++)
+        {
+            rightStartX[i] = rightWalls[i].localPosition.x;
+            rightEndX[i] = rightStartX[i] + rightOffsetX;
+        }
+
+        float[] leftStartX = new float[leftWalls.Length];
+        float[] leftEndX = new float[leftWalls.Length];
+        for (int i = 0; i < leftWalls.Length; i++)
+        {
+            leftStartX[i] = leftWalls[i].localPosition.x;
+            leftEndX[i] = leftStartX[i] + leftOffsetX;
         }
 
         float elapsed = 0f;
@@ -449,16 +466,33 @@ public class Level9_WalkingSimulator : LevelManager
             elapsed += Time.deltaTime;
             float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
 
-            for (int i = 0; i < childCount; i++)
+            for (int i = 0; i < rightWalls.Length; i++)
             {
-                Transform child = wallsParent.GetChild(i);
-                child.localScale = Vector3.Lerp(startScales[i], targetScales[i], t);
+                Vector3 pos = rightWalls[i].localPosition;
+                pos.x = Mathf.Lerp(rightStartX[i], rightEndX[i], t);
+                rightWalls[i].localPosition = pos;
+            }
+            for (int i = 0; i < leftWalls.Length; i++)
+            {
+                Vector3 pos = leftWalls[i].localPosition;
+                pos.x = Mathf.Lerp(leftStartX[i], leftEndX[i], t);
+                leftWalls[i].localPosition = pos;
             }
             yield return null;
         }
 
-        for (int i = 0; i < childCount; i++)
-            wallsParent.GetChild(i).localScale = targetScales[i];
+        foreach (var wall in rightWalls)
+        {
+            Vector3 pos = wall.localPosition;
+            pos.x = rightEndX[System.Array.IndexOf(rightWalls, wall)];
+            wall.localPosition = pos;
+        }
+        foreach (var wall in leftWalls)
+        {
+            Vector3 pos = wall.localPosition;
+            pos.x = leftEndX[System.Array.IndexOf(leftWalls, wall)];
+            wall.localPosition = pos;
+        }
     }
 
     // =========================================================================
