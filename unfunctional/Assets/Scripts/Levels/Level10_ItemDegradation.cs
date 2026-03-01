@@ -76,15 +76,14 @@ public class Level10_ItemDegradation : LevelManager
 
     private List<Task> tasks = new List<Task>();
 
-    // Inventory system — 4 fixed slots: Hammer, Saw, Broom, Wrench
+    // Inventory system — 4 dynamic slots filled in pickup order
     private class InventorySlot
     {
-        public string toolName;        // "Hammer", "Saw", "Broom", "Wrench"
+        public string toolName;        // null/empty = slot is free
         public bool hasItem;
         public int durability;
     }
 
-    private readonly string[] slotToolNames = { "Hammer", "Saw", "Broom", "Wrench" };
     private InventorySlot[] inventorySlots;
     private int activeSlotIndex = -1;   // -1 = nothing selected
 
@@ -412,7 +411,7 @@ public class Level10_ItemDegradation : LevelManager
         {
             inventorySlots[i] = new InventorySlot
             {
-                toolName = slotToolNames[i],
+                toolName = "",
                 hasItem = false,
                 durability = 0
             };
@@ -565,9 +564,23 @@ public class Level10_ItemDegradation : LevelManager
 
     private int GetSlotIndexForTool(string toolName)
     {
-        for (int i = 0; i < slotToolNames.Length; i++)
-            if (slotToolNames[i] == toolName) return i;
+        for (int i = 0; i < inventorySlots.Length; i++)
+            if (inventorySlots[i].hasItem && inventorySlots[i].toolName == toolName) return i;
         return -1;
+    }
+
+    private int GetFirstEmptySlot()
+    {
+        for (int i = 0; i < inventorySlots.Length; i++)
+            if (!inventorySlots[i].hasItem) return i;
+        return -1;
+    }
+
+    private int GetOrAssignSlot(string toolName)
+    {
+        int existing = GetSlotIndexForTool(toolName);
+        if (existing >= 0) return existing;
+        return GetFirstEmptySlot();
     }
 
     private void InitToolColors()
@@ -1245,9 +1258,10 @@ public class Level10_ItemDegradation : LevelManager
         currentToolName = toolName;
         currentToolDurability = durability;
 
-        int slotIdx = GetSlotIndexForTool(toolName);
+        int slotIdx = GetOrAssignSlot(toolName);
         if (slotIdx >= 0)
         {
+            inventorySlots[slotIdx].toolName = toolName;
             inventorySlots[slotIdx].hasItem = true;
             inventorySlots[slotIdx].durability = durability;
             activeSlotIndex = slotIdx;
@@ -1324,6 +1338,7 @@ public class Level10_ItemDegradation : LevelManager
             int completedSlot = GetSlotIndexForTool(task.toolName);
             if (completedSlot >= 0)
             {
+                inventorySlots[completedSlot].toolName = "";
                 inventorySlots[completedSlot].hasItem = false;
                 inventorySlots[completedSlot].durability = 0;
             }
@@ -1402,6 +1417,7 @@ public class Level10_ItemDegradation : LevelManager
         // Clear the inventory slot
         if (activeSlotIndex >= 0)
         {
+            inventorySlots[activeSlotIndex].toolName = "";
             inventorySlots[activeSlotIndex].hasItem = false;
             inventorySlots[activeSlotIndex].durability = 0;
         }
@@ -1767,7 +1783,9 @@ public class Level10_ItemDegradation : LevelManager
         hammerHeadTransform = info.headTransform;
         hammerHandleTransform = info.handleTransform;
 
-        int slotIdx = GetSlotIndexForTool("Hammer");
+        int slotIdx = GetOrAssignSlot("Hammer");
+        if (slotIdx < 0) return;
+        inventorySlots[slotIdx].toolName = "Hammer";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
 
@@ -1958,7 +1976,9 @@ public class Level10_ItemDegradation : LevelManager
         sawBladeTransform = info.bladeTransform;
         sawHandleTransform = info.handleTransform;
 
-        int slotIdx = GetSlotIndexForTool("Saw");
+        int slotIdx = GetOrAssignSlot("Saw");
+        if (slotIdx < 0) return;
+        inventorySlots[slotIdx].toolName = "Saw";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
 
@@ -2080,7 +2100,9 @@ public class Level10_ItemDegradation : LevelManager
         broomHeadTransform = info.headTransform;
         broomHandleTransform = info.handleTransform;
 
-        int slotIdx = GetSlotIndexForTool("Broom");
+        int slotIdx = GetOrAssignSlot("Broom");
+        if (slotIdx < 0) return;
+        inventorySlots[slotIdx].toolName = "Broom";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
 
@@ -2195,7 +2217,9 @@ public class Level10_ItemDegradation : LevelManager
         wrenchTipTransform = info.tipTransform;
         wrenchHandleTransform = info.handleTransform;
 
-        int slotIdx = GetSlotIndexForTool("Wrench");
+        int slotIdx = GetOrAssignSlot("Wrench");
+        if (slotIdx < 0) return;
+        inventorySlots[slotIdx].toolName = "Wrench";
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
 
@@ -2683,7 +2707,7 @@ public class Level10_ItemDegradation : LevelManager
         {
             float xPos = -totalWidth / 2f + slotWidth / 2f + i * (slotWidth + slotSpacing);
 
-            GameObject slotObj = new GameObject("Slot_" + slotToolNames[i]);
+            GameObject slotObj = new GameObject("Slot_" + (i + 1));
             slotObj.transform.SetParent(container.transform, false);
             RectTransform slotRect = slotObj.AddComponent<RectTransform>();
             slotRect.anchorMin = new Vector2(0.5f, 0.5f);
