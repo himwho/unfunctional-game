@@ -19,7 +19,7 @@ public class Level10_ItemDegradation : LevelManager
     public DoorController doorController;
 
     [Header("Tool Settings")]
-    public int maxDurability = 3;           // Uses before tool breaks
+    public int maxDurability = 15;          // Uses before tool breaks
     public float interactRange = 3.5f;
     [Tooltip("Radius of the interaction sphere cast — larger = easier to target tools")]
     public float interactRadius = 0.15f;
@@ -228,6 +228,8 @@ public class Level10_ItemDegradation : LevelManager
         levelDescription = "Complete the tasks. The tools have other plans.";
         needsPlayer = true;
         wantsCursorLocked = true;
+
+        maxDurability = 15;
 
         InitToolColors();
         InitInventory();
@@ -598,9 +600,9 @@ public class Level10_ItemDegradation : LevelManager
         {
             // TODO: re-enable these two tasks
             // new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
-            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
-            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
-            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 11 },
+            new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 40 },
+            new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 40 },
+            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 55 },
             new Task { name = "Sweep the Trash Under the Table", toolName = "Broom", requiredUses = 9999 },
         };
 
@@ -2104,9 +2106,10 @@ public class Level10_ItemDegradation : LevelManager
         if (slotIdx < 0) return;
         inventorySlots[slotIdx].toolName = "Broom";
         inventorySlots[slotIdx].hasItem = true;
-        inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].durability = 3;
 
         activeSlotIndex = slotIdx;
+        currentToolDurability = 3;
         EquipFromSlot(slotIdx);
 
         Task broomTask = tasks.Find(t => t.toolName == "Broom");
