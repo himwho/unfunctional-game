@@ -1,0 +1,773 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6325272236959952638
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
+  version: 10
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MAT_Demo_Glass_Moss_02
+  m_Shader: {fileID: 4800000, guid: a58ea5bc328dbb142a1ddfd186197abc, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _DIRTDIRECTION_BOTTOM_UP
+  - _FINGERPRINTMAPPING1_WORLD
+  - _FINGERPRINTMAPPING2_WORLD
+  - _FINGERPRINTMAPPING3_UV
+  - _FINGERPRINTMAPPING4_UV
+  - _SB_BARREL
+  - _SB_BLUR
+  - _SB_DUST
+  - _SB_FINGERPRINTS_SLOT2
+  - _SB_IOR
+  - _SB_MAGNIFY
+  - _SB_QUALITY_HIGH
+  - _SB_REFLECTION_CUBEMAP
+  - _SB_RIM
+  - _SB_SPECULAR
+  m_InvalidKeywords:
+  - _BLENDMODE_STANDARD
+  - _CHROMATIC_DISPERSION
+  - _DIRTAFFECTREFRACTION_ON
+  - _DIRTUSEEDGENOISE_ON
+  - _DUSTEDGEFALLOFF_ON
+  - _DUSTHEIGHTFALLOFF_ON
+  - _FINGERPRINTTRIPLANAR2_ON
+  - _FINGERPRINTTYPE1_FINGER
+  - _FINGERPRINTTYPE2_PALM
+  - _FINGERPRINTTYPE3_GREASE
+  - _FINGERPRINTTYPE4_WATER
+  - _FINGERPRINTUSETEXTURE1_ON
+  - _FINGERPRINTUSETEXTURE2_ON
+  - _FRESNELAFFECTREFLECTION_ON
+  - _IORORIGINPRESET_GLASS
+  - _PROCEDURALCRACKS_ON
+  - _RECEIVESHADOWS_ON
+  - _SB_TRANSLUCENCY
+  - _SPECULARTOON_ON
+  - _USE_CUBEMAP
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: a460bef274c92eb47b005c845365a6f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CausticsMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CausticsTexture:
+        m_Texture: {fileID: 2800000, guid: d5c5715882750b04e9c6388e36ff06c3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CrackNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CubeMap:
+        m_Texture: {fileID: 8900000, guid: 0ad3dc9db7ec91c49995375b274a4297, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DamageMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DecalTexture1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DecalTexture2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DecalTexture3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DecalTexture4:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormal:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 2800000, guid: a460bef274c92eb47b005c845365a6f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DirtMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DustTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FingerprintTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FingerprintTexture1:
+        m_Texture: {fileID: 2800000, guid: 4902f2877226f6046b779e75cda63a2d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0.72, y: 0.71}
+    - _FingerprintTexture2:
+        m_Texture: {fileID: 2800000, guid: fbeb3e97d3f97634a8a1fb2edd7d4dd8, type: 3}
+        m_Scale: {x: 1.52, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FingerprintTexture3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FingerprintTexture4:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: a460bef274c92eb47b005c845365a6f2, type: 3}
+        m_Scale: {x: 1, y: 0}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 2800000, guid: e22b7405d80c87d42bb1646f93137e65, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RainDrops:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RainNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RainTexture:
+        m_Texture: {fileID: 2800000, guid: 270946b09072dca4390c0db575178b18, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ReflectionCube:
+        m_Texture: {fileID: 8900000, guid: 0ad3dc9db7ec91c49995375b274a4297, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ScratchMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SmudgeMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TintTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaterStainMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AbsorptionDensity: 1.28
+    - _AbsorptionFalloff: 1
+    - _AbsorptionStrength: 0.5
+    - _AddPrecomputedVelocity: 0
+    - _AdditionalLightsIntensity: 1
+    - _AdditionalSpecularStrength: 0.5
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Anisotropy: 0.15
+    - _BackfaceDarken: 0.397
+    - _BarrelDistortion: 0.582
+    - _BarrelStrength: 0.552
+    - _Blend: 0
+    - _BlendMode: 0
+    - _BlendModePreserveSpecular: 1
+    - _BlurQuality: 25
+    - _BlurRadius: 0.0031
+    - _BlurSamples: 8
+    - _BlurStrength: 0.754
+    - _Brightness: 1.408
+    - _BumpScale: 0.503
+    - _CastShadows: 0
+    - _CausticsDistortion: 0.449
+    - _CausticsIntensity: 0.174
+    - _CausticsProcedural: 1
+    - _CausticsScale: 0.71
+    - _CausticsSpeed: 0
+    - _CausticsStrength: 1
+    - _ChromaticAberration: 0
+    - _ChromaticDispersion: 0.1178
+    - _ClearCoatMask: 0
+    - _ClearCoatSmoothness: 0
+    - _ClearcoatSmoothness: 0.9
+    - _ClearcoatStrength: 0
+    - _Contrast: 1.169
+    - _CrackDepth: 2
+    - _CrackEmission: 1.131
+    - _CrackWidth: 0.1
+    - _Cull: 2
+    - _CullMode: 2
+    - _Cutoff: 0.5
+    - _DamageProgression: 0.78
+    - _DecalIntensity1: 1
+    - _DecalIntensity2: 1
+    - _DecalIntensity3: 1
+    - _DecalIntensity4: 1
+    - _DecalRotation1: 0
+    - _DecalRotation2: 0
+    - _DecalRotation3: 0
+    - _DecalRotation4: 0
+    - _DecalSize1: 0.3
+    - _DecalSize2: 0.3
+    - _DecalSize3: 0.3
+    - _DecalSize4: 0.3
+    - _DepthFadeDistance: 5.78
+    - _DepthFadeStrength: 1
+    - _DetailAlbedoIntensity: 0.665
+    - _DetailAlbedoMapScale: 1
+    - _DetailNormalMapScale: 1
+    - _DetailNormalScale: 0
+    - _DetailNormalStrength: 0.5
+    - _DetailNormalTiling: 4
+    - _DetailNormalTriplanarScale: 1
+    - _DetailNormalTriplanarSharpness: 4
+    - _DetailScale: 0
+    - _DetailTiling: 1.32
+    - _DiffuseIntensity: 0
+    - _DirtAffectRefraction: 1
+    - _DirtAmount: 0.3
+    - _DirtDirection: 0
+    - _DirtEdgeNoiseScale: 20
+    - _DirtEdgeNoiseStrength: 0.598
+    - _DirtFullOpacity: 1
+    - _DirtHeight: 0.195
+    - _DirtIntensity: 0
+    - _DirtRoughness: 0.8
+    - _DirtSoftness: 1
+    - _DirtSpread: 0.251
+    - _DirtTextureScale: 1
+    - _DirtTiling: 0.5
+    - _DirtUseEdgeNoise: 1
+    - _DirtVariationScale: 5.16
+    - _DirtWorldHeight: 3.18
+    - _Distortion: 0.244
+    - _DitherScale: 0.942
+    - _DitherStrength: 0.991
+    - _DstBlend: 10
+    - _DstBlendAlpha: 0
+    - _DustAmount: 0
+    - _DustCoverage: 1
+    - _DustEdgeFalloff: 1
+    - _DustEdgePower: 0.404
+    - _DustHeightFalloff: 1
+    - _DustHeightOffset: 0
+    - _DustHeightPower: 1.5
+    - _DustIntensity: 1
+    - _DustNormalBlend: 0.603
+    - _DustOpacity: 0.8
+    - _DustRoughness: 0.123
+    - _DustTiling: 19.01
+    - _DustTriplanarRotation: 126
+    - _DustTriplanarScale: 0
+    - _DustTriplanarSharpness: 3.12
+    - _EdgeDarkeningDistance: 1
+    - _EdgeDarkeningPower: 2
+    - _EdgeDarkeningStrength: 0.182
+    - _EdgeGlowPower: 5.29
+    - _EdgeGlowStrength: 2.396
+    - _EmissionIntensity: 0.11
+    - _EmissionStrength: 1
+    - _EnableAbsorption: 0
+    - _EnableAdditionalLights: 0
+    - _EnableBlur: 0
+    - _EnableCaustics: 0
+    - _EnableDamage: 0
+    - _EnableDetailNormal: 0
+    - _EnableDirt: 0
+    - _EnableDispersion: 1
+    - _EnableDistortion: 0
+    - _EnableDithering: 0
+    - _EnableEdgeGlow: 0
+    - _EnableFresnel: 0
+    - _EnableFresnelLighting: 0
+    - _EnableImperfections: 0
+    - _EnableInteriorFog: 0
+    - _EnableIridescence: 0
+    - _EnableNormalMap: 0
+    - _EnableRain: 0
+    - _EnableReflection: 0
+    - _EnableRefraction: 0
+    - _EnableSpecular: 0
+    - _EnableThickGlass: 0
+    - _EnableTranslucency: 0
+    - _EnableTransmission: 0
+    - _EnableWeathering: 0
+    - _EnvironmentReflections: 1
+    - _FalloffOpacityIntensity: 1
+    - _FalloffOpacityInvert: 0
+    - _FalloffOpacityPower: 2
+    - _FingerprintFalloff1: 0.198
+    - _FingerprintFalloff2: 0.46
+    - _FingerprintFalloff3: 0.4
+    - _FingerprintFalloff4: 0.5
+    - _FingerprintIntensity: 0.5
+    - _FingerprintIntensity1: 0.939
+    - _FingerprintIntensity2: 1
+    - _FingerprintIntensity3: 0.3
+    - _FingerprintIntensity4: 0.2
+    - _FingerprintMapping1: 1
+    - _FingerprintMapping2: 1
+    - _FingerprintMapping3: 0
+    - _FingerprintMapping4: 0
+    - _FingerprintNormal1: 0.342
+    - _FingerprintNormal2: 0
+    - _FingerprintNormal3: 0.05
+    - _FingerprintNormal4: 0
+    - _FingerprintRotation1: 175
+    - _FingerprintRotation2: 0
+    - _FingerprintRotation3: 0
+    - _FingerprintRotation4: 0
+    - _FingerprintRoughness: 0.3
+    - _FingerprintRoughness1: 0.211
+    - _FingerprintRoughness2: 0.147
+    - _FingerprintRoughness3: 0.2
+    - _FingerprintRoughness4: 0.15
+    - _FingerprintSeed1: 0
+    - _FingerprintSeed2: 17
+    - _FingerprintSeed3: 42
+    - _FingerprintSeed4: 73
+    - _FingerprintSize1: 0.27
+    - _FingerprintSize2: 0.66
+    - _FingerprintSize3: 1
+    - _FingerprintSize4: 1
+    - _FingerprintSmudge: 0.5
+    - _FingerprintTriplanar1: 1
+    - _FingerprintTriplanar2: 1
+    - _FingerprintTriplanar3: 0
+    - _FingerprintTriplanar4: 0
+    - _FingerprintTriplanarScale1: 1
+    - _FingerprintTriplanarScale2: 1
+    - _FingerprintTriplanarScale3: 1
+    - _FingerprintTriplanarScale4: 1
+    - _FingerprintType1: 0
+    - _FingerprintType2: 2
+    - _FingerprintType3: 3
+    - _FingerprintType4: 4
+    - _FingerprintUseTexture1: 1
+    - _FingerprintUseTexture2: 1
+    - _FingerprintUseTexture3: 0
+    - _FingerprintUseTexture4: 0
+    - _FingerprintWorldRadius1: 0.137
+    - _FingerprintWorldRadius2: 0.525
+    - _FingerprintWorldRadius3: 0.1
+    - _FingerprintWorldRadius4: 0.08
+    - _FlipReflection: 0
+    - _FlipRefraction: 0
+    - _FogDensity: 0
+    - _FresnelAdditionalLightSaturation: 0.5
+    - _FresnelAdditionalLightScale: 0.867
+    - _FresnelAffectAlpha: 0
+    - _FresnelAffectReflection: 1
+    - _FresnelAffectsAlpha: 0
+    - _FresnelAffectsRefraction: 0
+    - _FresnelBias: 0
+    - _FresnelIntensity: 0.441
+    - _FresnelInvert: 0
+    - _FresnelMainLightSaturation: 0.415
+    - _FresnelMainLightScale: 1.316
+    - _FresnelMax: 1
+    - _FresnelMin: 0
+    - _FresnelPower: 1.32
+    - _FresnelRimOnly: 0
+    - _FresnelScale: 1
+    - _FresnelStrength: 1.869
+    - _GlossMapScale: 0
+    - _Glossiness: 0
+    - _GlossyReflections: 0
+    - _GrimeEdgeAmount: 0.5
+    - _GrimeGradient: 0.3
+    - _HeatHazeScale: 1
+    - _HeatHazeSpeed: 3.74
+    - _HeatHazeStrength: 0.0286
+    - _HideInterior: 0
+    - _IOR: 1.481
+    - _IOROrigin: 1.378
+    - _IOROriginPreset: 2
+    - _IndexOfRefraction: 0.674
+    - _InnerGlowFalloff: 2
+    - _InnerGlowPower: 2
+    - _InnerGlowStrength: 0
+    - _InteriorFade: 0.373
+    - _InteriorFogDensity: 0.22
+    - _IridescenceScale: 4.86
+    - _IridescenceShift: 0.428
+    - _IridescenceSpeed: 0
+    - _IridescenceStrength: 0.578
+    - _IridescenceThickness: 1.5
+    - _MagnifyFalloff: 0.655
+    - _MagnifyRadius: 0.01
+    - _MagnifyStrength: 0.09
+    - _MainTint: 1
+    - _MatteFinish: 0
+    - _Metallic: 1
+    - _MicroRoughness: 0.1608
+    - _MobileMode: 0
+    - _NormalIntensity: 0.5
+    - _NormalStrength: 0
+    - _OcclusionStrength: 0.388
+    - _Opacity: 1
+    - _Parallax: 0.005
+    - _PixelateAmount: 0
+    - _PixelateSize: 100
+    - _PolishLevel: 0.566
+    - _ProceduralCrackDensity: 12.49
+    - _ProceduralCrackSeed: 12.1
+    - _ProceduralCracks: 1
+    - _QueueControl: -1
+    - _QueueOffset: 0
+    - _RainDistortion: 0
+    - _RainDripDensity: 8
+    - _RainDripLength: 1
+    - _RainDripSpeed: 1.5
+    - _RainDropletDensity: 29.61
+    - _RainDropletSize: 0.0534
+    - _RainDroplets: 0.5
+    - _RainIntensity: 0.102
+    - _RainNormalStrength: 0.34
+    - _RainRotation: 5
+    - _RainScale: 9.97
+    - _RainSpeed: 0.511
+    - _RainStreaks: 0.3
+    - _RainStrength: 0.5
+    - _RainTiling: 2
+    - _RainTrailPersistence: 0.5
+    - _RainTriplanarScale: 1
+    - _RainTriplanarSharpness: 4
+    - _RainWetness: 0.86
+    - _ReceiveShadows: 0
+    - _ReflectionBlur: 1
+    - _ReflectionContrast: 1
+    - _ReflectionFresnel: 0.203
+    - _ReflectionIntensity: 0.417
+    - _ReflectionOpacity: 0.509
+    - _ReflectionStrength: 0.602
+    - _Refraction: 0
+    - _RefractionBlur: 0
+    - _RefractionPower: 1
+    - _RefractionStrength: 1
+    - _RefractionType: 1
+    - _RimIntensity: 1.241
+    - _RimMax: 0.939
+    - _RimMin: 0
+    - _RimPower: 10
+    - _RimStrength: 0.5
+    - _RippleAmplitude: 0
+    - _RippleDecay: 1
+    - _RippleFrequency: 20
+    - _RippleSpeed: 0
+    - _SB_Quality: 2
+    - _Saturation: 1.552
+    - _ScratchDepth: 1
+    - _ScratchIntensity: 0
+    - _ScratchStrength: 0.2
+    - _ScratchTiling: 1
+    - _ShadowIntensity: 0.418
+    - _ShadowStrength: 1
+    - _ShatterDistortion: 0
+    - _Shininess: 1
+    - _Smoothness: 0.444
+    - _SmoothnessTextureChannel: 0
+    - _SmudgeIntensity: 0
+    - _SmudgeStrength: 0.3
+    - _SmudgeTiling: 1
+    - _SparkleContrast: 2
+    - _SparkleDensity: 0.5
+    - _SparkleIntensity: 2.73
+    - _SparkleScale: 79.6
+    - _SparkleSize: 4.93
+    - _SparkleSpeed: 0
+    - _SparkleThreshold: 0.5
+    - _SpecularAnisotropy: 0.075
+    - _SpecularFresnel: 0
+    - _SpecularHardness: 0.444
+    - _SpecularHighlights: 1
+    - _SpecularIntensity: 1.79
+    - _SpecularMode: 2
+    - _SpecularOpacity: 1
+    - _SpecularPower: 42.3
+    - _SpecularSize: 1
+    - _SpecularSmoothness: 0.291
+    - _SpecularSteps: 1
+    - _SpecularStrength: 0.631
+    - _SpecularThreshold: 0.567
+    - _SpecularToon: 1
+    - _SpecularToonCutoff: 0.5
+    - _SpecularToonSmoothness: 0.1
+    - _SrcBlend: 5
+    - _SrcBlendAlpha: 1
+    - _Surface: 0
+    - _SurfaceNoiseDistortion: 10
+    - _SurfaceNoiseScale: 500
+    - _SurfaceNoiseSpeed: 0
+    - _SurfaceNoiseStrength: 3.7
+    - _SwirlRadius: 0.308
+    - _SwirlSpeed: 0
+    - _SwirlStrength: -5
+    - _TIRCriticalAngle: 0.938
+    - _TIRIntensity: 1.583
+    - _TIRSharpness: 1
+    - _ThickGlassEdgeAbsorption: 2.92
+    - _ThickGlassEdgeHighlight: 2
+    - _ThickGlassEdgeHighlightPower: 2.6
+    - _ThickGlassEdgePower: 4.62
+    - _ThickGlassFrostCenter: 0.153
+    - _ThickGlassFrostFalloff: 2.84
+    - _ThickGlassInteriorDensity: 1.671
+    - _ThicknessAffectsColor: 0.217
+    - _ThicknessAffectsDistortion: 0.3
+    - _ThicknessAffectsRefraction: 0.697
+    - _ThicknessMax: 1
+    - _ThicknessMin: 0.1
+    - _ThicknessOffset: -0.121
+    - _ThicknessScale: 1.092
+    - _TintDistortionAmount: 0.355
+    - _TintTextureBlend: 0.152
+    - _TintTextureStrength: 1
+    - _TranslucencyAmbient: 0.498
+    - _TranslucencyDirect: 0.376
+    - _TranslucencyNormalDistortion: 0.82
+    - _TranslucencyScattering: 1.19
+    - _TranslucencyShadow: 0.585
+    - _TranslucencyStrength: 1.89
+    - _TranslucencyThickness: 0.5
+    - _TranslucentDistortion: -0.538
+    - _TranslucentIntensity: 0.28
+    - _TranslucentPower: 1.4
+    - _TranslucentScale: 1.12
+    - _TransmissionDistortion: 0.2
+    - _TransmissionPower: 1
+    - _TransmissionStrength: 1
+    - _TransmissionThickness: 0.5
+    - _TriplanarOffsetX: 0
+    - _TriplanarOffsetY: 0
+    - _TriplanarScale: 12.46
+    - _TriplanarSharpness: 4
+    - _TriplanarTiling: 1.03
+    - _UseAbsorption: 0
+    - _UseAlphaClip: 0
+    - _UseBarrel: 1
+    - _UseBlur: 1
+    - _UseCaustics: 0
+    - _UseCausticsProcedural: 0
+    - _UseChromatic: 0
+    - _UseCubemap: 1
+    - _UseDamage: 0
+    - _UseDecal2: 0
+    - _UseDecal3: 0
+    - _UseDecal4: 0
+    - _UseDecals: 0
+    - _UseDepthFade: 0
+    - _UseDetailAlbedo: 0
+    - _UseDetailNormal: 0
+    - _UseDetailNormalTriplanar: 0
+    - _UseDirt: 0
+    - _UseDistortion: 0
+    - _UseDithering: 0
+    - _UseDust: 1
+    - _UseDustTriplanar: 0
+    - _UseEdgeDarkening: 0
+    - _UseEdgeGlow: 0
+    - _UseEmission: 0
+    - _UseEmissionMap: 0
+    - _UseFalloffOpacity: 0
+    - _UseFingerprints: 0
+    - _UseFresnel: 0
+    - _UseHeatHaze: 0
+    - _UseHideInterior: 0
+    - _UseIOR: 1
+    - _UseImperfections: 0
+    - _UseInnerGlow: 0
+    - _UseInteriorFog: 0
+    - _UseIridescence: 0
+    - _UseMagnify: 1
+    - _UseMetallicMap: 0
+    - _UseNormalMap: 0
+    - _UseOcclusion: 0
+    - _UsePixelate: 0
+    - _UseRain: 0
+    - _UseRainTriplanar: 0
+    - _UseReflection: 0
+    - _UseRefraction: 0
+    - _UseRim: 1
+    - _UseRipple: 0
+    - _UseSlot2: 1
+    - _UseSlot3: 0
+    - _UseSlot4: 0
+    - _UseSparkle: 0
+    - _UseSpecular: 1
+    - _UseSurfaceNoise: 0
+    - _UseSwirl: 0
+    - _UseTIR: 0
+    - _UseThickness: 0
+    - _UseThicknessMap: 0
+    - _UseTintTexture: 0
+    - _UseTranslucency: 0
+    - _UseTranslucent: 0
+    - _UseTransmission: 0
+    - _UseTriplanar: 0
+    - _UseWaves: 0
+    - _UseWeathering: 0
+    - _WaterStainStrength: 0
+    - _WaveAmplitude: 0
+    - _WaveFrequency: 7.1
+    - _WaveRadial: 0
+    - _WaveSpeed: 0
+    - _WeatheringAmount: 0.281
+    - _WeatheringEdge: 0.5
+    - _WeatheringGradient: -0.557
+    - _WeatheringRoughness: 0.2
+    - _WorkflowMode: 1
+    - _XRMotionVectorsPass: 1
+    - _ZTest: 4
+    - _ZWrite: 1
+    m_Colors:
+    - _AbsorptionColor: {r: 0.09999997, g: 0.29999998, b: 0.19999996, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _CausticsColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _CrackColor: {r: 0.6132076, g: 0.44255075, b: 0.44255075, a: 1}
+    - _DecalPosition1: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _DecalPosition2: {r: 0.3, g: 0.7, b: 0, a: 0}
+    - _DecalPosition3: {r: 0.7, g: 0.3, b: 0, a: 0}
+    - _DecalPosition4: {r: 0.5, g: 0.2, b: 0, a: 0}
+    - _DecalTint1: {r: 1, g: 1, b: 1, a: 1}
+    - _DecalTint2: {r: 1, g: 1, b: 1, a: 1}
+    - _DecalTint3: {r: 1, g: 1, b: 1, a: 1}
+    - _DecalTint4: {r: 1, g: 1, b: 1, a: 1}
+    - _DepthFadeColor: {r: 1, g: 0, b: 0, a: 1}
+    - _DetailColor: {r: 1, g: 1, b: 1, a: 1}
+    - _DirtColor: {r: 0.39999998, g: 0.34999996, b: 0.24999997, a: 1}
+    - _DirtColorVariation: {r: 0.32816932, g: 0.5283019, b: 0.18689926, a: 1}
+    - _DustColor: {r: 0.07289071, g: 0.08793278, b: 0.16981131, a: 1}
+    - _EdgeGlow: {r: 0.39999998, g: 0.8, b: 1, a: 0}
+    - _EdgeGlowColor: {r: 0.5, g: 0.8, b: 1, a: 1}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FingerprintPos1: {r: 0.31, g: 2.48, b: 1.17, a: 0}
+    - _FingerprintPos2: {r: 1, g: 0.3, b: 0.3, a: 0}
+    - _FingerprintPos3: {r: 0.3, g: 0.6, b: -0.2, a: 0}
+    - _FingerprintPos4: {r: 0.5, g: 0.8, b: 0.5, a: 0}
+    - _FingerprintScale1: {r: -0.91, g: 0.3, b: 1, a: 1}
+    - _FingerprintScale2: {r: 0, g: 0, b: 1, a: 1}
+    - _FingerprintScale3: {r: 0.25, g: 0.25, b: 1, a: 1}
+    - _FingerprintScale4: {r: 0.3, g: 0.15, b: 1, a: 1}
+    - _FingerprintTint: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
+    - _FingerprintTriplanarScale1: {r: 1, g: 1, b: 1, a: 0}
+    - _FingerprintTriplanarScale2: {r: 1, g: 1, b: 1, a: 0}
+    - _FingerprintTriplanarScale3: {r: 1, g: 1, b: 1, a: 0}
+    - _FingerprintTriplanarScale4: {r: 1, g: 1, b: 1, a: 0}
+    - _FingerprintWorldPos1: {r: -0.13157916, g: -0.01, b: 0.045583423, a: 0}
+    - _FingerprintWorldPos2: {r: -0.12, g: -0.19, b: 0.105177544, a: 0}
+    - _FingerprintWorldPos3: {r: -0.3, g: 0, b: 0, a: 0}
+    - _FingerprintWorldPos4: {r: 0, g: 0.5, b: 0, a: 0}
+    - _FogColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+    - _FresnelColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FresnelColorInner: {r: 0.9, g: 0.95, b: 1, a: 1}
+    - _InnerGlowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _InteriorFogColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+    - _IridescenceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _IridescenceTint: {r: 1, g: 1, b: 1, a: 1}
+    - _MagnifyCenter: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _RainDirection: {r: 0, g: -1, b: 0, a: 0}
+    - _RainOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _RainSpeed: {r: 0, g: 0.1, b: 0, a: 0}
+    - _RainTiling: {r: 4, g: 4, b: 0, a: 0}
+    - _ReflectionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ReflectionTint: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RippleCenter: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _SparkleColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SwirlCenter: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _ThickColor: {r: 1, g: 0, b: 0.12284136, a: 1}
+    - _ThickGlassEdgeColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ThickGlassInteriorColor: {r: 0.7, g: 0.85, b: 1, a: 1}
+    - _ThinColor: {r: 1, g: 0, b: 0.908308, a: 1}
+    - _TintTextureColor: {r: 0.092196584, g: 1, b: 0, a: 1}
+    - _TranslucencyColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TranslucentColor: {r: 0, g: 0.821918, b: 1, a: 1}
+    - _TransmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _WeatheringColor: {r: 0.7, g: 0.65, b: 0.5, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

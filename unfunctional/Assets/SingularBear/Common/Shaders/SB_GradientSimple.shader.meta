@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c52a84952a244364da09efe2d27d1c94
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/Common/Shaders/SB_GradientSimple.shader
+  uploadId: 856524

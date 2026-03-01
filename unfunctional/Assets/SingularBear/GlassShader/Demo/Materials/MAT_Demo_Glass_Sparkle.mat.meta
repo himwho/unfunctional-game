@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c2781f2f67c2f6e469917bd6dcd0654a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/Materials/MAT_Demo_Glass_Sparkle.mat
+  uploadId: 856524

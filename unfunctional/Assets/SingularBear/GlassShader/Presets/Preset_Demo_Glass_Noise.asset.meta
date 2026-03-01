@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fe4b9c87749b4b14c80ec55752c42e28
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Presets/Preset_Demo_Glass_Noise.asset
+  uploadId: 856524

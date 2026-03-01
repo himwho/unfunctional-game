@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f5df5bdcb856e66418faa798e12abfe9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/Materials/MAT_Demo_Glass_Caustics.mat
+  uploadId: 856524

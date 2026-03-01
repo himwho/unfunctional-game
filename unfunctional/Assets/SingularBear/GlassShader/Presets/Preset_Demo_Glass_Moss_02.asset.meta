@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bc26c1fdf575e334d83c182986b030ea
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Presets/Preset_Demo_Glass_Moss_02.asset
+  uploadId: 856524

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9e330c9a294ce8f408d1c77968fa8cc1
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Shaders/Glass/Shaders/Includes/SB_GlassPass.hlsl
+  uploadId: 856524

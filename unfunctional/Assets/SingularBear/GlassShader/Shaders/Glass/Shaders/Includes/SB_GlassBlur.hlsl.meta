@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3308e75a318a9d34db723603ee92260a
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Shaders/Glass/Shaders/Includes/SB_GlassBlur.hlsl
+  uploadId: 856524

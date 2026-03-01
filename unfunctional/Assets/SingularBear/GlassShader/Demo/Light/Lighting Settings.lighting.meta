@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c1f8a47c4a7d77e41bc6867a01685b16
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/Light/Lighting Settings.lighting
+  uploadId: 856524

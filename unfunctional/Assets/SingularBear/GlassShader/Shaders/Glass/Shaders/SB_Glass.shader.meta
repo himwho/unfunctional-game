@@ -1,0 +1,29 @@
+fileFormatVersion: 2
+guid: a58ea5bc328dbb142a1ddfd186197abc
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _MainTex: {instanceID: 0}
+  - _MetallicGlossMap: {instanceID: 0}
+  - _BumpMap: {instanceID: 0}
+  - _DetailAlbedoMap: {instanceID: 0}
+  - _DetailNormalMap: {instanceID: 0}
+  - _ReflectionCube: {instanceID: 0}
+  - _OcclusionMap: {instanceID: 0}
+  - _EmissionMap: {instanceID: 0}
+  - _TintTexture: {instanceID: 0}
+  - _ThicknessMap: {instanceID: 0}
+  - _CausticsTexture: {instanceID: 0}
+  - _DustTexture: {instanceID: 0}
+  - _FingerprintTexture: {instanceID: 0}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Shaders/Glass/Shaders/SB_Glass.shader
+  uploadId: 856524

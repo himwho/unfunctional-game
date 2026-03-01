@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0854dd12b6ab37a45b1cdf4f2ba596d5
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _ReflectionCube: {instanceID: 0}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/Common/Shaders/SB_Grid.shader
+  uploadId: 856524

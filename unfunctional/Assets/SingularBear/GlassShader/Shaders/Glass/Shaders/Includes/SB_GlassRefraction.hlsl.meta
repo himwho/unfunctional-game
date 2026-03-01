@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7d6448e88ae7c9f408a6f04401ebbc99
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Shaders/Glass/Shaders/Includes/SB_GlassRefraction.hlsl
+  uploadId: 856524

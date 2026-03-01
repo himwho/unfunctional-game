@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 334e03f21f74c654fac716c7035f930d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/Materials/MAT_Demo_Glass_DistortionMax.mat
+  uploadId: 856524

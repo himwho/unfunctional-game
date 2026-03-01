@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d7188629f3aafbf4eabdcb953b1bb2b8
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Shaders/Glass/Shaders/Includes/SB_GlassDistortion.hlsl
+  uploadId: 856524

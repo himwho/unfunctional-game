@@ -1,0 +1,664 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61600585045d4954fbbd7f798d3a9bd6, type: 3}
+  m_Name: Preset_Demo_Transparent
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::SingularBear.Glass.SB_GlassPreset
+  presetName: Preset_Demo_Transparent
+  description: 
+  category: Demo
+  thumbnail: {fileID: 0}
+  author: SingularBear
+  creationDate: 2026-01-10 11:44
+  saveEditorState: 1
+  editorCategory: 0
+  editorHideUnused: 1
+  expandedSections: []
+  floatProperties:
+  - name: _SB_Quality
+    value: 2
+  - name: _MainTint
+    value: 0.158
+  - name: _Metallic
+    value: 0.887
+  - name: _Smoothness
+    value: 0.154
+  - name: _Saturation
+    value: 1
+  - name: _Brightness
+    value: 1.358
+  - name: _UseMetallicMap
+    value: 0
+  - name: _UseNormalMap
+    value: 0
+  - name: _BumpScale
+    value: 0.326
+  - name: _UseDetailAlbedo
+    value: 0
+  - name: _DetailTiling
+    value: -1.04
+  - name: _DetailAlbedoIntensity
+    value: 0.655
+  - name: _UseDetailNormal
+    value: 0
+  - name: _DetailNormalScale
+    value: 0.574
+  - name: _DetailNormalTiling
+    value: 4
+  - name: _UseDetailNormalTriplanar
+    value: 0
+  - name: _DetailNormalTriplanarScale
+    value: 1
+  - name: _DetailNormalTriplanarSharpness
+    value: 4
+  - name: _Opacity
+    value: 0.304
+  - name: _UseAlphaClip
+    value: 0
+  - name: _AlphaClip
+    value: 0
+  - name: _UseFalloffOpacity
+    value: 0
+  - name: _FalloffOpacityIntensity
+    value: 1
+  - name: _FalloffOpacityPower
+    value: 2
+  - name: _FalloffOpacityInvert
+    value: 0
+  - name: _UseRefraction
+    value: 1
+  - name: _Distortion
+    value: 0.341
+  - name: _FlipRefraction
+    value: 0
+  - name: _UseIOR
+    value: 1
+  - name: _IndexOfRefraction
+    value: 0
+  - name: _IOROriginPreset
+    value: 0
+  - name: _IOROrigin
+    value: 1.148
+  - name: _UseChromatic
+    value: 0
+  - name: _ChromaticAberration
+    value: 4.42
+  - name: _UseBlur
+    value: 0
+  - name: _BlurStrength
+    value: 0.214
+  - name: _BlurRadius
+    value: 50
+  - name: _BlurQuality
+    value: 16
+  - name: _UseReflection
+    value: 0
+  - name: _ReflectionIntensity
+    value: 0.602
+  - name: _ReflectionBlur
+    value: 0.931
+  - name: _FlipReflection
+    value: 0
+  - name: _UseCubemap
+    value: 0
+  - name: _UseIridescence
+    value: 0
+  - name: _IridescenceStrength
+    value: 1.51
+  - name: _IridescenceScale
+    value: 2.02
+  - name: _IridescenceShift
+    value: 0.93
+  - name: _IridescenceSpeed
+    value: 0
+  - name: _UseFresnel
+    value: 0
+  - name: _FresnelPower
+    value: 10
+  - name: _FresnelIntensity
+    value: 2
+  - name: _FresnelMin
+    value: 0
+  - name: _FresnelMax
+    value: 1
+  - name: _FresnelInvert
+    value: 0
+  - name: _FresnelAffectAlpha
+    value: 1
+  - name: _FresnelAffectReflection
+    value: 1
+  - name: _UseSurfaceNoise
+    value: 0
+  - name: _SurfaceNoiseScale
+    value: 100
+  - name: _SurfaceNoiseStrength
+    value: 0.1
+  - name: _SurfaceNoiseDistortion
+    value: 0.3
+  - name: _SurfaceNoiseSpeed
+    value: 0
+  - name: _UseTintTexture
+    value: 0
+  - name: _TintTextureStrength
+    value: 1
+  - name: _TintTextureBlend
+    value: 0
+  - name: _TintDistortionAmount
+    value: 0
+  - name: _UseEdgeDarkening
+    value: 0
+  - name: _EdgeDarkeningStrength
+    value: 0.3
+  - name: _EdgeDarkeningPower
+    value: 2
+  - name: _EdgeDarkeningDistance
+    value: 1
+  - name: _UseInnerGlow
+    value: 0
+  - name: _InnerGlowStrength
+    value: 0
+  - name: _InnerGlowPower
+    value: 2
+  - name: _InnerGlowFalloff
+    value: 2
+  - name: _UseThicknessMap
+    value: 0
+  - name: _ThicknessMin
+    value: 0.1
+  - name: _ThicknessMax
+    value: 1
+  - name: _ThicknessAffectsColor
+    value: 0.5
+  - name: _ThicknessAffectsDistortion
+    value: 0.3
+  - name: _UseDepthFade
+    value: 0
+  - name: _DepthFadeDistance
+    value: 2.14
+  - name: _UseRain
+    value: 0
+  - name: _RainIntensity
+    value: 1
+  - name: _UseRainTriplanar
+    value: 0
+  - name: _RainTriplanarScale
+    value: 1
+  - name: _RainTriplanarSharpness
+    value: 4
+  - name: _RainRotation
+    value: 0
+  - name: _RainNormalStrength
+    value: 1
+  - name: _RainDistortion
+    value: 0.5
+  - name: _RainWetness
+    value: 0.5
+  - name: _UseRim
+    value: 1
+  - name: _RimPower
+    value: 5.18
+  - name: _RimIntensity
+    value: 2
+  - name: _RimMin
+    value: 0.71
+  - name: _RimMax
+    value: 1
+  - name: _UseSpecular
+    value: 1
+  - name: _SpecularIntensity
+    value: 8.32
+  - name: _SpecularSize
+    value: 0.5
+  - name: _SpecularSmoothness
+    value: 0.9
+  - name: _SpecularHardness
+    value: 0
+  - name: _SpecularToon
+    value: 0
+  - name: _SpecularSteps
+    value: 2
+  - name: _SpecularThreshold
+    value: 0.5
+  - name: _SpecularFresnel
+    value: 0
+  - name: _SpecularAnisotropy
+    value: 0
+  - name: _DiffuseIntensity
+    value: 0.409
+  - name: _UseTranslucent
+    value: 0
+  - name: _TranslucentIntensity
+    value: 1.95
+  - name: _TranslucentPower
+    value: 8.47
+  - name: _TranslucentDistortion
+    value: 0.142
+  - name: _TranslucentScale
+    value: 1.855
+  - name: _UseOcclusion
+    value: 0
+  - name: _OcclusionStrength
+    value: 0
+  - name: _UseEmission
+    value: 0
+  - name: _UseEmissionMap
+    value: 0
+  - name: _EmissionIntensity
+    value: 0
+  - name: _UseTriplanar
+    value: 0
+  - name: _TriplanarScale
+    value: 1
+  - name: _TriplanarSharpness
+    value: 4
+  - name: _UseAbsorption
+    value: 0
+  - name: _AbsorptionDensity
+    value: 1.45
+  - name: _AbsorptionFalloff
+    value: 2.174
+  - name: _UseCaustics
+    value: 0
+  - name: _UseCausticsProcedural
+    value: 1
+  - name: _CausticsIntensity
+    value: 1.266
+  - name: _CausticsScale
+    value: 1
+  - name: _CausticsSpeed
+    value: 0.5
+  - name: _CausticsDistortion
+    value: 0.1
+  - name: _UseTIR
+    value: 0
+  - name: _TIRIntensity
+    value: 0.8
+  - name: _TIRCriticalAngle
+    value: 0.5
+  - name: _TIRSharpness
+    value: 0.1
+  - name: _UseSparkle
+    value: 0
+  - name: _SparkleIntensity
+    value: 1
+  - name: _SparkleScale
+    value: 50
+  - name: _SparkleSpeed
+    value: 0.5
+  - name: _SparkleDensity
+    value: 100
+  - name: _SparkleSize
+    value: 1
+  - name: _UseDust
+    value: 0
+  - name: _DirtDirection
+    value: 0
+  - name: _DirtHeight
+    value: 0
+  - name: _DirtSpread
+    value: 0.3
+  - name: _DirtSoftness
+    value: 0.2
+  - name: _DirtVariationScale
+    value: 2
+  - name: _DustTiling
+    value: 3
+  - name: _DustIntensity
+    value: 0.3
+  - name: _DustCoverage
+    value: 0.5
+  - name: _DirtFullOpacity
+    value: 1
+  - name: _DustRoughness
+    value: 0.2
+  - name: _DustNormalBlend
+    value: 0.5
+  - name: _DirtUseEdgeNoise
+    value: 1
+  - name: _DirtEdgeNoiseScale
+    value: 5
+  - name: _DirtEdgeNoiseStrength
+    value: 0.4
+  - name: _DustEdgeFalloff
+    value: 0
+  - name: _DustEdgePower
+    value: 2
+  - name: _UseDustTriplanar
+    value: 0
+  - name: _DustTriplanarScale
+    value: 1
+  - name: _DustTriplanarSharpness
+    value: 4
+  - name: _DustTriplanarRotation
+    value: 0
+  - name: _UseDecals
+    value: 0
+  - name: _DecalSize1
+    value: 0.3
+  - name: _DecalRotation1
+    value: 0
+  - name: _DecalIntensity1
+    value: 1
+  - name: _UseDecal2
+    value: 0
+  - name: _DecalSize2
+    value: 0.3
+  - name: _DecalRotation2
+    value: 0
+  - name: _DecalIntensity2
+    value: 1
+  - name: _UseDecal3
+    value: 0
+  - name: _DecalSize3
+    value: 0.3
+  - name: _DecalRotation3
+    value: 0
+  - name: _DecalIntensity3
+    value: 1
+  - name: _UseDecal4
+    value: 0
+  - name: _DecalSize4
+    value: 0.3
+  - name: _DecalRotation4
+    value: 0
+  - name: _DecalIntensity4
+    value: 1
+  - name: _UseFingerprints
+    value: 0
+  - name: _FingerprintMapping1
+    value: 0
+  - name: _FingerprintWorldRadius1
+    value: 0.15
+  - name: _FingerprintTriplanarScale1
+    value: 1
+  - name: _FingerprintRotation1
+    value: 214
+  - name: _FingerprintIntensity1
+    value: 0.725
+  - name: _FingerprintRoughness1
+    value: 0.554
+  - name: _FingerprintFalloff1
+    value: 0.672
+  - name: _UseSlot2
+    value: 1
+  - name: _FingerprintMapping2
+    value: 0
+  - name: _FingerprintWorldRadius2
+    value: 0.12
+  - name: _FingerprintTriplanarScale2
+    value: 1
+  - name: _FingerprintRotation2
+    value: 195
+  - name: _FingerprintIntensity2
+    value: 1
+  - name: _FingerprintRoughness2
+    value: 0.25
+  - name: _FingerprintFalloff2
+    value: 0.3
+  - name: _UseSlot3
+    value: 0
+  - name: _FingerprintMapping3
+    value: 0
+  - name: _FingerprintWorldRadius3
+    value: 0.1
+  - name: _FingerprintTriplanarScale3
+    value: 1
+  - name: _FingerprintRotation3
+    value: 0
+  - name: _FingerprintIntensity3
+    value: 0.3
+  - name: _FingerprintRoughness3
+    value: 0.2
+  - name: _FingerprintFalloff3
+    value: 0.4
+  - name: _UseSlot4
+    value: 0
+  - name: _FingerprintMapping4
+    value: 0
+  - name: _FingerprintWorldRadius4
+    value: 0.08
+  - name: _FingerprintTriplanarScale4
+    value: 1
+  - name: _FingerprintRotation4
+    value: 0
+  - name: _FingerprintIntensity4
+    value: 0.2
+  - name: _FingerprintRoughness4
+    value: 0.15
+  - name: _FingerprintFalloff4
+    value: 0.5
+  - name: _UseDistortion
+    value: 0
+  - name: _UseMagnify
+    value: 1
+  - name: _MagnifyStrength
+    value: 0.266
+  - name: _MagnifyRadius
+    value: 0.764
+  - name: _MagnifyFalloff
+    value: 2.02
+  - name: _UseBarrel
+    value: 0
+  - name: _BarrelStrength
+    value: 0.725
+  - name: _UseWaves
+    value: 0
+  - name: _WaveAmplitude
+    value: 0.0167
+  - name: _WaveFrequency
+    value: 10
+  - name: _WaveSpeed
+    value: 1
+  - name: _WaveRadial
+    value: 0
+  - name: _UseRipple
+    value: 0
+  - name: _RippleAmplitude
+    value: 0.0499
+  - name: _RippleFrequency
+    value: 20
+  - name: _RippleSpeed
+    value: 2
+  - name: _RippleDecay
+    value: 1
+  - name: _UseSwirl
+    value: 0
+  - name: _SwirlStrength
+    value: -0.22
+  - name: _SwirlRadius
+    value: 0.5
+  - name: _SwirlSpeed
+    value: 0
+  - name: _UseHeatHaze
+    value: 0
+  - name: _HeatHazeStrength
+    value: 0.0015
+  - name: _HeatHazeSpeed
+    value: 1
+  - name: _HeatHazeScale
+    value: 1
+  - name: _UsePixelate
+    value: 0
+  - name: _PixelateSize
+    value: 20
+  - name: _ReceiveShadows
+    value: 0
+  - name: _ShadowIntensity
+    value: 0.89
+  - name: _BlendMode
+    value: 0
+  - name: _Cull
+    value: 2
+  - name: _ZWrite
+    value: 1
+  - name: _ZTest
+    value: 4
+  - name: _SrcBlend
+    value: 5
+  - name: _DstBlend
+    value: 10
+  colorProperties:
+  - name: _Color
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DetailColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _ReflectionColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _IridescenceColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _FresnelColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _TintTextureColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _InnerGlowColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DepthFadeColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _RimColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _SpecularColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _TranslucentColor
+    value: {r: 0, g: 0.6693076, b: 4, a: 1}
+  - name: _EmissionColor
+    value: {r: 1, g: 0, b: 0, a: 1}
+  - name: _AbsorptionColor
+    value: {r: 0, g: 1, b: 0.5098037, a: 1}
+  - name: _CausticsColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _SparkleColor
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DustColor
+    value: {r: 0.8, g: 0.75, b: 0.65, a: 1}
+  - name: _DirtColorVariation
+    value: {r: 0.24999994, g: 0.34999993, b: 0.17999995, a: 1}
+  - name: _DecalTint1
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DecalTint2
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DecalTint3
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _DecalTint4
+    value: {r: 1, g: 1, b: 1, a: 1}
+  - name: _FingerprintTint
+    value: {r: 0, g: 0, b: 0, a: 0.5019608}
+  vectorProperties:
+  - name: _RainTiling
+    value: {x: 4, y: 4, z: 0, w: 0}
+  - name: _RainOffset
+    value: {x: 0, y: 0, z: 0, w: 0}
+  - name: _RainSpeed
+    value: {x: 0, y: 0.1, z: 0, w: 0}
+  - name: _DecalPosition1
+    value: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - name: _DecalPosition2
+    value: {x: 0.3, y: 0.7, z: 0, w: 0}
+  - name: _DecalPosition3
+    value: {x: 0.7, y: 0.3, z: 0, w: 0}
+  - name: _DecalPosition4
+    value: {x: 0.5, y: 0.2, z: 0, w: 0}
+  - name: _FingerprintPos1
+    value: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - name: _FingerprintScale1
+    value: {x: 0.19, y: 0.41, z: 2.43, w: 1}
+  - name: _FingerprintWorldPos1
+    value: {x: 0, y: 0, z: 0, w: 0}
+  - name: _FingerprintPos2
+    value: {x: 0.7, y: 0.3, z: 0.3, w: 0}
+  - name: _FingerprintScale2
+    value: {x: 0.15, y: 0.2, z: 1, w: 1}
+  - name: _FingerprintWorldPos2
+    value: {x: 0.3, y: 0, z: 0, w: 0}
+  - name: _FingerprintPos3
+    value: {x: 0.3, y: 0.6, z: -0.2, w: 0}
+  - name: _FingerprintScale3
+    value: {x: 0.25, y: 0.25, z: 1, w: 1}
+  - name: _FingerprintWorldPos3
+    value: {x: -0.3, y: 0, z: 0, w: 0}
+  - name: _FingerprintPos4
+    value: {x: 0.5, y: 0.8, z: 0.5, w: 0}
+  - name: _FingerprintScale4
+    value: {x: 0.3, y: 0.15, z: 1, w: 1}
+  - name: _FingerprintWorldPos4
+    value: {x: 0, y: 0.5, z: 0, w: 0}
+  - name: _MagnifyCenter
+    value: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - name: _RippleCenter
+    value: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - name: _SwirlCenter
+    value: {x: 0.5, y: 0.5, z: 0, w: 0}
+  textureProperties:
+  - name: _ReflectionCube
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _TintTexture
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _RainTexture
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _EmissionMap
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _CausticsTexture
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _DustTexture
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _DecalTexture1
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _DecalTexture2
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _DecalTexture3
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _DecalTexture4
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _FingerprintTexture1
+    texture: {fileID: 2800000, guid: fbeb3e97d3f97634a8a1fb2edd7d4dd8, type: 3}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _FingerprintTexture2
+    texture: {fileID: 2800000, guid: 4902f2877226f6046b779e75cda63a2d, type: 3}
+    scale: {x: 1, y: 1}
+    offset: {x: 0.86, y: -0.66}
+  - name: _FingerprintTexture3
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  - name: _FingerprintTexture4
+    texture: {fileID: 0}
+    scale: {x: 1, y: 1}
+    offset: {x: 0, y: 0}
+  enabledKeywords:
+  - _SB_CAUSTICS_PROCEDURAL
+  - _SB_FINGERPRINTS_SLOT2
+  - _SB_IOR
+  - _SB_MAGNIFY
+  - _SB_QUALITY_HIGH
+  - _SB_REFRACTION
+  - _SB_RIM
+  - _SB_SPECULAR
+  - _SB_TRANSLUCENCY
