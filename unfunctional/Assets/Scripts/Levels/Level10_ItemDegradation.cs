@@ -190,7 +190,8 @@ public class Level10_ItemDegradation : LevelManager
     private GameObject toolSlotPanel;
     private Text toolSlotNameText;
     private Image toolSlotBarFill;
-    private Image toolSlotIconBg;
+    private RawImage toolSlotIcon;
+    private Dictionary<string, Texture2D> toolIcons = new Dictionary<string, Texture2D>();
 
     // Tool rack
     private Vector3 toolRackPosition;
@@ -227,6 +228,7 @@ public class Level10_ItemDegradation : LevelManager
         InitPlank();
         InitSodaCans();
         InitScenePropsColliders();
+        LoadToolIcons();
     }
 
     private void Update()
@@ -297,9 +299,12 @@ public class Level10_ItemDegradation : LevelManager
         toolSlotPanel.SetActive(true);
 
         string displayName = currentToolName;
-        Color iconColor = toolColors.ContainsKey(displayName) ? toolColors[displayName] : Color.grey;
-        toolSlotIconBg.color = iconColor;
         toolSlotNameText.text = displayName;
+
+        if (toolIcons.ContainsKey(displayName))
+            toolSlotIcon.texture = toolIcons[displayName];
+        else
+            toolSlotIcon.texture = null;
 
         float durabilityFrac = (float)currentToolDurability / maxDurability;
         RectTransform fillRect = toolSlotBarFill.rectTransform;
@@ -2468,6 +2473,20 @@ public class Level10_ItemDegradation : LevelManager
         CreateToolSlotUI(canvasObj.transform);
     }
 
+    private void LoadToolIcons()
+    {
+        string[] toolNames = { "Hammer", "Saw", "Broom", "Wrench" };
+        foreach (string name in toolNames)
+        {
+            Texture2D tex = Resources.Load<Texture2D>($"Icons/{name}");
+            if (tex != null)
+                toolIcons[name] = tex;
+            else
+                Debug.LogWarning($"[Level10] Tool icon not found: Resources/Icons/{name}");
+        }
+        Debug.Log($"[Level10] Loaded {toolIcons.Count} tool icon(s)");
+    }
+
     private void CreateToolSlotUI(Transform parent)
     {
         // Outer container — anchored to bottom center
@@ -2491,23 +2510,22 @@ public class Level10_ItemDegradation : LevelManager
         outline.effectColor = new Color(0.35f, 0.35f, 0.35f, 0.9f);
         outline.effectDistance = new Vector2(2f, 2f);
 
-        // Tool icon background (colored square representing the tool)
+        // Tool icon (rendered 3D preview)
         GameObject iconObj = new GameObject("ToolIcon");
         iconObj.transform.SetParent(slotObj.transform, false);
         RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-        iconRect.anchorMin = new Vector2(0.1f, 0.25f);
-        iconRect.anchorMax = new Vector2(0.9f, 0.95f);
+        iconRect.anchorMin = new Vector2(0.05f, 0.22f);
+        iconRect.anchorMax = new Vector2(0.95f, 0.95f);
         iconRect.offsetMin = Vector2.zero;
         iconRect.offsetMax = Vector2.zero;
-        toolSlotIconBg = iconObj.AddComponent<Image>();
-        toolSlotIconBg.color = Color.grey;
-        toolSlotIconBg.raycastTarget = false;
+        toolSlotIcon = iconObj.AddComponent<RawImage>();
+        toolSlotIcon.color = Color.white;
+        toolSlotIcon.raycastTarget = false;
 
-        // Tool name label over the icon
-        toolSlotNameText = MakeText(iconObj.transform, "ToolName", "",
-            new Vector2(0f, 0f), new Vector2(1f, 1f),
-            14, Color.white, TextAnchor.MiddleCenter);
-        toolSlotNameText.fontStyle = FontStyle.Bold;
+        // Tool name label below the icon
+        toolSlotNameText = MakeText(slotObj.transform, "ToolName", "",
+            new Vector2(0f, 0.95f), new Vector2(1f, 1.15f),
+            11, Color.white, TextAnchor.MiddleCenter);
         var nameOutline = toolSlotNameText.gameObject.AddComponent<Outline>();
         nameOutline.effectColor = Color.black;
         nameOutline.effectDistance = new Vector2(1f, 1f);
