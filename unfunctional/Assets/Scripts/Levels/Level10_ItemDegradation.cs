@@ -542,17 +542,17 @@ public class Level10_ItemDegradation : LevelManager
 
     private void InitNut()
     {
-        GameObject nutObj = GameObject.Find("Screw Nut");
+        GameObject nutObj = GameObject.Find("Nut");
         if (nutObj != null)
         {
             nutTransform = nutObj.transform;
             nutStartPos = nutTransform.position;
             nutStartRotY = nutTransform.eulerAngles.y;
-            Debug.Log("[Level10] Found 'Screw Nut'");
+            Debug.Log("[Level10] Found 'Nut'");
         }
         else
         {
-            Debug.LogWarning("[Level10] 'Screw Nut' not found in scene");
+            Debug.LogWarning("[Level10] 'Nut' not found in scene");
         }
     }
 
