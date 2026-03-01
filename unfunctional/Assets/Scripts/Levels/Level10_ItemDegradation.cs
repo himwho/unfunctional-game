@@ -76,7 +76,19 @@ public class Level10_ItemDegradation : LevelManager
 
     private List<Task> tasks = new List<Task>();
 
-    // Current held tool
+    // Inventory system — 4 fixed slots: Hammer, Saw, Broom, Wrench
+    private class InventorySlot
+    {
+        public string toolName;        // "Hammer", "Saw", "Broom", "Wrench"
+        public bool hasItem;
+        public int durability;
+    }
+
+    private readonly string[] slotToolNames = { "Hammer", "Saw", "Broom", "Wrench" };
+    private InventorySlot[] inventorySlots;
+    private int activeSlotIndex = -1;   // -1 = nothing selected
+
+    // Current held tool (derived from active slot)
     private string currentToolName = "";
     private int currentToolDurability = 0;
     private GameObject currentToolVisual;
@@ -186,11 +198,13 @@ public class Level10_ItemDegradation : LevelManager
     private Text taskListText;
     private Text breakText;
 
-    // Tool slot UI
-    private GameObject toolSlotPanel;
-    private Text toolSlotNameText;
-    private Image toolSlotBarFill;
-    private RawImage toolSlotIcon;
+    // Tool slot UI (4 slots)
+    private GameObject toolSlotContainer;
+    private GameObject[] slotPanels = new GameObject[4];
+    private RawImage[] slotIcons = new RawImage[4];
+    private Image[] slotBarFills = new Image[4];
+    private Image[] slotBorders = new Image[4];
+    private Text[] slotKeyLabels = new Text[4];
     private Dictionary<string, Texture2D> toolIcons = new Dictionary<string, Texture2D>();
 
     // Tool rack
@@ -217,6 +231,7 @@ public class Level10_ItemDegradation : LevelManager
         wantsCursorLocked = true;
 
         InitToolColors();
+        InitInventory();
         InitTasks();
         CreateHUD();
         UpdateTaskList();
@@ -235,6 +250,7 @@ public class Level10_ItemDegradation : LevelManager
     {
         if (levelComplete) return;
 
+        UpdateInventoryInput();
         UpdateInteraction();
         UpdateDoorInteraction();
         UpdateSawGuideGlow();
@@ -285,39 +301,71 @@ public class Level10_ItemDegradation : LevelManager
 
     private void UpdateToolSlotUI()
     {
-        if (toolSlotPanel == null) return;
+        if (inventorySlots == null || slotPanels[0] == null) return;
 
-        bool holdingTool = !string.IsNullOrEmpty(currentToolName);
-        bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom || holdingRealWrench;
+        Color emptySlotColor = new Color(0.1f, 0.1f, 0.1f, 0.75f);
+        Color filledSlotColor = new Color(0.15f, 0.15f, 0.15f, 0.85f);
+        Color activeSlotColor = new Color(0.25f, 0.25f, 0.3f, 0.95f);
 
-        if (!holdingTool && !holdingRealTool)
+        for (int i = 0; i < 4; i++)
         {
-            toolSlotPanel.SetActive(false);
-            return;
+            InventorySlot slot = inventorySlots[i];
+            bool isActive = (i == activeSlotIndex);
+
+            // Border/highlight
+            Outline outline = slotPanels[i].GetComponent<Outline>();
+            if (isActive)
+            {
+                slotBorders[i].color = activeSlotColor;
+                outline.effectColor = new Color(1f, 0.85f, 0.3f, 1f);
+                outline.effectDistance = new Vector2(2f, 2f);
+            }
+            else
+            {
+                slotBorders[i].color = slot.hasItem ? filledSlotColor : emptySlotColor;
+                outline.effectColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                outline.effectDistance = new Vector2(1f, 1f);
+            }
+
+            // Key label brightness
+            slotKeyLabels[i].color = isActive
+                ? new Color(1f, 0.9f, 0.4f, 1f)
+                : new Color(0.5f, 0.5f, 0.5f, 0.7f);
+
+            // Icon
+            if (slot.hasItem && toolIcons.ContainsKey(slot.toolName))
+            {
+                slotIcons[i].texture = toolIcons[slot.toolName];
+                slotIcons[i].enabled = true;
+            }
+            else
+            {
+                slotIcons[i].enabled = false;
+            }
+
+            // Durability bar
+            if (slot.hasItem)
+            {
+                slotBarFills[i].enabled = true;
+                float frac = (float)slot.durability / maxDurability;
+                RectTransform fillRect = slotBarFills[i].rectTransform;
+                fillRect.anchorMin = Vector2.zero;
+                fillRect.anchorMax = new Vector2(frac, 1f);
+                fillRect.offsetMin = Vector2.zero;
+                fillRect.offsetMax = Vector2.zero;
+
+                Color barColor;
+                if (frac > 0.5f)
+                    barColor = Color.Lerp(Color.yellow, Color.green, (frac - 0.5f) * 2f);
+                else
+                    barColor = Color.Lerp(Color.red, Color.yellow, frac * 2f);
+                slotBarFills[i].color = barColor;
+            }
+            else
+            {
+                slotBarFills[i].enabled = false;
+            }
         }
-
-        toolSlotPanel.SetActive(true);
-
-        string displayName = currentToolName;
-        toolSlotNameText.text = displayName;
-
-        if (toolIcons.ContainsKey(displayName))
-            toolSlotIcon.texture = toolIcons[displayName];
-        else
-            toolSlotIcon.texture = null;
-
-        float durabilityFrac = (float)currentToolDurability / maxDurability;
-        RectTransform fillRect = toolSlotBarFill.rectTransform;
-        fillRect.anchorMin = Vector2.zero;
-        fillRect.anchorMax = new Vector2(durabilityFrac, 1f);
-
-        // Green -> yellow -> orange -> red gradient
-        Color barColor;
-        if (durabilityFrac > 0.5f)
-            barColor = Color.Lerp(Color.yellow, Color.green, (durabilityFrac - 0.5f) * 2f);
-        else
-            barColor = Color.Lerp(Color.red, Color.yellow, durabilityFrac * 2f);
-        toolSlotBarFill.color = barColor;
     }
 
     private void CheckSodaCansUnderTable()
@@ -356,6 +404,171 @@ public class Level10_ItemDegradation : LevelManager
     // =========================================================================
     // Initialization
     // =========================================================================
+
+    private void InitInventory()
+    {
+        inventorySlots = new InventorySlot[4];
+        for (int i = 0; i < 4; i++)
+        {
+            inventorySlots[i] = new InventorySlot
+            {
+                toolName = slotToolNames[i],
+                hasItem = false,
+                durability = 0
+            };
+        }
+    }
+
+    private void UpdateInventoryInput()
+    {
+        if (isSwinging) return;
+
+        // Number keys 1-4 to select slot
+        for (int i = 0; i < 4; i++)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            {
+                SwitchToSlot(i);
+                return;
+            }
+        }
+
+        // Mouse wheel to cycle slots
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0f)
+        {
+            int dir = scroll > 0f ? -1 : 1;
+            CycleSlot(dir);
+        }
+    }
+
+    private void SwitchToSlot(int slotIndex)
+    {
+        if (slotIndex == activeSlotIndex) return;
+        if (!inventorySlots[slotIndex].hasItem) return;
+
+        // Unequip current tool
+        UnequipCurrentTool();
+
+        // Equip new tool from slot
+        activeSlotIndex = slotIndex;
+        EquipFromSlot(slotIndex);
+    }
+
+    private void CycleSlot(int direction)
+    {
+        // Find next slot that has an item
+        int start = activeSlotIndex < 0 ? 0 : activeSlotIndex;
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            start = (start + direction + 4) % 4;
+            if (inventorySlots[start].hasItem)
+            {
+                SwitchToSlot(start);
+                return;
+            }
+        }
+    }
+
+    private void UnequipCurrentTool()
+    {
+        // Save durability back to slot before unequipping
+        if (activeSlotIndex >= 0 && inventorySlots[activeSlotIndex].hasItem)
+            inventorySlots[activeSlotIndex].durability = currentToolDurability;
+
+        if (holdingRealHammer && hammerSceneObject != null)
+        {
+            hammerSceneObject.SetActive(false);
+            holdingRealHammer = false;
+        }
+        if (holdingRealSaw && sawSceneObject != null)
+        {
+            sawSceneObject.SetActive(false);
+            holdingRealSaw = false;
+            if (sawCutLine != null) sawCutLine.SetActive(false);
+        }
+        if (holdingRealBroom && broomSceneObject != null)
+        {
+            broomSceneObject.SetActive(false);
+            holdingRealBroom = false;
+        }
+        if (holdingRealWrench && wrenchSceneObject != null)
+        {
+            wrenchSceneObject.SetActive(false);
+            holdingRealWrench = false;
+        }
+
+        if (currentToolVisual != null)
+            Destroy(currentToolVisual);
+
+        currentToolName = "";
+        currentToolDurability = 0;
+        activeSlotIndex = -1;
+    }
+
+    private void EquipFromSlot(int slotIndex)
+    {
+        InventorySlot slot = inventorySlots[slotIndex];
+        currentToolName = slot.toolName;
+        currentToolDurability = slot.durability;
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        if (slot.toolName == "Hammer" && hammerSceneObject != null)
+        {
+            hammerSceneObject.SetActive(true);
+            hammerSceneObject.transform.SetParent(cam.transform);
+            hammerSceneObject.transform.localPosition = hammerHeldPosition;
+            hammerSceneObject.transform.localRotation = Quaternion.Euler(hammerHeldRotation);
+            hammerSceneObject.transform.localScale = hammerHeldScale;
+            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+            holdingRealHammer = true;
+        }
+        else if (slot.toolName == "Saw" && sawSceneObject != null)
+        {
+            sawSceneObject.SetActive(true);
+            sawSceneObject.transform.SetParent(cam.transform);
+            sawSceneObject.transform.localPosition = sawHeldPosition;
+            sawSceneObject.transform.localRotation = Quaternion.Euler(sawHeldRotation);
+            sawSceneObject.transform.localScale = sawHeldScale;
+            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+            holdingRealSaw = true;
+            if (sawCutLine != null && !plankSplit)
+                sawCutLine.SetActive(true);
+        }
+        else if (slot.toolName == "Broom" && broomSceneObject != null)
+        {
+            broomSceneObject.SetActive(true);
+            broomSceneObject.transform.SetParent(cam.transform);
+            broomSceneObject.transform.localPosition = broomHeldPosition;
+            broomSceneObject.transform.localRotation = Quaternion.Euler(broomHeldRotation);
+            broomSceneObject.transform.localScale = broomHeldScale;
+            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+            holdingRealBroom = true;
+        }
+        else if (slot.toolName == "Wrench" && wrenchSceneObject != null)
+        {
+            wrenchSceneObject.SetActive(true);
+            wrenchSceneObject.transform.SetParent(cam.transform);
+            wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
+            wrenchSceneObject.transform.localRotation = Quaternion.Euler(wrenchHeldRotation);
+            wrenchSceneObject.transform.localScale = wrenchHeldScale;
+            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+            holdingRealWrench = true;
+        }
+    }
+
+    private int GetSlotIndexForTool(string toolName)
+    {
+        for (int i = 0; i < slotToolNames.Length; i++)
+            if (slotToolNames[i] == toolName) return i;
+        return -1;
+    }
 
     private void InitToolColors()
     {
@@ -1026,22 +1239,20 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpTool(string toolName)
     {
-        if (holdingRealHammer)
-            DropRealHammer();
-        if (holdingRealSaw)
-            DropRealSaw();
-        if (holdingRealBroom)
-            DropRealBroom();
-        if (holdingRealWrench)
-            DropRealWrench();
+        UnequipCurrentTool();
 
-        if (currentToolVisual != null)
-            Destroy(currentToolVisual);
-
+        int durability = Random.Range(1, maxDurability + 1);
         currentToolName = toolName;
-        currentToolDurability = Random.Range(1, maxDurability + 1); // 1-3 uses
+        currentToolDurability = durability;
 
-        // Create a small visual indicator attached to camera
+        int slotIdx = GetSlotIndexForTool(toolName);
+        if (slotIdx >= 0)
+        {
+            inventorySlots[slotIdx].hasItem = true;
+            inventorySlots[slotIdx].durability = durability;
+            activeSlotIndex = slotIdx;
+        }
+
         Camera cam = Camera.main;
         if (cam != null)
         {
@@ -1055,7 +1266,6 @@ public class Level10_ItemDegradation : LevelManager
             Color toolColor = toolColors.ContainsKey(toolName) ? toolColors[toolName] : Color.grey;
             currentToolVisual.GetComponent<Renderer>().material.color = toolColor;
 
-            // Disable collider on held tool
             Destroy(currentToolVisual.GetComponent<Collider>());
         }
 
@@ -1071,6 +1281,10 @@ public class Level10_ItemDegradation : LevelManager
         // Use the tool
         task.currentUses++;
         currentToolDurability--;
+
+        // Sync durability back to inventory slot
+        if (activeSlotIndex >= 0)
+            inventorySlots[activeSlotIndex].durability = currentToolDurability;
 
         Debug.Log($"[Level10] Used {currentToolName} on '{task.name}' ({task.currentUses}/{task.requiredUses}), durability: {currentToolDurability}");
 
@@ -1107,30 +1321,25 @@ public class Level10_ItemDegradation : LevelManager
             task.completed = true;
             Debug.Log($"[Level10] Task '{task.name}' completed!");
 
+            int completedSlot = GetSlotIndexForTool(task.toolName);
+            if (completedSlot >= 0)
+            {
+                inventorySlots[completedSlot].hasItem = false;
+                inventorySlots[completedSlot].durability = 0;
+            }
+
             if (holdingRealHammer && task.toolName == "Hammer")
-            {
                 DropRealHammer();
-                currentToolName = "";
-                currentToolDurability = 0;
-            }
             else if (holdingRealSaw && task.toolName == "Saw")
-            {
                 DropRealSaw();
-                currentToolName = "";
-                currentToolDurability = 0;
-            }
             else if (holdingRealBroom && task.toolName == "Broom")
-            {
                 DropRealBroom();
-                currentToolName = "";
-                currentToolDurability = 0;
-            }
             else if (holdingRealWrench && task.toolName == "Wrench")
-            {
                 DropRealWrench();
-                currentToolName = "";
-                currentToolDurability = 0;
-            }
+
+            currentToolName = "";
+            currentToolDurability = 0;
+            activeSlotIndex = -1;
 
             if (task.toolName == "Saw" && !plankSplit)
             {
@@ -1190,8 +1399,15 @@ public class Level10_ItemDegradation : LevelManager
             StartCoroutine(BreakAnimation(currentToolVisual));
         }
 
+        // Clear the inventory slot
+        if (activeSlotIndex >= 0)
+        {
+            inventorySlots[activeSlotIndex].hasItem = false;
+            inventorySlots[activeSlotIndex].durability = 0;
+        }
         currentToolName = "";
         currentToolDurability = 0;
+        activeSlotIndex = -1;
     }
 
     private IEnumerator BreakAnimation(GameObject tool)
@@ -1537,35 +1753,26 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpHammer(HammerInfo info)
     {
-        if (holdingRealSaw)
-            DropRealSaw();
-        if (holdingRealBroom)
-            DropRealBroom();
-        if (holdingRealWrench)
-            DropRealWrench();
-        if (currentToolVisual != null)
-            Destroy(currentToolVisual);
+        UnequipCurrentTool();
+
+        // Drop the old hammer if one is stored in the slot
+        if (hammerSceneObject != null)
+        {
+            holdingRealHammer = true;
+            DropRealHammer();
+        }
 
         availableHammers.Remove(info);
         hammerSceneObject = info.gameObject;
         hammerHeadTransform = info.headTransform;
         hammerHandleTransform = info.handleTransform;
 
-        currentToolName = "Hammer";
-        currentToolDurability = maxDurability;
-        holdingRealHammer = true;
+        int slotIdx = GetSlotIndexForTool("Hammer");
+        inventorySlots[slotIdx].hasItem = true;
+        inventorySlots[slotIdx].durability = maxDurability;
 
-        Camera cam = Camera.main;
-        if (cam != null && hammerSceneObject != null)
-        {
-            hammerSceneObject.transform.SetParent(cam.transform);
-            hammerSceneObject.transform.localPosition = hammerHeldPosition;
-            hammerSceneObject.transform.localRotation = Quaternion.Euler(hammerHeldRotation);
-            hammerSceneObject.transform.localScale = hammerHeldScale;
-
-            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
-                col.enabled = false;
-        }
+        activeSlotIndex = slotIdx;
+        EquipFromSlot(slotIdx);
 
         Task hammerTask = tasks.Find(t => t.toolName == "Hammer");
         Transform stationTransform = hammerTask?.stationObject != null ? hammerTask.stationObject.transform : null;
@@ -1738,38 +1945,25 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpSaw(SawInfo info)
     {
-        if (holdingRealHammer)
-            DropRealHammer();
-        if (holdingRealBroom)
-            DropRealBroom();
-        if (holdingRealWrench)
-            DropRealWrench();
-        if (currentToolVisual != null)
-            Destroy(currentToolVisual);
+        UnequipCurrentTool();
+
+        if (sawSceneObject != null)
+        {
+            holdingRealSaw = true;
+            DropRealSaw();
+        }
 
         availableSaws.Remove(info);
         sawSceneObject = info.gameObject;
         sawBladeTransform = info.bladeTransform;
         sawHandleTransform = info.handleTransform;
 
-        currentToolName = "Saw";
-        currentToolDurability = maxDurability;
-        holdingRealSaw = true;
+        int slotIdx = GetSlotIndexForTool("Saw");
+        inventorySlots[slotIdx].hasItem = true;
+        inventorySlots[slotIdx].durability = maxDurability;
 
-        if (sawCutLine != null && !plankSplit)
-            sawCutLine.SetActive(true);
-
-        Camera cam = Camera.main;
-        if (cam != null && sawSceneObject != null)
-        {
-            sawSceneObject.transform.SetParent(cam.transform);
-            sawSceneObject.transform.localPosition = sawHeldPosition;
-            sawSceneObject.transform.localRotation = Quaternion.Euler(sawHeldRotation);
-            sawSceneObject.transform.localScale = sawHeldScale;
-
-            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
-                col.enabled = false;
-        }
+        activeSlotIndex = slotIdx;
+        EquipFromSlot(slotIdx);
 
         Task sawTask = tasks.Find(t => t.toolName == "Saw");
         Transform stationTransform = sawTask?.stationObject != null ? sawTask.stationObject.transform : null;
@@ -1873,35 +2067,25 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpBroom(BroomInfo info)
     {
-        if (holdingRealHammer)
-            DropRealHammer();
-        if (holdingRealSaw)
-            DropRealSaw();
-        if (holdingRealWrench)
-            DropRealWrench();
-        if (currentToolVisual != null)
-            Destroy(currentToolVisual);
+        UnequipCurrentTool();
+
+        if (broomSceneObject != null)
+        {
+            holdingRealBroom = true;
+            DropRealBroom();
+        }
 
         availableBrooms.Remove(info);
         broomSceneObject = info.gameObject;
         broomHeadTransform = info.headTransform;
         broomHandleTransform = info.handleTransform;
 
-        currentToolName = "Broom";
-        currentToolDurability = maxDurability;
-        holdingRealBroom = true;
+        int slotIdx = GetSlotIndexForTool("Broom");
+        inventorySlots[slotIdx].hasItem = true;
+        inventorySlots[slotIdx].durability = maxDurability;
 
-        Camera cam = Camera.main;
-        if (cam != null && broomSceneObject != null)
-        {
-            broomSceneObject.transform.SetParent(cam.transform);
-            broomSceneObject.transform.localPosition = broomHeldPosition;
-            broomSceneObject.transform.localRotation = Quaternion.Euler(broomHeldRotation);
-            broomSceneObject.transform.localScale = broomHeldScale;
-
-            foreach (var col in broomSceneObject.GetComponentsInChildren<Collider>())
-                col.enabled = false;
-        }
+        activeSlotIndex = slotIdx;
+        EquipFromSlot(slotIdx);
 
         Task broomTask = tasks.Find(t => t.toolName == "Broom");
         Transform stationTransform = broomTask?.stationObject != null ? broomTask.stationObject.transform : null;
@@ -1998,35 +2182,25 @@ public class Level10_ItemDegradation : LevelManager
 
     private void PickUpWrench(WrenchInfo info)
     {
-        if (holdingRealHammer)
-            DropRealHammer();
-        if (holdingRealSaw)
-            DropRealSaw();
-        if (holdingRealBroom)
-            DropRealBroom();
-        if (currentToolVisual != null)
-            Destroy(currentToolVisual);
+        UnequipCurrentTool();
+
+        if (wrenchSceneObject != null)
+        {
+            holdingRealWrench = true;
+            DropRealWrench();
+        }
 
         availableWrenches.Remove(info);
         wrenchSceneObject = info.gameObject;
         wrenchTipTransform = info.tipTransform;
         wrenchHandleTransform = info.handleTransform;
 
-        currentToolName = "Wrench";
-        currentToolDurability = maxDurability;
-        holdingRealWrench = true;
+        int slotIdx = GetSlotIndexForTool("Wrench");
+        inventorySlots[slotIdx].hasItem = true;
+        inventorySlots[slotIdx].durability = maxDurability;
 
-        Camera cam = Camera.main;
-        if (cam != null && wrenchSceneObject != null)
-        {
-            wrenchSceneObject.transform.SetParent(cam.transform);
-            wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
-            wrenchSceneObject.transform.localRotation = Quaternion.Euler(wrenchHeldRotation);
-            wrenchSceneObject.transform.localScale = wrenchHeldScale;
-
-            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
-                col.enabled = false;
-        }
+        activeSlotIndex = slotIdx;
+        EquipFromSlot(slotIdx);
 
         Task wrenchTask = tasks.Find(t => t.toolName == "Wrench");
         Transform stationTransform = wrenchTask?.stationObject != null ? wrenchTask.stationObject.transform : null;
@@ -2489,72 +2663,88 @@ public class Level10_ItemDegradation : LevelManager
 
     private void CreateToolSlotUI(Transform parent)
     {
-        // Outer container — anchored to bottom center
-        GameObject slotObj = new GameObject("ToolSlot");
-        slotObj.transform.SetParent(parent, false);
-        RectTransform slotRect = slotObj.AddComponent<RectTransform>();
-        slotRect.anchorMin = new Vector2(0.5f, 0f);
-        slotRect.anchorMax = new Vector2(0.5f, 0f);
-        slotRect.pivot = new Vector2(0.5f, 0f);
-        slotRect.anchoredPosition = new Vector2(0f, 20f);
-        slotRect.sizeDelta = new Vector2(80f, 100f);
-        toolSlotPanel = slotObj;
+        float slotWidth = 72f;
+        float slotHeight = 90f;
+        float slotSpacing = 8f;
+        float totalWidth = slotWidth * 4 + slotSpacing * 3;
 
-        // Dark background frame
-        Image frameBg = slotObj.AddComponent<Image>();
-        frameBg.color = new Color(0.12f, 0.12f, 0.12f, 0.85f);
-        frameBg.raycastTarget = false;
+        // Container anchored to bottom center
+        GameObject container = new GameObject("InventoryBar");
+        container.transform.SetParent(parent, false);
+        RectTransform containerRect = container.AddComponent<RectTransform>();
+        containerRect.anchorMin = new Vector2(0.5f, 0f);
+        containerRect.anchorMax = new Vector2(0.5f, 0f);
+        containerRect.pivot = new Vector2(0.5f, 0f);
+        containerRect.anchoredPosition = new Vector2(0f, 12f);
+        containerRect.sizeDelta = new Vector2(totalWidth + 16f, slotHeight + 8f);
+        toolSlotContainer = container;
 
-        // Border using an outline effect
-        var outline = slotObj.AddComponent<Outline>();
-        outline.effectColor = new Color(0.35f, 0.35f, 0.35f, 0.9f);
-        outline.effectDistance = new Vector2(2f, 2f);
+        for (int i = 0; i < 4; i++)
+        {
+            float xPos = -totalWidth / 2f + slotWidth / 2f + i * (slotWidth + slotSpacing);
 
-        // Tool icon (rendered 3D preview)
-        GameObject iconObj = new GameObject("ToolIcon");
-        iconObj.transform.SetParent(slotObj.transform, false);
-        RectTransform iconRect = iconObj.AddComponent<RectTransform>();
-        iconRect.anchorMin = new Vector2(0.05f, 0.22f);
-        iconRect.anchorMax = new Vector2(0.95f, 0.95f);
-        iconRect.offsetMin = Vector2.zero;
-        iconRect.offsetMax = Vector2.zero;
-        toolSlotIcon = iconObj.AddComponent<RawImage>();
-        toolSlotIcon.color = Color.white;
-        toolSlotIcon.raycastTarget = false;
+            GameObject slotObj = new GameObject("Slot_" + slotToolNames[i]);
+            slotObj.transform.SetParent(container.transform, false);
+            RectTransform slotRect = slotObj.AddComponent<RectTransform>();
+            slotRect.anchorMin = new Vector2(0.5f, 0.5f);
+            slotRect.anchorMax = new Vector2(0.5f, 0.5f);
+            slotRect.pivot = new Vector2(0.5f, 0.5f);
+            slotRect.anchoredPosition = new Vector2(xPos, 0f);
+            slotRect.sizeDelta = new Vector2(slotWidth, slotHeight);
 
-        // Tool name label below the icon
-        toolSlotNameText = MakeText(slotObj.transform, "ToolName", "",
-            new Vector2(0f, 0.95f), new Vector2(1f, 1.15f),
-            11, Color.white, TextAnchor.MiddleCenter);
-        var nameOutline = toolSlotNameText.gameObject.AddComponent<Outline>();
-        nameOutline.effectColor = Color.black;
-        nameOutline.effectDistance = new Vector2(1f, 1f);
+            Image frameBg = slotObj.AddComponent<Image>();
+            frameBg.color = new Color(0.1f, 0.1f, 0.1f, 0.75f);
+            frameBg.raycastTarget = false;
+            slotBorders[i] = frameBg;
 
-        // Durability bar background (dark strip at bottom)
-        GameObject barBgObj = new GameObject("BarBg");
-        barBgObj.transform.SetParent(slotObj.transform, false);
-        RectTransform barBgRect = barBgObj.AddComponent<RectTransform>();
-        barBgRect.anchorMin = new Vector2(0.1f, 0.05f);
-        barBgRect.anchorMax = new Vector2(0.9f, 0.2f);
-        barBgRect.offsetMin = Vector2.zero;
-        barBgRect.offsetMax = Vector2.zero;
-        Image barBgImg = barBgObj.AddComponent<Image>();
-        barBgImg.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-        barBgImg.raycastTarget = false;
+            var outline = slotObj.AddComponent<Outline>();
+            outline.effectColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+            outline.effectDistance = new Vector2(2f, 2f);
 
-        // Durability bar fill
-        GameObject barFillObj = new GameObject("BarFill");
-        barFillObj.transform.SetParent(barBgObj.transform, false);
-        RectTransform barFillRect = barFillObj.AddComponent<RectTransform>();
-        barFillRect.anchorMin = Vector2.zero;
-        barFillRect.anchorMax = Vector2.one;
-        barFillRect.offsetMin = Vector2.zero;
-        barFillRect.offsetMax = Vector2.zero;
-        toolSlotBarFill = barFillObj.AddComponent<Image>();
-        toolSlotBarFill.color = Color.green;
-        toolSlotBarFill.raycastTarget = false;
+            // Key label (1-4) at top-left
+            slotKeyLabels[i] = MakeText(slotObj.transform, "KeyLabel", (i + 1).ToString(),
+                new Vector2(0f, 0.82f), new Vector2(0.35f, 1f),
+                10, new Color(0.7f, 0.7f, 0.7f, 0.8f), TextAnchor.MiddleCenter);
 
-        toolSlotPanel.SetActive(false);
+            // Tool icon
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(slotObj.transform, false);
+            RectTransform iconRect = iconObj.AddComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.05f, 0.22f);
+            iconRect.anchorMax = new Vector2(0.95f, 0.92f);
+            iconRect.offsetMin = Vector2.zero;
+            iconRect.offsetMax = Vector2.zero;
+            slotIcons[i] = iconObj.AddComponent<RawImage>();
+            slotIcons[i].color = Color.white;
+            slotIcons[i].raycastTarget = false;
+            slotIcons[i].enabled = false;
+
+            // Durability bar background
+            GameObject barBgObj = new GameObject("BarBg");
+            barBgObj.transform.SetParent(slotObj.transform, false);
+            RectTransform barBgRect = barBgObj.AddComponent<RectTransform>();
+            barBgRect.anchorMin = new Vector2(0.08f, 0.04f);
+            barBgRect.anchorMax = new Vector2(0.92f, 0.18f);
+            barBgRect.offsetMin = Vector2.zero;
+            barBgRect.offsetMax = Vector2.zero;
+            Image barBgImg = barBgObj.AddComponent<Image>();
+            barBgImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            barBgImg.raycastTarget = false;
+
+            // Durability bar fill
+            GameObject barFillObj = new GameObject("BarFill");
+            barFillObj.transform.SetParent(barBgObj.transform, false);
+            RectTransform barFillRect = barFillObj.AddComponent<RectTransform>();
+            barFillRect.anchorMin = Vector2.zero;
+            barFillRect.anchorMax = Vector2.one;
+            barFillRect.offsetMin = Vector2.zero;
+            barFillRect.offsetMax = Vector2.zero;
+            slotBarFills[i] = barFillObj.AddComponent<Image>();
+            slotBarFills[i].color = Color.green;
+            slotBarFills[i].raycastTarget = false;
+
+            slotPanels[i] = slotObj;
+        }
     }
 
     private Text MakeText(Transform parent, string name, string content,
