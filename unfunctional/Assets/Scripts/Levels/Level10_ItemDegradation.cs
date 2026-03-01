@@ -53,6 +53,13 @@ public class Level10_ItemDegradation : LevelManager
     [SerializeField] private float sweepPushRadius = 0.5f;
     [SerializeField] private float sweepPushForce = 15f;
 
+    [Header("Wrench Mesh")]
+    [SerializeField] private Vector3 wrenchHeldPosition = new Vector3(0.5f, -0.35f, 0.8f);
+    [SerializeField] private Vector3 wrenchHeldRotation = new Vector3(0f, 180f, -30f);
+    [SerializeField] private Vector3 wrenchHeldScale = new Vector3(1f, 1f, 1f);
+    [SerializeField] private float wrenchTipLaunchForce = 8f;
+    [SerializeField] private float wrenchTipTorque = 10f;
+
     // Task definitions
     [System.Serializable]
     public class Task
@@ -116,6 +123,20 @@ public class Level10_ItemDegradation : LevelManager
     private Transform broomHandleTransform;
     private bool holdingRealBroom = false;
 
+    // Real wrench mesh references
+    private class WrenchInfo
+    {
+        public GameObject gameObject;
+        public Transform tipTransform;
+        public Transform handleTransform;
+    }
+
+    private List<WrenchInfo> availableWrenches = new List<WrenchInfo>();
+    private GameObject wrenchSceneObject;
+    private Transform wrenchTipTransform;
+    private Transform wrenchHandleTransform;
+    private bool holdingRealWrench = false;
+
     // Soda cans, table, and scene props
     private List<Rigidbody> sodaCanBodies = new List<Rigidbody>();
     private Bounds tableBounds;
@@ -130,6 +151,13 @@ public class Level10_ItemDegradation : LevelManager
     private Transform nailTransform;
     private Vector3 nailStartPos;
     [SerializeField] private float nailTotalDrop = 0.0763f;
+
+    // Nut (wrench station)
+    private Transform nutTransform;
+    private Vector3 nutStartPos;
+    private float nutStartRotY;
+    [SerializeField] private float nutTotalDrop = 0.0656f;   // 1.3967 -> 1.3311
+    [SerializeField] private float nutTotalRotation = 1080f; // 3 full rotations over all turns
 
     // Wood Plank (two child halves under "Wood Plank")
     private Transform plankTransform;
@@ -188,6 +216,8 @@ public class Level10_ItemDegradation : LevelManager
         InitHammer();
         InitSaw();
         InitBroom();
+        InitWrench();
+        InitNut();
         InitPlank();
         InitSodaCans();
         InitScenePropsColliders();
@@ -201,6 +231,7 @@ public class Level10_ItemDegradation : LevelManager
         UpdateDoorInteraction();
         UpdateSawGuideGlow();
         UpdateBroomPitchDamp();
+        UpdateWrenchHeldTransform();
         CheckSodaCansUnderTable();
     }
 
@@ -232,6 +263,15 @@ public class Level10_ItemDegradation : LevelManager
         float pitchCorrection = -cameraPitch * (1f - broomPitchFollowFactor);
         Quaternion heldRot = Quaternion.Euler(broomHeldRotation);
         broomSceneObject.transform.localRotation = Quaternion.Euler(pitchCorrection, 0f, 0f) * heldRot;
+    }
+
+    private void UpdateWrenchHeldTransform()
+    {
+        if (!holdingRealWrench || wrenchSceneObject == null || isSwinging) return;
+
+        wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
+        wrenchSceneObject.transform.localRotation = Quaternion.Euler(wrenchHeldRotation);
+        wrenchSceneObject.transform.localScale = wrenchHeldScale;
     }
 
     private void CheckSodaCansUnderTable()
@@ -287,7 +327,7 @@ public class Level10_ItemDegradation : LevelManager
             // new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 8 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 8 },
-            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 3 },
+            new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 9 },
             new Task { name = "Sweep the Trash Under the Table", toolName = "Broom", requiredUses = 9999 },
         };
 
@@ -453,6 +493,67 @@ public class Level10_ItemDegradation : LevelManager
 
         if (availableBrooms.Count == 0)
             Debug.LogWarning("[Level10] No brooms found in scene");
+    }
+
+    private void InitWrench()
+    {
+        string[] wrenchNames = { "wrench", "wrench (1)", "wrench (2)", "wrench (3)" };
+
+        foreach (string wrenchName in wrenchNames)
+        {
+            GameObject wrenchObj = GameObject.Find(wrenchName);
+            if (wrenchObj == null)
+            {
+                Debug.LogWarning($"[Level10] Could not find '{wrenchName}' object in scene");
+                continue;
+            }
+
+            var info = new WrenchInfo
+            {
+                gameObject = wrenchObj,
+                tipTransform = wrenchObj.transform.Find("wrenchtip"),
+                handleTransform = wrenchObj.transform.Find("wrenchhandle")
+            };
+
+            if (info.tipTransform == null || info.handleTransform == null)
+                Debug.LogWarning($"[Level10] Wrench '{wrenchName}' children not found (expected 'wrenchtip' and 'wrenchhandle')");
+
+            foreach (var meshFilter in wrenchObj.GetComponentsInChildren<MeshFilter>())
+            {
+                if (meshFilter.GetComponent<Collider>() == null)
+                {
+                    var mc = meshFilter.gameObject.AddComponent<MeshCollider>();
+                    mc.convex = true;
+                    mc.isTrigger = true;
+                }
+                else
+                {
+                    meshFilter.GetComponent<Collider>().isTrigger = true;
+                }
+            }
+
+            availableWrenches.Add(info);
+            Debug.Log($"[Level10] Wrench '{wrenchName}' initialized from scene object");
+        }
+
+        if (availableWrenches.Count == 0)
+            Debug.LogWarning("[Level10] No wrenches found in scene");
+    }
+
+    private void InitNut()
+    {
+        GameObject nutObj = GameObject.Find("Screw Nut");
+        if (nutObj != null)
+        {
+            nutTransform = nutObj.transform;
+            nutStartPos = nutTransform.position;
+            nutStartRotY = nutTransform.eulerAngles.y;
+            Debug.Log("[Level10] Found 'Screw Nut'");
+        }
+        else
+        {
+            Debug.LogWarning("[Level10] 'Screw Nut' not found in scene");
+        }
     }
 
     private void InitPlank()
@@ -687,6 +788,22 @@ public class Level10_ItemDegradation : LevelManager
                 }
             }
 
+            // Check if looking at any available scene wrench
+            WrenchInfo hitWrench = null;
+            if (!holdingRealWrench)
+            {
+                foreach (var w in availableWrenches)
+                {
+                    if (w.gameObject != null &&
+                        (hit.collider.gameObject == w.gameObject ||
+                         hit.collider.transform.IsChildOf(w.gameObject.transform)))
+                    {
+                        hitWrench = w;
+                        break;
+                    }
+                }
+            }
+
             if (hitHammer != null)
             {
                 showPrompt = true;
@@ -710,6 +827,14 @@ public class Level10_ItemDegradation : LevelManager
 
                 if (Input.GetKeyDown(KeyCode.E))
                     PickUpBroom(hitBroom);
+            }
+            else if (hitWrench != null)
+            {
+                showPrompt = true;
+                promptText.text = "Press [E] to pick up Wrench";
+
+                if (Input.GetKeyDown(KeyCode.E))
+                    PickUpWrench(hitWrench);
             }
             // Check if looking at tool rack
             else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
@@ -738,6 +863,12 @@ public class Level10_ItemDegradation : LevelManager
                                      hit.collider.transform.IsChildOf(plankTransform);
                     }
 
+                    if (!hitStation && tasks[i].toolName == "Wrench" && nutTransform != null)
+                    {
+                        hitStation = hit.collider.gameObject == nutTransform.gameObject ||
+                                     hit.collider.transform.IsChildOf(nutTransform);
+                    }
+
                     if (hitStation)
                     {
                         showPrompt = true;
@@ -745,7 +876,8 @@ public class Level10_ItemDegradation : LevelManager
                         bool isHammerStation = tasks[i].toolName == "Hammer";
                         bool isSawStation = tasks[i].toolName == "Saw";
                         bool isBroomStation = tasks[i].toolName == "Broom";
-                        bool isRealToolStation = isHammerStation || isSawStation || isBroomStation;
+                        bool isWrenchStation = tasks[i].toolName == "Wrench";
+                        bool isRealToolStation = isHammerStation || isSawStation || isBroomStation || isWrenchStation;
 
                         if (tasks[i].completed)
                         {
@@ -754,7 +886,7 @@ public class Level10_ItemDegradation : LevelManager
                         }
                         else                         if (currentToolName == tasks[i].toolName)
                         {
-                            if (holdingRealHammer || holdingRealSaw || holdingRealBroom)
+                            if (holdingRealHammer || holdingRealSaw || holdingRealBroom || holdingRealWrench)
                                 promptText.text = "";
                             else
                                 promptText.text = $"Left Click to use {currentToolName} ({currentToolDurability} uses left)";
@@ -785,7 +917,7 @@ public class Level10_ItemDegradation : LevelManager
                 StartCoroutine(SwingAndUseTool(broomTaskIndex));
         }
 
-        bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom;
+        bool holdingRealTool = holdingRealHammer || holdingRealSaw || holdingRealBroom || holdingRealWrench;
 
         if (!showPrompt)
         {
@@ -830,6 +962,8 @@ public class Level10_ItemDegradation : LevelManager
             DropRealSaw();
         if (holdingRealBroom)
             DropRealBroom();
+        if (holdingRealWrench)
+            DropRealWrench();
 
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
@@ -882,6 +1016,15 @@ public class Level10_ItemDegradation : LevelManager
             UpdateSawCutProgress(task);
         }
 
+        if (task.toolName == "Wrench" && nutTransform != null)
+        {
+            float dropPerTurn = nutTotalDrop / task.requiredUses;
+            float rotPerTurn = nutTotalRotation / task.requiredUses;
+            Vector3 targetPos = nutStartPos + Vector3.down * dropPerTurn * task.currentUses;
+            float targetYRot = rotPerTurn * task.currentUses;
+            StartCoroutine(TurnNutDown(targetPos, targetYRot));
+        }
+
         // Check if tool broke
         if (currentToolDurability <= 0)
         {
@@ -909,6 +1052,12 @@ public class Level10_ItemDegradation : LevelManager
             else if (holdingRealBroom && task.toolName == "Broom")
             {
                 DropRealBroom();
+                currentToolName = "";
+                currentToolDurability = 0;
+            }
+            else if (holdingRealWrench && task.toolName == "Wrench")
+            {
+                DropRealWrench();
                 currentToolName = "";
                 currentToolDurability = 0;
             }
@@ -962,6 +1111,10 @@ public class Level10_ItemDegradation : LevelManager
         {
             BreakBroom();
         }
+        else if (holdingRealWrench)
+        {
+            BreakWrench();
+        }
         else if (currentToolVisual != null)
         {
             StartCoroutine(BreakAnimation(currentToolVisual));
@@ -996,6 +1149,7 @@ public class Level10_ItemDegradation : LevelManager
 
         bool isSawTask = tasks[taskIndex].toolName == "Saw" && plankTransform != null;
         bool isBroomTask = tasks[taskIndex].toolName == "Broom";
+        bool isWrenchTask = tasks[taskIndex].toolName == "Wrench";
 
         if (isSawTask)
         {
@@ -1007,6 +1161,13 @@ public class Level10_ItemDegradation : LevelManager
         if (isBroomTask)
         {
             yield return StartCoroutine(SweepAndUseTool(taskIndex));
+            isSwinging = false;
+            yield break;
+        }
+
+        if (isWrenchTask)
+        {
+            yield return StartCoroutine(WrenchAndUseTool(taskIndex));
             isSwinging = false;
             yield break;
         }
@@ -1308,6 +1469,10 @@ public class Level10_ItemDegradation : LevelManager
     {
         if (holdingRealSaw)
             DropRealSaw();
+        if (holdingRealBroom)
+            DropRealBroom();
+        if (holdingRealWrench)
+            DropRealWrench();
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
 
@@ -1505,6 +1670,10 @@ public class Level10_ItemDegradation : LevelManager
     {
         if (holdingRealHammer)
             DropRealHammer();
+        if (holdingRealBroom)
+            DropRealBroom();
+        if (holdingRealWrench)
+            DropRealWrench();
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
 
@@ -1638,6 +1807,8 @@ public class Level10_ItemDegradation : LevelManager
             DropRealHammer();
         if (holdingRealSaw)
             DropRealSaw();
+        if (holdingRealWrench)
+            DropRealWrench();
         if (currentToolVisual != null)
             Destroy(currentToolVisual);
 
@@ -1748,6 +1919,250 @@ public class Level10_ItemDegradation : LevelManager
             broomSceneObject = null;
             broomHeadTransform = null;
             broomHandleTransform = null;
+        }
+    }
+
+    // =========================================================================
+    // Wrench Mesh Handling
+    // =========================================================================
+
+    private void PickUpWrench(WrenchInfo info)
+    {
+        if (holdingRealHammer)
+            DropRealHammer();
+        if (holdingRealSaw)
+            DropRealSaw();
+        if (holdingRealBroom)
+            DropRealBroom();
+        if (currentToolVisual != null)
+            Destroy(currentToolVisual);
+
+        availableWrenches.Remove(info);
+        wrenchSceneObject = info.gameObject;
+        wrenchTipTransform = info.tipTransform;
+        wrenchHandleTransform = info.handleTransform;
+
+        currentToolName = "Wrench";
+        currentToolDurability = maxDurability;
+        holdingRealWrench = true;
+
+        Camera cam = Camera.main;
+        if (cam != null && wrenchSceneObject != null)
+        {
+            wrenchSceneObject.transform.SetParent(cam.transform);
+            wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
+            wrenchSceneObject.transform.localRotation = Quaternion.Euler(wrenchHeldRotation);
+            wrenchSceneObject.transform.localScale = wrenchHeldScale;
+
+            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+        }
+
+        Task wrenchTask = tasks.Find(t => t.toolName == "Wrench");
+        Transform stationTransform = wrenchTask?.stationObject != null ? wrenchTask.stationObject.transform : null;
+        StartCoroutine(ShowPromptUntilNearby("Tighten the nut at the station.", stationTransform, interactRange * 0.6f, 1f));
+        Debug.Log($"[Level10] Picked up real Wrench with {currentToolDurability} durability");
+    }
+
+    private IEnumerator WrenchAndUseTool(int taskIndex)
+    {
+        Transform swingTarget = null;
+        if (holdingRealWrench && wrenchSceneObject != null)
+            swingTarget = wrenchSceneObject.transform;
+        else if (currentToolVisual != null)
+            swingTarget = currentToolVisual.transform;
+
+        if (swingTarget == null)
+        {
+            UseTool(taskIndex);
+            yield break;
+        }
+
+        Camera cam = Camera.main;
+
+        Quaternion startRot = swingTarget.localRotation;
+        Vector3 startPos = swingTarget.localPosition;
+
+        // Get the geometric center of the wrenchtip mesh to use as pivot
+        Vector3 tipCenterWorld = swingTarget.position;
+        if (holdingRealWrench && wrenchTipTransform != null)
+        {
+            Renderer tipRenderer = wrenchTipTransform.GetComponentInChildren<Renderer>();
+            tipCenterWorld = tipRenderer != null ? tipRenderer.bounds.center : wrenchTipTransform.position;
+        }
+
+        // Compute the tip center's offset in wrench-local space (stable reference)
+        Vector3 tipOffsetLocal = swingTarget.InverseTransformPoint(tipCenterWorld);
+
+        Quaternion engageRot = Quaternion.Euler(0f, -15f, 0f) * startRot;
+        Quaternion turnedRot = Quaternion.Euler(0f, 90f, 0f) * startRot;
+
+        // Wind-up: small rotation in the opposite direction
+        float windUpTime = 0.1f;
+        float t = 0f;
+        while (t < windUpTime)
+        {
+            t += Time.deltaTime;
+            swingTarget.localRotation = Quaternion.Slerp(startRot, engageRot, t / windUpTime);
+            CorrectPositionForPivot(swingTarget, tipOffsetLocal, tipCenterWorld, cam);
+            yield return null;
+        }
+
+        // Turning motion — rotate around the wrenchtip center
+        float turnTime = 0.25f;
+        t = 0f;
+        while (t < turnTime)
+        {
+            t += Time.deltaTime;
+            swingTarget.localRotation = Quaternion.Slerp(engageRot, turnedRot, t / turnTime);
+            CorrectPositionForPivot(swingTarget, tipOffsetLocal, tipCenterWorld, cam);
+            yield return null;
+        }
+
+        int durabilityBefore = currentToolDurability;
+        UseTool(taskIndex);
+        bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
+
+        if (!toolBroke && !tasks[taskIndex].completed)
+            StartBreakMessage("Turning...", new Color(0.4f, 0.7f, 1f, 1f));
+
+        // Return to rest — animate back to original position and rotation
+        float returnTime = 0.2f;
+        t = 0f;
+        Quaternion currentRot = swingTarget != null ? swingTarget.localRotation : startRot;
+        Vector3 currentPos = swingTarget != null ? swingTarget.localPosition : startPos;
+        while (t < returnTime && swingTarget != null)
+        {
+            t += Time.deltaTime;
+            float frac = t / returnTime;
+            swingTarget.localRotation = Quaternion.Slerp(currentRot, startRot, frac);
+            swingTarget.localPosition = Vector3.Lerp(currentPos, startPos, frac);
+            yield return null;
+        }
+        if (swingTarget != null)
+        {
+            swingTarget.localRotation = startRot;
+            swingTarget.localPosition = startPos;
+        }
+    }
+
+    private void CorrectPositionForPivot(Transform wrench, Vector3 tipOffsetLocal, Vector3 originalTipWorld, Camera cam)
+    {
+        Vector3 newTipWorld = wrench.TransformPoint(tipOffsetLocal);
+        Vector3 originalInCam = cam.transform.InverseTransformPoint(originalTipWorld);
+        Vector3 newInCam = cam.transform.InverseTransformPoint(newTipWorld);
+        wrench.localPosition += originalInCam - newInCam;
+    }
+
+    private IEnumerator TurnNutDown(Vector3 targetPos, float targetYRotation)
+    {
+        if (nutTransform == null) yield break;
+
+        Vector3 from = nutTransform.position;
+        Quaternion fromRot = nutTransform.rotation;
+        Quaternion toRot = Quaternion.Euler(
+            nutTransform.eulerAngles.x,
+            nutStartRotY + targetYRotation,
+            nutTransform.eulerAngles.z
+        );
+
+        float duration = 0.25f;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float frac = t / duration;
+            nutTransform.position = Vector3.Lerp(from, targetPos, frac);
+            nutTransform.rotation = Quaternion.Slerp(fromRot, toRot, frac);
+            yield return null;
+        }
+        nutTransform.position = targetPos;
+        nutTransform.rotation = toRot;
+    }
+
+    private void BreakWrench()
+    {
+        holdingRealWrench = false;
+        Camera cam = Camera.main;
+
+        if (wrenchTipTransform != null)
+        {
+            wrenchTipTransform.SetParent(null);
+
+            foreach (var col in wrenchTipTransform.GetComponentsInChildren<Collider>())
+            {
+                col.enabled = true;
+                col.isTrigger = false;
+            }
+            if (wrenchTipTransform.GetComponent<Collider>() == null)
+                wrenchTipTransform.gameObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(wrenchTipTransform.gameObject);
+
+            Rigidbody rb = wrenchTipTransform.gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            Vector3 launchDir = cam != null
+                ? cam.transform.forward + Vector3.up * 0.5f
+                : Vector3.forward + Vector3.up * 0.5f;
+            rb.AddForce(launchDir.normalized * wrenchTipLaunchForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * wrenchTipTorque, ForceMode.Impulse);
+
+            wrenchTipTransform = null;
+        }
+
+        if (wrenchSceneObject != null)
+            StartCoroutine(DropWrenchHandleAfterDelay(0.8f));
+    }
+
+    private IEnumerator DropWrenchHandleAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (wrenchSceneObject != null)
+        {
+            wrenchSceneObject.transform.SetParent(null);
+
+            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
+            {
+                col.enabled = true;
+                col.isTrigger = false;
+            }
+            if (wrenchSceneObject.GetComponentsInChildren<Collider>().Length == 0)
+                wrenchSceneObject.AddComponent<BoxCollider>();
+
+            IgnorePlayerCollision(wrenchSceneObject);
+
+            Rigidbody rb = wrenchSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            wrenchSceneObject = null;
+            wrenchHandleTransform = null;
+        }
+    }
+
+    private void DropRealWrench()
+    {
+        holdingRealWrench = false;
+
+        if (wrenchSceneObject != null)
+        {
+            wrenchSceneObject.transform.SetParent(null);
+
+            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
+            {
+                col.enabled = true;
+                col.isTrigger = false;
+            }
+
+            IgnorePlayerCollision(wrenchSceneObject);
+
+            Rigidbody rb = wrenchSceneObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            wrenchSceneObject = null;
+            wrenchTipTransform = null;
+            wrenchHandleTransform = null;
         }
     }
 

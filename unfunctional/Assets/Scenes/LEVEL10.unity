@@ -242,7 +242,7 @@ GameObject:
   m_Component:
   - component: {fileID: 60682735}
   m_Layer: 0
-  m_Name: Wrench (3)
+  m_Name: wrench (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1051,7 +1051,7 @@ GameObject:
   m_Component:
   - component: {fileID: 379079424}
   m_Layer: 0
-  m_Name: Wrench (2)
+  m_Name: wrench (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8610,7 +8610,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1815857092}
   m_Layer: 0
-  m_Name: Wrench
+  m_Name: wrench
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8676,7 +8676,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1865962607}
   m_Layer: 0
-  m_Name: Wrench (1)
+  m_Name: wrench (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10010,7 +10010,14 @@ MonoBehaviour:
   sweepStrokes: 1
   sweepPushRadius: 1.8
   sweepPushForce: 10
+  wrenchHeldPosition: {x: 0.3, y: -0.35, z: 0.6}
+  wrenchHeldRotation: {x: 0, y: -90, z: 0}
+  wrenchHeldScale: {x: 0.42548, y: 0.42548, z: 0.42548}
+  wrenchTipLaunchForce: 8
+  wrenchTipTorque: 10
   nailTotalDrop: 0.0763
+  nutTotalDrop: 0.0656
+  nutTotalRotation: 1080
   plankSplitForce: 2
   sawingAmplitude: 0.08
   sawCutLineOffset: {x: -0.5, y: 0, z: 0}
