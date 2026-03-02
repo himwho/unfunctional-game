@@ -160,6 +160,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private bool isSwinging = false;
     private HashSet<string> shownPickupPrompts = new HashSet<string>();
+    private bool shownDropHint = false;
     private Dictionary<GameObject, int> droppedItemDurability = new Dictionary<GameObject, int>();
     private Coroutine activeBreakMessage;
     private bool allTasksComplete = false;
@@ -1942,7 +1943,21 @@ public class Level10_ItemDegradation : LevelManager
 
         if (shownPickupPrompts.Add("Hammer"))
             StartCoroutine(ShowTimedPrompt("Hammer in the nail on the workbench.", 2f, 0.5f));
+        ShowDropHint();
         Debug.Log($"[Level10] Picked up real Hammer with {currentToolDurability} durability");
+    }
+
+    private void ShowDropHint()
+    {
+        if (shownDropHint) return;
+        shownDropHint = true;
+        StartCoroutine(ShowDropHintDelayed());
+    }
+
+    private IEnumerator ShowDropHintDelayed()
+    {
+        yield return new WaitForSeconds(3f);
+        StartBreakMessage("Press [Q] to drop items", new Color(0.8f, 0.8f, 0.8f, 1f), 3f);
     }
 
     private IEnumerator ShowTimedPrompt(string msg, float holdTime, float fadeTime)
@@ -2146,6 +2161,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (shownPickupPrompts.Add("Saw"))
             StartCoroutine(ShowTimedPrompt("Saw the plank at the workbench.", 2f, 0.5f));
+        ShowDropHint();
         Debug.Log($"[Level10] Picked up real Saw with {currentToolDurability} durability");
     }
 
@@ -2282,6 +2298,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (shownPickupPrompts.Add("Broom"))
             StartCoroutine(ShowTimedPrompt("Sweep the trash under the table.", 2f, 0.5f));
+        ShowDropHint();
         Debug.Log($"[Level10] Picked up real Broom with {currentToolDurability} durability");
     }
 
@@ -2420,6 +2437,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (shownPickupPrompts.Add("Wrench"))
             StartCoroutine(ShowTimedPrompt("Tighten the nut at the station.", 2f, 0.5f));
+        ShowDropHint();
         Debug.Log($"[Level10] Picked up real Wrench with {currentToolDurability} durability");
     }
 
