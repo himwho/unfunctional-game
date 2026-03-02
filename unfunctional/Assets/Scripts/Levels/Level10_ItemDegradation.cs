@@ -839,6 +839,9 @@ public class Level10_ItemDegradation : LevelManager
             if (info.headTransform == null || info.handleTransform == null)
                 Debug.LogWarning($"[Level10] Broom '{broomName}' children not found (expected 'broomhead' and 'broomhandle')");
 
+            foreach (var col in broomObj.GetComponentsInChildren<Collider>())
+                col.isTrigger = true;
+
             foreach (var meshFilter in broomObj.GetComponentsInChildren<MeshFilter>())
             {
                 if (meshFilter.GetComponent<Collider>() == null)
@@ -847,11 +850,12 @@ public class Level10_ItemDegradation : LevelManager
                     mc.convex = true;
                     mc.isTrigger = true;
                 }
-                else
-                {
-                    meshFilter.GetComponent<Collider>().isTrigger = true;
-                }
             }
+
+            BoxCollider pickupCol = broomObj.AddComponent<BoxCollider>();
+            pickupCol.isTrigger = true;
+            pickupCol.size = new Vector3(0.3f, 1.2f, 0.3f);
+            pickupCol.center = new Vector3(0f, 0.5f, 0f);
 
             availableBrooms.Add(info);
             Debug.Log($"[Level10] Broom '{broomName}' initialized from scene object");
