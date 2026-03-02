@@ -159,6 +159,7 @@ public class Level10_ItemDegradation : LevelManager
     private GameObject tableObj;
 
     private bool isSwinging = false;
+    private HashSet<string> shownPickupPrompts = new HashSet<string>();
     private Coroutine activeBreakMessage;
     private bool allTasksComplete = false;
 
@@ -1078,65 +1079,53 @@ public class Level10_ItemDegradation : LevelManager
 
             // Check if looking at any available scene hammer
             HammerInfo hitHammer = null;
-            if (!holdingRealHammer)
+            foreach (var h in availableHammers)
             {
-                foreach (var h in availableHammers)
+                if (h.gameObject != null &&
+                    (hit.collider.gameObject == h.gameObject ||
+                     hit.collider.transform.IsChildOf(h.gameObject.transform)))
                 {
-                    if (h.gameObject != null &&
-                        (hit.collider.gameObject == h.gameObject ||
-                         hit.collider.transform.IsChildOf(h.gameObject.transform)))
-                    {
-                        hitHammer = h;
-                        break;
-                    }
+                    hitHammer = h;
+                    break;
                 }
             }
 
             // Check if looking at any available scene saw
             SawInfo hitSaw = null;
-            if (!holdingRealSaw)
+            foreach (var s in availableSaws)
             {
-                foreach (var s in availableSaws)
+                if (s.gameObject != null &&
+                    (hit.collider.gameObject == s.gameObject ||
+                     hit.collider.transform.IsChildOf(s.gameObject.transform)))
                 {
-                    if (s.gameObject != null &&
-                        (hit.collider.gameObject == s.gameObject ||
-                         hit.collider.transform.IsChildOf(s.gameObject.transform)))
-                    {
-                        hitSaw = s;
-                        break;
-                    }
+                    hitSaw = s;
+                    break;
                 }
             }
 
             // Check if looking at any available scene broom
             BroomInfo hitBroom = null;
-            if (!holdingRealBroom)
+            foreach (var b in availableBrooms)
             {
-                foreach (var b in availableBrooms)
+                if (b.gameObject != null &&
+                    (hit.collider.gameObject == b.gameObject ||
+                     hit.collider.transform.IsChildOf(b.gameObject.transform)))
                 {
-                    if (b.gameObject != null &&
-                        (hit.collider.gameObject == b.gameObject ||
-                         hit.collider.transform.IsChildOf(b.gameObject.transform)))
-                    {
-                        hitBroom = b;
-                        break;
-                    }
+                    hitBroom = b;
+                    break;
                 }
             }
 
             // Check if looking at any available scene wrench
             WrenchInfo hitWrench = null;
-            if (!holdingRealWrench)
+            foreach (var w in availableWrenches)
             {
-                foreach (var w in availableWrenches)
+                if (w.gameObject != null &&
+                    (hit.collider.gameObject == w.gameObject ||
+                     hit.collider.transform.IsChildOf(w.gameObject.transform)))
                 {
-                    if (w.gameObject != null &&
-                        (hit.collider.gameObject == w.gameObject ||
-                         hit.collider.transform.IsChildOf(w.gameObject.transform)))
-                    {
-                        hitWrench = w;
-                        break;
-                    }
+                    hitWrench = w;
+                    break;
                 }
             }
 
@@ -1146,7 +1135,10 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = "Press [E] to pick up Hammer";
 
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     PickUpHammer(hitHammer);
+                    promptText.text = "";
+                }
             }
             else if (hitSaw != null)
             {
@@ -1154,7 +1146,10 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = "Press [E] to pick up Saw";
 
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     PickUpSaw(hitSaw);
+                    promptText.text = "";
+                }
             }
             else if (hitBroom != null)
             {
@@ -1162,7 +1157,10 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = "Press [E] to pick up Broom";
 
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     PickUpBroom(hitBroom);
+                    promptText.text = "";
+                }
             }
             else if (hitWrench != null)
             {
@@ -1170,7 +1168,10 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = "Press [E] to pick up Wrench";
 
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     PickUpWrench(hitWrench);
+                    promptText.text = "";
+                }
             }
             // Check if looking at tool rack
             else if (hitName.Contains("ToolRack") || hitName.Contains("Tool_"))
@@ -1182,7 +1183,10 @@ public class Level10_ItemDegradation : LevelManager
                 promptText.text = $"Press [E] to pick up {toolName}";
 
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     PickUpTool(toolName);
+                    promptText.text = "";
+                }
             }
             // Check if looking at a task station
             else
@@ -1281,10 +1285,7 @@ public class Level10_ItemDegradation : LevelManager
 
         if (!showPrompt)
         {
-            if (!holdingRealTool && !string.IsNullOrEmpty(currentToolName))
-                promptText.text = $"Holding: {currentToolName} ({currentToolDurability} uses left)";
-            else if (!holdingRealTool)
-                promptText.text = "";
+            promptText.text = "";
         }
 
         // Tool display is now handled by UpdateToolSlotUI()
@@ -1491,7 +1492,6 @@ public class Level10_ItemDegradation : LevelManager
         }
         currentToolName = "";
         currentToolDurability = 0;
-        activeSlotIndex = -1;
     }
 
     private IEnumerator BreakAnimation(GameObject tool)
@@ -1861,9 +1861,8 @@ public class Level10_ItemDegradation : LevelManager
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
 
-        Task hammerTask = tasks.Find(t => t.toolName == "Hammer");
-        Transform stationTransform = hammerTask?.stationObject != null ? hammerTask.stationObject.transform : null;
-        StartCoroutine(ShowPromptUntilNearby("Hammer in the nail on the workbench.", stationTransform, interactRange * 0.6f, 1f));
+        if (shownPickupPrompts.Add("Hammer"))
+            StartCoroutine(ShowTimedPrompt("Hammer in the nail on the workbench.", 2f, 0.5f));
         Debug.Log($"[Level10] Picked up real Hammer with {currentToolDurability} durability");
     }
 
@@ -2056,9 +2055,8 @@ public class Level10_ItemDegradation : LevelManager
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
 
-        Task sawTask = tasks.Find(t => t.toolName == "Saw");
-        Transform stationTransform = sawTask?.stationObject != null ? sawTask.stationObject.transform : null;
-        StartCoroutine(ShowPromptUntilNearby("Saw the plank at the workbench.", stationTransform, interactRange * 0.6f, 1f));
+        if (shownPickupPrompts.Add("Saw"))
+            StartCoroutine(ShowTimedPrompt("Saw the plank at the workbench.", 2f, 0.5f));
         Debug.Log($"[Level10] Picked up real Saw with {currentToolDurability} durability");
     }
 
@@ -2183,9 +2181,8 @@ public class Level10_ItemDegradation : LevelManager
         currentToolDurability = 3;
         EquipFromSlot(slotIdx);
 
-        Task broomTask = tasks.Find(t => t.toolName == "Broom");
-        Transform stationTransform = broomTask?.stationObject != null ? broomTask.stationObject.transform : null;
-        StartCoroutine(ShowPromptUntilNearby("Sweep the trash under the table.", stationTransform, interactRange * 0.6f, 1f));
+        if (shownPickupPrompts.Add("Broom"))
+            StartCoroutine(ShowTimedPrompt("Sweep the trash under the table.", 2f, 0.5f));
         Debug.Log($"[Level10] Picked up real Broom with {currentToolDurability} durability");
     }
 
@@ -2302,9 +2299,8 @@ public class Level10_ItemDegradation : LevelManager
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
 
-        Task wrenchTask = tasks.Find(t => t.toolName == "Wrench");
-        Transform stationTransform = wrenchTask?.stationObject != null ? wrenchTask.stationObject.transform : null;
-        StartCoroutine(ShowPromptUntilNearby("Tighten the nut at the station.", stationTransform, interactRange * 0.6f, 1f));
+        if (shownPickupPrompts.Add("Wrench"))
+            StartCoroutine(ShowTimedPrompt("Tighten the nut at the station.", 2f, 0.5f));
         Debug.Log($"[Level10] Picked up real Wrench with {currentToolDurability} durability");
     }
 
