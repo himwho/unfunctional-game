@@ -160,6 +160,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private bool isSwinging = false;
     private HashSet<string> shownPickupPrompts = new HashSet<string>();
+    private Dictionary<GameObject, int> droppedItemDurability = new Dictionary<GameObject, int>();
     private Coroutine activeBreakMessage;
     private bool allTasksComplete = false;
 
@@ -400,6 +401,16 @@ public class Level10_ItemDegradation : LevelManager
             DropRealBroom();
             currentToolName = "";
             currentToolDurability = 0;
+
+            if (activeSlotIndex >= 0)
+            {
+                inventorySlots[activeSlotIndex].toolName = "";
+                inventorySlots[activeSlotIndex].hasItem = false;
+                inventorySlots[activeSlotIndex].durability = 0;
+                inventorySlots[activeSlotIndex].sceneObject = null;
+                inventorySlots[activeSlotIndex].childA = null;
+                inventorySlots[activeSlotIndex].childB = null;
+            }
         }
 
         StartBreakMessage("'Sweep the Floor' complete!", new Color(0.3f, 1f, 0.3f, 1f), 3f);
@@ -430,6 +441,13 @@ public class Level10_ItemDegradation : LevelManager
     {
         if (isSwinging) return;
 
+        // Q key to drop currently equipped item
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            DropCurrentItem();
+            return;
+        }
+
         // Number keys 1-4 to select slot
         for (int i = 0; i < 4; i++)
         {
@@ -447,6 +465,50 @@ public class Level10_ItemDegradation : LevelManager
             int dir = scroll > 0f ? -1 : 1;
             CycleSlot(dir);
         }
+    }
+
+    private void DropCurrentItem()
+    {
+        if (activeSlotIndex < 0 || !inventorySlots[activeSlotIndex].hasItem) return;
+
+        InventorySlot slot = inventorySlots[activeSlotIndex];
+        string toolName = slot.toolName;
+        GameObject droppedObj = slot.sceneObject;
+        Transform cA = slot.childA;
+        Transform cB = slot.childB;
+        int remainingDurability = slot.durability;
+
+        if (toolName == "Hammer") DropRealHammer();
+        else if (toolName == "Saw") DropRealSaw();
+        else if (toolName == "Broom") DropRealBroom();
+        else if (toolName == "Wrench") DropRealWrench();
+
+        if (droppedObj != null)
+        {
+            droppedItemDurability[droppedObj] = remainingDurability;
+
+            if (toolName == "Hammer")
+                availableHammers.Add(new HammerInfo { gameObject = droppedObj, headTransform = cA, handleTransform = cB });
+            else if (toolName == "Saw")
+                availableSaws.Add(new SawInfo { gameObject = droppedObj, bladeTransform = cA, handleTransform = cB });
+            else if (toolName == "Broom")
+                availableBrooms.Add(new BroomInfo { gameObject = droppedObj, headTransform = cA, handleTransform = cB });
+            else if (toolName == "Wrench")
+                availableWrenches.Add(new WrenchInfo { gameObject = droppedObj, tipTransform = cA, handleTransform = cB });
+        }
+
+        slot.toolName = "";
+        slot.hasItem = false;
+        slot.durability = 0;
+        slot.maxDurability = 0;
+        slot.sceneObject = null;
+        slot.childA = null;
+        slot.childB = null;
+
+        currentToolName = "";
+        currentToolDurability = 0;
+
+        UpdateToolSlotUI();
     }
 
     private void SwitchToSlot(int slotIndex)
@@ -918,9 +980,10 @@ public class Level10_ItemDegradation : LevelManager
     private void InitSodaCans()
     {
         PhysicsMaterial bouncyMat = new PhysicsMaterial("SodaCanBounce");
-            bouncyMat.bounciness = 0.45f;
-        bouncyMat.dynamicFriction = 0.3f;
-        bouncyMat.staticFriction = 0.3f;
+        bouncyMat.bounciness = 0.45f;
+        bouncyMat.dynamicFriction = 0.15f;
+        bouncyMat.staticFriction = 0.15f;
+        bouncyMat.frictionCombine = PhysicsMaterialCombine.Minimum;
         bouncyMat.bounceCombine = PhysicsMaterialCombine.Maximum;
 
         HashSet<string> trashNames = new HashSet<string> {
@@ -954,6 +1017,7 @@ public class Level10_ItemDegradation : LevelManager
                 if (rb == null)
                     rb = go.AddComponent<Rigidbody>();
                 rb.mass = 0.3f;
+                rb.linearDamping = 0.5f;
                 rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
                 go.AddComponent<TrashWallBounce>();
@@ -1743,7 +1807,8 @@ public class Level10_ItemDegradation : LevelManager
                 swingTarget.localRotation = Quaternion.Slerp(from, to, elapsed / sweepStrokeTime);
 
                 Transform tip = broomHeadTransform != null ? broomHeadTransform : swingTarget;
-                Vector3 sweepDir = Camera.main != null ? Camera.main.transform.forward : swingTarget.forward;
+                Vector3 rawDir = Camera.main != null ? Camera.main.transform.forward : swingTarget.forward;
+                Vector3 sweepDir = new Vector3(rawDir.x, 0f, rawDir.z).normalized;
                 Collider[] nearby = Physics.OverlapSphere(tip.position, sweepPushRadius);
                 foreach (var col in nearby)
                 {
@@ -1850,9 +1915,19 @@ public class Level10_ItemDegradation : LevelManager
 
         int slotIdx = GetOrAssignSlot("Hammer");
         if (slotIdx < 0) return;
+
+        int dur = maxDurability;
+        if (droppedItemDurability.TryGetValue(info.gameObject, out int saved))
+        {
+            dur = saved;
+            droppedItemDurability.Remove(info.gameObject);
+        }
+        Rigidbody existingRb = info.gameObject.GetComponent<Rigidbody>();
+        if (existingRb != null) Destroy(existingRb);
+
         inventorySlots[slotIdx].toolName = "Hammer";
         inventorySlots[slotIdx].hasItem = true;
-        inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].durability = dur;
         inventorySlots[slotIdx].maxDurability = maxDurability;
         inventorySlots[slotIdx].sceneObject = info.gameObject;
         inventorySlots[slotIdx].childA = info.headTransform;
@@ -2044,9 +2119,19 @@ public class Level10_ItemDegradation : LevelManager
 
         int slotIdx = GetOrAssignSlot("Saw");
         if (slotIdx < 0) return;
+
+        int dur = maxDurability;
+        if (droppedItemDurability.TryGetValue(info.gameObject, out int saved))
+        {
+            dur = saved;
+            droppedItemDurability.Remove(info.gameObject);
+        }
+        Rigidbody existingRb = info.gameObject.GetComponent<Rigidbody>();
+        if (existingRb != null) Destroy(existingRb);
+
         inventorySlots[slotIdx].toolName = "Saw";
         inventorySlots[slotIdx].hasItem = true;
-        inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].durability = dur;
         inventorySlots[slotIdx].maxDurability = maxDurability;
         inventorySlots[slotIdx].sceneObject = info.gameObject;
         inventorySlots[slotIdx].childA = info.bladeTransform;
@@ -2169,16 +2254,26 @@ public class Level10_ItemDegradation : LevelManager
 
         int slotIdx = GetOrAssignSlot("Broom");
         if (slotIdx < 0) return;
+
+        int dur = 3;
+        if (droppedItemDurability.TryGetValue(info.gameObject, out int saved))
+        {
+            dur = saved;
+            droppedItemDurability.Remove(info.gameObject);
+        }
+        Rigidbody existingRb = info.gameObject.GetComponent<Rigidbody>();
+        if (existingRb != null) Destroy(existingRb);
+
         inventorySlots[slotIdx].toolName = "Broom";
         inventorySlots[slotIdx].hasItem = true;
-        inventorySlots[slotIdx].durability = 3;
+        inventorySlots[slotIdx].durability = dur;
         inventorySlots[slotIdx].maxDurability = 3;
         inventorySlots[slotIdx].sceneObject = info.gameObject;
         inventorySlots[slotIdx].childA = info.headTransform;
         inventorySlots[slotIdx].childB = info.handleTransform;
 
         activeSlotIndex = slotIdx;
-        currentToolDurability = 3;
+        currentToolDurability = dur;
         EquipFromSlot(slotIdx);
 
         if (shownPickupPrompts.Add("Broom"))
@@ -2226,6 +2321,16 @@ public class Level10_ItemDegradation : LevelManager
                 child.gameObject.AddComponent<BoxCollider>();
 
             IgnorePlayerCollision(child.gameObject);
+
+            foreach (var childCol in child.GetComponentsInChildren<Collider>())
+            {
+                foreach (var trashRb in sodaCanBodies)
+                {
+                    if (trashRb == null) continue;
+                    foreach (var trashCol in trashRb.GetComponentsInChildren<Collider>())
+                        Physics.IgnoreCollision(childCol, trashCol, true);
+                }
+            }
 
             Rigidbody rb = child.gameObject.AddComponent<Rigidbody>();
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -2288,9 +2393,19 @@ public class Level10_ItemDegradation : LevelManager
 
         int slotIdx = GetOrAssignSlot("Wrench");
         if (slotIdx < 0) return;
+
+        int dur = maxDurability;
+        if (droppedItemDurability.TryGetValue(info.gameObject, out int saved))
+        {
+            dur = saved;
+            droppedItemDurability.Remove(info.gameObject);
+        }
+        Rigidbody existingRb = info.gameObject.GetComponent<Rigidbody>();
+        if (existingRb != null) Destroy(existingRb);
+
         inventorySlots[slotIdx].toolName = "Wrench";
         inventorySlots[slotIdx].hasItem = true;
-        inventorySlots[slotIdx].durability = maxDurability;
+        inventorySlots[slotIdx].durability = dur;
         inventorySlots[slotIdx].maxDurability = maxDurability;
         inventorySlots[slotIdx].sceneObject = info.gameObject;
         inventorySlots[slotIdx].childA = info.tipTransform;
@@ -2367,7 +2482,7 @@ public class Level10_ItemDegradation : LevelManager
             bool toolBroke = durabilityBefore > 0 && currentToolDurability <= 0;
 
             if (!toolBroke && !tasks[taskIndex].completed)
-                StartBreakMessage("Turning...", new Color(0.4f, 0.7f, 1f, 1f));
+                StartBreakMessage("Turning...", new Color(1f, 0.85f, 0.4f, 1f));
         }
 
         // Return to rest — animate back to original position and rotation
