@@ -83,6 +83,9 @@ public class Level10_ItemDegradation : LevelManager
         public bool hasItem;
         public int durability;
         public int maxDurability;
+        public GameObject sceneObject;
+        public Transform childA;       // hammerhead / sawblade / broomhead / wrenchtip
+        public Transform childB;       // hammerhandle / sawhandle / broomhandle / wrenchhandle
     }
 
     private InventorySlot[] inventorySlots;
@@ -506,11 +509,17 @@ public class Level10_ItemDegradation : LevelManager
         currentToolName = slot.toolName;
         currentToolDurability = slot.durability;
 
+        if (slot.sceneObject == null) return;
+
         Camera cam = Camera.main;
         if (cam == null) return;
 
-        if (slot.toolName == "Hammer" && hammerSceneObject != null)
+        // Set the active scene object pointers from the slot
+        if (slot.toolName == "Hammer")
         {
+            hammerSceneObject = slot.sceneObject;
+            hammerHeadTransform = slot.childA;
+            hammerHandleTransform = slot.childB;
             hammerSceneObject.SetActive(true);
             hammerSceneObject.transform.SetParent(cam.transform);
             hammerSceneObject.transform.localPosition = hammerHeldPosition;
@@ -520,8 +529,11 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = false;
             holdingRealHammer = true;
         }
-        else if (slot.toolName == "Saw" && sawSceneObject != null)
+        else if (slot.toolName == "Saw")
         {
+            sawSceneObject = slot.sceneObject;
+            sawBladeTransform = slot.childA;
+            sawHandleTransform = slot.childB;
             sawSceneObject.SetActive(true);
             sawSceneObject.transform.SetParent(cam.transform);
             sawSceneObject.transform.localPosition = sawHeldPosition;
@@ -533,8 +545,11 @@ public class Level10_ItemDegradation : LevelManager
             if (sawCutLine != null && !plankSplit)
                 sawCutLine.SetActive(true);
         }
-        else if (slot.toolName == "Broom" && broomSceneObject != null)
+        else if (slot.toolName == "Broom")
         {
+            broomSceneObject = slot.sceneObject;
+            broomHeadTransform = slot.childA;
+            broomHandleTransform = slot.childB;
             broomSceneObject.SetActive(true);
             broomSceneObject.transform.SetParent(cam.transform);
             broomSceneObject.transform.localPosition = broomHeldPosition;
@@ -544,8 +559,11 @@ public class Level10_ItemDegradation : LevelManager
                 col.enabled = false;
             holdingRealBroom = true;
         }
-        else if (slot.toolName == "Wrench" && wrenchSceneObject != null)
+        else if (slot.toolName == "Wrench")
         {
+            wrenchSceneObject = slot.sceneObject;
+            wrenchTipTransform = slot.childA;
+            wrenchHandleTransform = slot.childB;
             wrenchSceneObject.SetActive(true);
             wrenchSceneObject.transform.SetParent(cam.transform);
             wrenchSceneObject.transform.localPosition = wrenchHeldPosition;
@@ -573,11 +591,16 @@ public class Level10_ItemDegradation : LevelManager
 
     private int preferredSlot = -1;
 
+    private bool IsInventoryFull()
+    {
+        // Check if the preferred slot is empty, or if there's any empty slot
+        if (preferredSlot >= 0 && !inventorySlots[preferredSlot].hasItem)
+            return false;
+        return GetFirstEmptySlot() < 0;
+    }
+
     private int GetOrAssignSlot(string toolName)
     {
-        int existing = GetSlotIndexForTool(toolName);
-        if (existing >= 0) { preferredSlot = -1; return existing; }
-
         // Prefer the slot the player had selected before pickup
         if (preferredSlot >= 0 && !inventorySlots[preferredSlot].hasItem)
         {
@@ -1285,6 +1308,12 @@ public class Level10_ItemDegradation : LevelManager
     private void PickUpTool(string toolName)
     {
         preferredSlot = activeSlotIndex;
+        if (IsInventoryFull())
+        {
+            StartBreakMessage("Inventory Full!", new Color(1f, 0.3f, 0.3f, 1f));
+            preferredSlot = -1;
+            return;
+        }
         UnequipCurrentTool();
 
         int durability = Random.Range(1, maxDurability + 1);
@@ -1369,12 +1398,14 @@ public class Level10_ItemDegradation : LevelManager
             task.completed = true;
             Debug.Log($"[Level10] Task '{task.name}' completed!");
 
-            int completedSlot = GetSlotIndexForTool(task.toolName);
-            if (completedSlot >= 0)
+            if (activeSlotIndex >= 0)
             {
-                inventorySlots[completedSlot].toolName = "";
-                inventorySlots[completedSlot].hasItem = false;
-                inventorySlots[completedSlot].durability = 0;
+                inventorySlots[activeSlotIndex].toolName = "";
+                inventorySlots[activeSlotIndex].hasItem = false;
+                inventorySlots[activeSlotIndex].durability = 0;
+                inventorySlots[activeSlotIndex].sceneObject = null;
+                inventorySlots[activeSlotIndex].childA = null;
+                inventorySlots[activeSlotIndex].childB = null;
             }
 
             if (holdingRealHammer && task.toolName == "Hammer")
@@ -1454,6 +1485,9 @@ public class Level10_ItemDegradation : LevelManager
             inventorySlots[activeSlotIndex].toolName = "";
             inventorySlots[activeSlotIndex].hasItem = false;
             inventorySlots[activeSlotIndex].durability = 0;
+            inventorySlots[activeSlotIndex].sceneObject = null;
+            inventorySlots[activeSlotIndex].childA = null;
+            inventorySlots[activeSlotIndex].childB = null;
         }
         currentToolName = "";
         currentToolDurability = 0;
@@ -1804,19 +1838,15 @@ public class Level10_ItemDegradation : LevelManager
     private void PickUpHammer(HammerInfo info)
     {
         preferredSlot = activeSlotIndex;
+        if (IsInventoryFull())
+        {
+            StartBreakMessage("Inventory Full!", new Color(1f, 0.3f, 0.3f, 1f));
+            preferredSlot = -1;
+            return;
+        }
         UnequipCurrentTool();
 
-        // Drop the old hammer if one is stored in the slot
-        if (hammerSceneObject != null)
-        {
-            holdingRealHammer = true;
-            DropRealHammer();
-        }
-
         availableHammers.Remove(info);
-        hammerSceneObject = info.gameObject;
-        hammerHeadTransform = info.headTransform;
-        hammerHandleTransform = info.handleTransform;
 
         int slotIdx = GetOrAssignSlot("Hammer");
         if (slotIdx < 0) return;
@@ -1824,6 +1854,9 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
         inventorySlots[slotIdx].maxDurability = maxDurability;
+        inventorySlots[slotIdx].sceneObject = info.gameObject;
+        inventorySlots[slotIdx].childA = info.headTransform;
+        inventorySlots[slotIdx].childB = info.handleTransform;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
@@ -2000,18 +2033,15 @@ public class Level10_ItemDegradation : LevelManager
     private void PickUpSaw(SawInfo info)
     {
         preferredSlot = activeSlotIndex;
+        if (IsInventoryFull())
+        {
+            StartBreakMessage("Inventory Full!", new Color(1f, 0.3f, 0.3f, 1f));
+            preferredSlot = -1;
+            return;
+        }
         UnequipCurrentTool();
 
-        if (sawSceneObject != null)
-        {
-            holdingRealSaw = true;
-            DropRealSaw();
-        }
-
         availableSaws.Remove(info);
-        sawSceneObject = info.gameObject;
-        sawBladeTransform = info.bladeTransform;
-        sawHandleTransform = info.handleTransform;
 
         int slotIdx = GetOrAssignSlot("Saw");
         if (slotIdx < 0) return;
@@ -2019,6 +2049,9 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
         inventorySlots[slotIdx].maxDurability = maxDurability;
+        inventorySlots[slotIdx].sceneObject = info.gameObject;
+        inventorySlots[slotIdx].childA = info.bladeTransform;
+        inventorySlots[slotIdx].childB = info.handleTransform;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
@@ -2126,18 +2159,15 @@ public class Level10_ItemDegradation : LevelManager
     private void PickUpBroom(BroomInfo info)
     {
         preferredSlot = activeSlotIndex;
+        if (IsInventoryFull())
+        {
+            StartBreakMessage("Inventory Full!", new Color(1f, 0.3f, 0.3f, 1f));
+            preferredSlot = -1;
+            return;
+        }
         UnequipCurrentTool();
 
-        if (broomSceneObject != null)
-        {
-            holdingRealBroom = true;
-            DropRealBroom();
-        }
-
         availableBrooms.Remove(info);
-        broomSceneObject = info.gameObject;
-        broomHeadTransform = info.headTransform;
-        broomHandleTransform = info.handleTransform;
 
         int slotIdx = GetOrAssignSlot("Broom");
         if (slotIdx < 0) return;
@@ -2145,6 +2175,9 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = 3;
         inventorySlots[slotIdx].maxDurability = 3;
+        inventorySlots[slotIdx].sceneObject = info.gameObject;
+        inventorySlots[slotIdx].childA = info.headTransform;
+        inventorySlots[slotIdx].childB = info.handleTransform;
 
         activeSlotIndex = slotIdx;
         currentToolDurability = 3;
@@ -2246,18 +2279,15 @@ public class Level10_ItemDegradation : LevelManager
     private void PickUpWrench(WrenchInfo info)
     {
         preferredSlot = activeSlotIndex;
+        if (IsInventoryFull())
+        {
+            StartBreakMessage("Inventory Full!", new Color(1f, 0.3f, 0.3f, 1f));
+            preferredSlot = -1;
+            return;
+        }
         UnequipCurrentTool();
 
-        if (wrenchSceneObject != null)
-        {
-            holdingRealWrench = true;
-            DropRealWrench();
-        }
-
         availableWrenches.Remove(info);
-        wrenchSceneObject = info.gameObject;
-        wrenchTipTransform = info.tipTransform;
-        wrenchHandleTransform = info.handleTransform;
 
         int slotIdx = GetOrAssignSlot("Wrench");
         if (slotIdx < 0) return;
@@ -2265,6 +2295,9 @@ public class Level10_ItemDegradation : LevelManager
         inventorySlots[slotIdx].hasItem = true;
         inventorySlots[slotIdx].durability = maxDurability;
         inventorySlots[slotIdx].maxDurability = maxDurability;
+        inventorySlots[slotIdx].sceneObject = info.gameObject;
+        inventorySlots[slotIdx].childA = info.tipTransform;
+        inventorySlots[slotIdx].childB = info.handleTransform;
 
         activeSlotIndex = slotIdx;
         EquipFromSlot(slotIdx);
