@@ -224,7 +224,10 @@ const smtpServer = new SMTPServer({
             : null;
 
         console.log(
-          `[SMTP] Received email from ${senderAddress || "unknown"} subject: "${parsed.subject || "(none)}"`
+          "[SMTP] Received email from",
+          senderAddress || "unknown",
+          "subject:",
+          parsed.subject || "(none)"
         );
 
         if (senderAddress) {
