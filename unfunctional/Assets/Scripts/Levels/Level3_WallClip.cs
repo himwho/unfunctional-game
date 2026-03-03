@@ -46,8 +46,8 @@ public class Level3_WallClip : LevelManager
         "Okay, you've tried the door {0} times now. Impressive commitment."
     };
 
-    [Header("Visual")]
-    public float wallFlickerInterval = 5f;
+    // [Header("Visual")]
+    // public float wallFlickerInterval = 5f;
 
     // Runtime UI references
     private Canvas hudCanvas;
@@ -65,9 +65,9 @@ public class Level3_WallClip : LevelManager
     private float hintTimer;
     private float flickerTimer;
     private int doorInteractCount = 0;
-    private MeshRenderer clippableRenderer;
-    private Color clippableOriginalColor;
-    private Color clippableGlitchColor;
+    // private MeshRenderer clippableRenderer;
+    // private Color clippableOriginalColor;
+    // private Color clippableGlitchColor;
     private Coroutine hintFadeCoroutine;
     private Coroutine messageFadeCoroutine;
     private Coroutine narrationFadeCoroutine;
@@ -81,7 +81,7 @@ public class Level3_WallClip : LevelManager
         levelDescription = "A simple room. Find a way through.";
 
         hintTimer = hintDelay;
-        flickerTimer = wallFlickerInterval;
+        // flickerTimer = wallFlickerInterval;
 
         // Set up the clippable wall
         if (clippableCollider != null)
@@ -89,20 +89,20 @@ public class Level3_WallClip : LevelManager
             clippableCollider.isTrigger = true;
         }
 
-        if (clippableWallSection != null)
-        {
-            clippableRenderer = clippableWallSection.GetComponent<MeshRenderer>();
-            if (clippableRenderer != null && clippableRenderer.material != null)
-            {
-                clippableOriginalColor = clippableRenderer.material.color;
-                // Glitch color: slightly shifted green/cyan tint
-                clippableGlitchColor = new Color(
-                    clippableOriginalColor.r * 0.7f,
-                    clippableOriginalColor.g * 1.3f,
-                    clippableOriginalColor.b * 0.8f
-                );
-            }
-        }
+        // Wall clip visualization (flicker) - commented out
+        // if (clippableWallSection != null)
+        // {
+        //     clippableRenderer = clippableWallSection.GetComponent<MeshRenderer>();
+        //     if (clippableRenderer != null && clippableRenderer.material != null)
+        //     {
+        //         clippableOriginalColor = clippableRenderer.material.color;
+        //         clippableGlitchColor = new Color(
+        //             clippableOriginalColor.r * 0.7f,
+        //             clippableOriginalColor.g * 1.3f,
+        //             clippableOriginalColor.b * 0.8f
+        //         );
+        //     }
+        // }
 
         // Set up exit trigger
         if (exitZoneTrigger != null)
@@ -118,6 +118,13 @@ public class Level3_WallClip : LevelManager
 
         // Build the HUD
         CreateHUD();
+
+        // VHS color bleeding animation on level title
+        var levelTitle = GameObject.Find("LEVEL3");
+        if (levelTitle != null && levelTitle.GetComponent<VHSColorBleedingAnimator>() == null)
+        {
+            levelTitle.AddComponent<VHSColorBleedingAnimator>();
+        }
 
         // Initial narration
         ShowNarration("A room. With a door. Should be simple enough.", 4f);
@@ -136,13 +143,13 @@ public class Level3_WallClip : LevelManager
             hintTimer = hintDelay * 0.7f;
         }
 
-        // Wall flicker
-        flickerTimer -= Time.deltaTime;
-        if (flickerTimer <= 0f && clippableRenderer != null)
-        {
-            FlickerWall();
-            flickerTimer = wallFlickerInterval + Random.Range(-1f, 2f);
-        }
+        // Wall flicker (visualization) - commented out
+        // flickerTimer -= Time.deltaTime;
+        // if (flickerTimer <= 0f && clippableRenderer != null)
+        // {
+        //     FlickerWall();
+        //     flickerTimer = wallFlickerInterval + Random.Range(-1f, 2f);
+        // }
 
         // Door interaction check
         CheckDoorInteraction();
@@ -258,28 +265,28 @@ public class Level3_WallClip : LevelManager
     }
 
     // =========================================================================
-    // Wall Flicker
+    // Wall Flicker (visualization) - commented out
     // =========================================================================
 
-    private void FlickerWall()
-    {
-        if (clippableRenderer == null) return;
-        StartCoroutine(FlickerRoutine());
-    }
+    // private void FlickerWall()
+    // {
+    //     if (clippableRenderer == null) return;
+    //     StartCoroutine(FlickerRoutine());
+    // }
 
-    private IEnumerator FlickerRoutine()
-    {
-        if (clippableRenderer == null || clippableRenderer.material == null) yield break;
-
-        Material mat = clippableRenderer.material;
-        mat.color = clippableGlitchColor;
-        yield return new WaitForSeconds(0.1f);
-        mat.color = clippableOriginalColor;
-        yield return new WaitForSeconds(0.05f);
-        mat.color = clippableGlitchColor;
-        yield return new WaitForSeconds(0.05f);
-        mat.color = clippableOriginalColor;
-    }
+    // private IEnumerator FlickerRoutine()
+    // {
+    //     if (clippableRenderer == null || clippableRenderer.material == null) yield break;
+    //
+    //     Material mat = clippableRenderer.material;
+    //     mat.color = clippableGlitchColor;
+    //     yield return new WaitForSeconds(0.1f);
+    //     mat.color = clippableOriginalColor;
+    //     yield return new WaitForSeconds(0.05f);
+    //     mat.color = clippableGlitchColor;
+    //     yield return new WaitForSeconds(0.05f);
+    //     mat.color = clippableOriginalColor;
+    // }
 
     // =========================================================================
     // Completion
