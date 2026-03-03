@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 /// <summary>
 /// LEVEL 4: A room with a locked door and a keypad. Above the keypad are sticky
-/// notes with an email address (rodney@please.nyc) and a warning that "this guy
+/// notes with an email address (rodney@premiumdoorcodes.com) and a warning that "this guy
 /// always changes the code". The player is expected to alt-tab out of the game,
 /// send an email to that address, receive a 9-digit code that expires in 15
 /// seconds, then type it into the keypad.
@@ -72,7 +72,7 @@ public class Level4_KeypadPuzzle : LevelManager
     // Narration lines
     private static readonly string[] stickyNoteNarration = new string[]
     {
-        "There's an email address on a sticky note: rodney@please.nyc",
+        "There's an email address on a sticky note: rodney@premiumdoorcodes.com",
         "Another note says: \"this guy always changes the code\"",
         "Looks like you'll need to email Rodney for the door code.",
     };
@@ -110,7 +110,7 @@ public class Level4_KeypadPuzzle : LevelManager
             // Configure the keypad for this level
             keypad.codeLength = 9;
             keypad.keypadTitle = "DOOR ACCESS KEYPAD";
-            keypad.hintText = "Sticky Note: \"rodney@please.nyc\"\n\"this guy always changes the code\"";
+            keypad.hintText = "Sticky Note: \"rodney@premiumdoorcodes.com\"\n\"this guy always changes the code\"";
             keypad.showRequestCodeButton = true;
             keypad.requestCodeLabel = "Email Rodney for Code";
 
@@ -292,7 +292,7 @@ public class Level4_KeypadPuzzle : LevelManager
         }
         else
         {
-            ShowNarration("rodney@please.nyc -- email him for the code.\nHurry, it only lasts 15 seconds.", 4f);
+            ShowNarration("rodney@premiumdoorcodes.com -- email him for the code.\nHurry, it only lasts 15 seconds.", 4f);
         }
     }
 
@@ -394,7 +394,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
         ShowNarration(
             "DEBUG MODE: Code logged to console.\n" +
-            "In the real game, you'd email rodney@please.nyc and alt-tab back.", 5f);
+            "In the real game, you'd email rodney@premiumdoorcodes.com and alt-tab back.", 5f);
     }
 
     private IEnumerator RequestCodeFromServer()

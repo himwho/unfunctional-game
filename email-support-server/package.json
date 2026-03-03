@@ -1,7 +1,7 @@
 {
   "name": "unfunctional-email-server",
   "version": "1.0.0",
-  "description": "Email support server for Level 4 keypad puzzle. Receives emails to rodney@please.nyc, generates 15-second OTP codes, replies with the code.",
+  "description": "Email support server for Level 4 keypad puzzle. Receives emails to rodney@premiumdoorcodes.com, generates 15-second OTP codes, replies with the code.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

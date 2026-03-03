@@ -5,7 +5,7 @@
  * A barebones Node.js server for the Level 4 keypad puzzle.
  *
  * How it works:
- * 1. Player sees sticky note in-game with "rodney@please.nyc"
+ * 1. Player sees sticky note in-game with "rodney@premiumdoorcodes.com"
  * 2. Player alt-tabs and emails that address from their real email client
  * 3. This SMTP server receives the email, generates a 9-digit OTP code
  *    with a 15-second TTL, and auto-replies with the code
@@ -21,7 +21,7 @@
  *   which is how most "email me a code" 2FA flows actually work.
  *
  * Components:
- *   - SMTP inbound server (receives mail to rodney@please.nyc)
+ *   - SMTP inbound server (receives mail to rodney@premiumdoorcodes.com)
  *   - Nodemailer outbound (replies with the code)
  *   - Express HTTP API (game client requests codes + validates them)
  *   - In-memory code store with automatic TTL cleanup
@@ -42,7 +42,7 @@ const nodemailer = require("nodemailer");
 
 const HTTP_PORT = parseInt(process.env.HTTP_PORT || "3000", 10);
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || "2525", 10);
-const MAIL_DOMAIN = process.env.MAIL_DOMAIN || "please.nyc";
+const MAIL_DOMAIN = process.env.MAIL_DOMAIN || "premiumdoorcodes.com";
 const RODNEY_MAILBOX = process.env.RODNEY_MAILBOX || "rodney";
 const CODE_TTL_MS = parseInt(process.env.CODE_TTL_SECONDS || "15", 10) * 1000;
 const DEBUG_LOG = process.env.DEBUG_LOG_CODES === "true";
@@ -198,7 +198,7 @@ const smtpServer = new SMTPServer({
     callback(null, { user: "anonymous" });
   },
 
-  // Accept mail addressed to rodney@please.nyc (or any @please.nyc)
+  // Accept mail addressed to rodney@premiumdoorcodes.com (or any @premiumdoorcodes.com)
   onRcptTo(address, session, callback) {
     const recipient = address.address.toLowerCase();
     if (recipient.endsWith(`@${MAIL_DOMAIN}`)) {

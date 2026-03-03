@@ -22,7 +22,10 @@ x over achiever, constant achievement abuse level
 - design: moodboard and color pallette
 - design: add references and pulls to `reference-design` dir
 - Level4: Email support for temp code to unlock door
-
+- Custom Buttons for Level 1&2
+- Custom Sliders for Level2
+- Improve store page on Level8
+- 
 
 # LEVEL DESCRIPTIONS
 
@@ -64,10 +67,10 @@ A simple room as per our design aesthetic, door doesn't directly open but instea
 - Narration trying to excuse the mistake
 
 ## LEVEL4
-Level is a room with a door and a keypad next to the door, above the keypad is a sticky note that has rodney@please.nyc (and another sticky note saying "this guy always changes the code"), the player is expected to tab out of the game and email rodney@please.nyc, and get a response of just a temp code (which only works for 15 seconds), the code response should be 9 digits and the user has to type that in to open the door and complete the level.
+Level is a room with a door and a keypad next to the door, above the keypad is a sticky note that has rodney@premiumdoorcodes.com (and another sticky note saying "this guy always changes the code"), the player is expected to tab out of the game and email rodney@premiumdoorcodes.com, and get a response of just a temp code (which only works for 15 seconds), the code response should be 9 digits and the user has to type that in to open the door and complete the level.
 
 #### Requirements:
-- EC2 server that has the mail server and a simple nodejs app for generating a 9 digit numerical code that only lasts 15 seconds and emails that response code to every user who emails the "rodney@please.nyc"
+- EC2 server that has the mail server and a simple nodejs app for generating a 9 digit numerical code that only lasts 15 seconds and emails that response code to every user who emails the "rodney@premiumdoorcodes.com"
 
 ## LEVEL5
 Dumb NPC, an unnecessary and long NPC conversation
