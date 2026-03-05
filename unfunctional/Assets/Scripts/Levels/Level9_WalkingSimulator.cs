@@ -457,9 +457,17 @@ public class Level9_WalkingSimulator : LevelManager
     {
         Transform[] rightWalls = FindObjectsByNameContains("wall_right");
         Transform[] leftWalls = FindObjectsByNameContains("wall_left");
-        if (rightWalls.Length == 0 && leftWalls.Length == 0) return;
-        StartCoroutine(AnimateWallWiden(rightWalls, -2f,
-                                        leftWalls, 2f, duration));
+        Transform[] rightWindows = FindObjectsByNameContains("windows_right");
+        Transform[] leftWindows = FindObjectsByNameContains("windows_left");
+
+        var allRight = new System.Collections.Generic.List<Transform>(rightWalls);
+        allRight.AddRange(rightWindows);
+        var allLeft = new System.Collections.Generic.List<Transform>(leftWalls);
+        allLeft.AddRange(leftWindows);
+
+        if (allRight.Count == 0 && allLeft.Count == 0) return;
+        StartCoroutine(AnimateWallWiden(allRight.ToArray(), -2f,
+                                        allLeft.ToArray(), 2f, duration));
     }
 
     private Transform[] FindObjectsByNameContains(string namePart)
