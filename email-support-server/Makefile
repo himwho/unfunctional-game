@@ -45,7 +45,8 @@ SSH_CMD        = ssh -i $(KEY_FILE) -o StrictHostKeyChecking=no $(EC2_HOST)
 SCP_CMD        = scp -i $(KEY_FILE) -o StrictHostKeyChecking=no
 
 .PHONY: help setup-instructions setup-ec2 deploy push start stop restart \
-        logs status ssh env-push clean-remote
+        logs status ssh env-push clean-remote test-smtp test-smtp-code \
+        test-api-code test-api-validate
 
 help: ## Show available targets
 	@echo.
@@ -181,16 +182,41 @@ ssh: ## SSH into the EC2 instance
 
 health: ## Hit the /health endpoint on the remote server
 	@echo ">>> Checking health..."
-	curl -s http://$(subst ec2-user@,,$(EC2_HOST)):3000/health | python3 -m json.tool 2>/dev/null || \
-		curl -s http://$(subst ec2-user@,,$(EC2_HOST)):3000/health
+	@curl -s --connect-timeout 5 --max-time 10 \
+		http://$(subst ec2-user@,,$(EC2_HOST)):3000/health | python3 -m json.tool 2>/dev/null || \
+		echo ">>> Failed (is port 3000 open and the server running?)"
 
-test-smtp: ## Send a test email to rodney@premiumdoorcodes.com via the SMTP server (requires local smtp tools)
-	@echo ">>> Sending test email to rodney@premiumdoorcodes.com..."
-	@echo "Subject: test" | \
+test-smtp: ## Send a no-keyword email (should get "What are you asking for?!" reply)
+	@echo ">>> Sending email with no trigger keywords..."
+	@printf "Subject: hello\r\nFrom: test@example.com\r\nTo: rodney@premiumdoorcodes.com\r\n\r\nJust saying hi.\r\n" | \
 		curl --url "smtp://$(subst ec2-user@,,$(EC2_HOST)):25" \
 		--mail-from "test@example.com" \
 		--mail-rcpt "rodney@premiumdoorcodes.com" \
-		-T - 2>&1 && echo ">>> Sent" || echo ">>> Failed (is port 25 open?)"
+		-T - 2>&1 && echo ">>> Sent (expect generic reply)" || echo ">>> Failed (is port 25 open?)"
+
+test-smtp-code: ## Send a keyword email (should get a door code reply)
+	@echo ">>> Sending email requesting a door code..."
+	@printf "Subject: I need a door code\r\nFrom: test@example.com\r\nTo: rodney@premiumdoorcodes.com\r\n\r\nPlease send me the code for the door.\r\n" | \
+		curl --url "smtp://$(subst ec2-user@,,$(EC2_HOST)):25" \
+		--mail-from "test@example.com" \
+		--mail-rcpt "rodney@premiumdoorcodes.com" \
+		-T - 2>&1 && echo ">>> Sent (expect code reply)" || echo ">>> Failed (is port 25 open?)"
+
+test-api-code: ## Request a door code via the HTTP API (game client path)
+	@echo ">>> POST /api/request-code ..."
+	@curl -s --connect-timeout 5 --max-time 10 -X POST \
+		http://$(subst ec2-user@,,$(EC2_HOST)):3000/api/request-code \
+		-H "Content-Type: application/json" \
+		-d '{}' | python3 -m json.tool 2>/dev/null || \
+		echo ">>> Failed (is port 3000 open and the server running?)"
+
+test-api-validate: ## Validate a code via the HTTP API (usage: make test-api-validate CODE=123456789)
+	@echo ">>> POST /api/validate with code=$(CODE) ..."
+	@curl -s --connect-timeout 5 --max-time 10 -X POST \
+		http://$(subst ec2-user@,,$(EC2_HOST)):3000/api/validate \
+		-H "Content-Type: application/json" \
+		-d '{"code":"$(CODE)"}' | python3 -m json.tool 2>/dev/null || \
+		echo ">>> Failed (is port 3000 open and the server running?)"
 
 clean-remote: ## Remove app files from EC2 (leaves node/pm2 installed)
 	$(SSH_CMD) 'pm2 delete unfunctional-email 2>/dev/null; rm -rf $(REMOTE_DIR)'

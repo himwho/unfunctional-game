@@ -44,8 +44,25 @@ const HTTP_PORT = parseInt(process.env.HTTP_PORT || "3000", 10);
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || "2525", 10);
 const MAIL_DOMAIN = process.env.MAIL_DOMAIN || "premiumdoorcodes.com";
 const RODNEY_MAILBOX = process.env.RODNEY_MAILBOX || "rodney";
-const CODE_TTL_MS = parseInt(process.env.CODE_TTL_SECONDS || "15", 10) * 1000;
+const CODE_TTL_MS = parseInt(process.env.CODE_TTL_SECONDS || "60", 10) * 1000;
 const DEBUG_LOG = process.env.DEBUG_LOG_CODES === "true";
+
+// Keywords in subject or body that trigger a door code reply
+const TRIGGER_KEYWORDS = ["door", "code", "please"];
+
+// Rodney's annoyed replies when no trigger keywords are found
+const GENERIC_REPLIES = [
+  "What are you asking for?!",
+  "I'm busy. If you need a code, just say so.",
+  "Do I look like I have time for this? Ask for a CODE.",
+  "Wrong guy. Unless you need a door code. Do you need a door code?",
+  "I don't do small talk. I do door codes.",
+  "Read the sticky note again and try harder.",
+  "I'm not your pen pal. Need a code or not?",
+  "You're wasting my time AND yours.",
+  "I swear if this isn't about a door code...",
+  "Unbelievable. Just say 'door code' like a normal person.",
+];
 
 // =========================================================================
 // Code Store (in-memory OTP with TTL)
@@ -184,6 +201,40 @@ async function sendCodeReply(toAddress, code) {
   }
 }
 
+/**
+ * Sends a non-code reply when the inbound email doesn't contain any
+ * trigger keywords. Picks a random annoyed Rodney quip.
+ */
+async function sendGenericReply(toAddress) {
+  const quip = GENERIC_REPLIES[Math.floor(Math.random() * GENERIC_REPLIES.length)];
+
+  const mailOptions = {
+    from: `"Rodney" <${RODNEY_MAILBOX}@${MAIL_DOMAIN}>`,
+    to: toAddress,
+    subject: "Re: ???",
+    text: `${quip}\n\n-- Rodney`,
+    html: `
+      <div style="font-family: monospace; padding: 20px;">
+        <p style="font-size: 18px; font-weight: bold;">${quip}</p>
+        <br/>
+        <p style="color: #888; font-size: 12px;">&mdash; Rodney</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await mailTransport.sendMail(mailOptions);
+    console.log(
+      `[MAIL] Generic reply sent to ${toAddress}: ${info.messageId || "ok"}`
+    );
+  } catch (err) {
+    console.error(
+      `[MAIL] Failed to send generic reply to ${toAddress}:`,
+      err.message
+    );
+  }
+}
+
 // =========================================================================
 // SMTP Inbound Server
 // =========================================================================
@@ -223,6 +274,10 @@ const smtpServer = new SMTPServer({
             ? parsed.from.value[0].address
             : null;
 
+        const subject = (parsed.subject || "").toLowerCase();
+        const bodyText = (parsed.text || "").toLowerCase();
+        const combined = subject + " " + bodyText;
+
         console.log(
           "[SMTP] Received email from",
           senderAddress || "unknown",
@@ -230,12 +285,21 @@ const smtpServer = new SMTPServer({
           parsed.subject || "(none)"
         );
 
-        if (senderAddress) {
-          // Generate code and reply
+        if (!senderAddress) {
+          console.log("[SMTP] No sender address found, skipping reply");
+          callback();
+          return;
+        }
+
+        const triggered = TRIGGER_KEYWORDS.some((kw) => combined.includes(kw));
+
+        if (triggered) {
+          console.log("[SMTP] Trigger keywords matched -- generating code");
           const code = storeCode(senderAddress);
           await sendCodeReply(senderAddress, code);
         } else {
-          console.log("[SMTP] No sender address found, skipping reply");
+          console.log("[SMTP] No trigger keywords found -- sending generic reply");
+          await sendGenericReply(senderAddress);
         }
       } catch (err) {
         console.error("[SMTP] Error processing email:", err.message);
