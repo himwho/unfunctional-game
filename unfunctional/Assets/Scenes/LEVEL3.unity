@@ -1793,7 +1793,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RedOrangeLightCycle
   targetLights: []
   emissiveRenderer: {fileID: 1394393797}
-  cycleDuration: 2
+  cycleDuration: 4
   emissiveIntensity: 4
   hueMin: 0
   hueMax: 0.11
