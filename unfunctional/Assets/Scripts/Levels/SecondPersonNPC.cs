@@ -139,6 +139,8 @@ public class SecondPersonNPC : MonoBehaviour
             shoulderCamPoint.LookAt(player.position + Vector3.up * 1.2f);
         }
 
+        SeparateFromOtherNPCs();
+
         switch (state)
         {
             case AIState.Idle:    UpdateIdle(distToPlayer);   break;
@@ -352,6 +354,30 @@ public class SecondPersonNPC : MonoBehaviour
     // =========================================================================
     // Helpers
     // =========================================================================
+
+    private const float SEPARATION_RADIUS = 3f;
+    private const float SEPARATION_FORCE = 4f;
+
+    private void SeparateFromOtherNPCs()
+    {
+        if (levelManager == null) return;
+
+        Vector3 push = Vector3.zero;
+        foreach (var other in levelManager.ActiveNPCs)
+        {
+            if (other == null || other == this || other.isDead) continue;
+
+            Vector3 diff = transform.position - other.transform.position;
+            diff.y = 0;
+            float dist = diff.magnitude;
+
+            if (dist < SEPARATION_RADIUS && dist > 0.01f)
+                push += diff.normalized * (1f - dist / SEPARATION_RADIUS);
+        }
+
+        if (push.sqrMagnitude > 0.001f)
+            transform.position += push.normalized * SEPARATION_FORCE * Time.deltaTime;
+    }
 
     private void RotateToward(Vector3 dir)
     {

@@ -81,6 +81,7 @@ public class Level13_SecondPersonShooter : LevelManager
 
     // NPCs
     private List<SecondPersonNPC> activeNPCs = new List<SecondPersonNPC>();
+    public List<SecondPersonNPC> ActiveNPCs => activeNPCs;
     private SecondPersonNPC currentViewNPC;
 
     // Player combat
@@ -584,25 +585,39 @@ public class Level13_SecondPersonShooter : LevelManager
     /// floor beneath it (downward raycast). Retries up to 30 times with
     /// shrinking radius, then falls back to a position near the player.
     /// </summary>
+    private const float MIN_NPC_SPACING = 4f;
+
     private Vector3 FindValidSpawnPosition()
     {
         for (int attempt = 0; attempt < 30; attempt++)
         {
             float radius = Random.Range(minSpawnDistance, spawnRadius);
 
-            // Shrink search radius on repeated failures to converge
-            // toward the arena interior
             if (attempt > 10)
                 radius *= 0.5f;
 
             Vector2 circle = Random.insideUnitCircle.normalized * radius;
             Vector3 candidate = playerTransform.position + new Vector3(circle.x, 0, circle.y);
 
-            if (Physics.Raycast(candidate + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
+            if (!Physics.Raycast(candidate + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
+                continue;
+
+            candidate.y = ground.point.y;
+
+            // Reject positions too close to existing NPCs
+            bool tooClose = false;
+            foreach (var npc in activeNPCs)
             {
-                candidate.y = ground.point.y;
-                return candidate;
+                if (npc == null) continue;
+                if (Vector3.Distance(candidate, npc.transform.position) < MIN_NPC_SPACING)
+                {
+                    tooClose = true;
+                    break;
+                }
             }
+            if (tooClose) continue;
+
+            return candidate;
         }
 
         Debug.LogWarning("[Level13] Could not find valid NPC spawn position, spawning near player.");
