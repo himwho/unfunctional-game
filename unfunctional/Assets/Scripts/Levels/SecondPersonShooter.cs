@@ -66,6 +66,10 @@ public class Level13_SecondPersonShooter : LevelManager
     [Tooltip("How fast the 2nd-person camera lerps to the new shoulder.")]
     public float cameraSmoothSpeed = 14f;
     public float cameraLookSmooth = 12f;
+    [Tooltip("Height above the arena center for the cinematic overview camera.")]
+    public float cinematicHeight = 20f;
+    [Tooltip("How long the cinematic overview lasts before NPCs spawn (seconds).")]
+    public float cinematicDuration = 3f;
 
     // =========================================================================
     // Runtime state
@@ -100,6 +104,8 @@ public class Level13_SecondPersonShooter : LevelManager
     private float fireCooldown;
     private bool isReloading;
     private bool gameOver;
+    private bool cinematicMode;
+    private float cinematicTimer;
 
     // Shot visual
     private LineRenderer playerShotLine;
@@ -203,8 +209,7 @@ public class Level13_SecondPersonShooter : LevelManager
         try { BuildHUD(); }
         catch (System.Exception e) { Debug.LogError($"[Level13] HUD setup failed: {e}"); }
 
-        yield return new WaitForSeconds(1.5f);
-        StartNextWave();
+        StartCoroutine(CinematicThenSpawn(true));
     }
 
     protected override void OnDestroy()
@@ -239,8 +244,11 @@ public class Level13_SecondPersonShooter : LevelManager
         if (playerTransform == null) return;
 
         UpdateCameraSwitch();
-        HandleShooting();
-        HandleReload();
+        if (!cinematicMode)
+        {
+            HandleShooting();
+            HandleReload();
+        }
         UpdateHUD();
     }
 
@@ -355,6 +363,31 @@ public class Level13_SecondPersonShooter : LevelManager
     private void UpdateCameraSwitch()
     {
         if (secondPersonCam == null) return;
+
+        // Cinematic overview mode — orbit above the arena
+        if (cinematicMode)
+        {
+            cinematicTimer += Time.deltaTime;
+
+            Vector3 center = playerTransform.position;
+            if (spawnZone != null) center = spawnZone.bounds.center;
+
+            float orbitAngle = cinematicTimer * 30f; // 30 degrees per second
+            float orbitRadius = spawnZone != null
+                ? Mathf.Max(spawnZone.bounds.extents.x, spawnZone.bounds.extents.z) * 0.6f
+                : spawnRadius * 0.4f;
+
+            Vector3 offset = new Vector3(
+                Mathf.Sin(orbitAngle * Mathf.Deg2Rad) * orbitRadius,
+                cinematicHeight,
+                Mathf.Cos(orbitAngle * Mathf.Deg2Rad) * orbitRadius
+            );
+
+            Transform cam = secondPersonCam.transform;
+            cam.position = Vector3.Lerp(cam.position, center + offset, Time.deltaTime * 3f);
+            cam.LookAt(center);
+            return;
+        }
 
         // Build the aim ray from the player's (disabled) camera transform
         Ray aimRay = new Ray(
@@ -566,7 +599,7 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         if (centerMsg != null) { centerMsg.text = "WAVE CLEAR!"; centerMsg.gameObject.SetActive(true); }
 
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
 
         if (centerMsg != null) centerMsg.gameObject.SetActive(false);
 
@@ -576,8 +609,28 @@ public class Level13_SecondPersonShooter : LevelManager
         }
         else
         {
-            StartNextWave();
+            StartCoroutine(CinematicThenSpawn(false));
         }
+    }
+
+    private IEnumerator CinematicThenSpawn(bool isFirstWave)
+    {
+        cinematicMode = true;
+        cinematicTimer = 0f;
+
+        if (centerMsg != null)
+        {
+            centerMsg.text = isFirstWave ? "SPAWNING ENEMIES..." : "NEXT WAVE INCOMING...";
+            centerMsg.color = Color.white;
+            centerMsg.gameObject.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(cinematicDuration);
+
+        cinematicMode = false;
+        if (centerMsg != null) centerMsg.gameObject.SetActive(false);
+
+        StartNextWave();
     }
 
     private void StartNextWave()
