@@ -1492,7 +1492,9 @@ MonoBehaviour:
   npcAttackRange: 18
   npcFireRate: 0.1
   npcDamage: 5
-  gunPrefab: {fileID: 1624210991221728572, guid: 71b8465c8ee480e46a494e019e87c1c8,
+  playerGunPrefab: {fileID: 8454821625881012871, guid: 05cc76dadcdccc74ebd9f99fdf2ad135,
+    type: 3}
+  npcGunPrefab: {fileID: 1624210991221728572, guid: 71b8465c8ee480e46a494e019e87c1c8,
     type: 3}
   gunPositionOffset: {x: 0.5, y: 0.3, z: 0.35}
   gunRotationOffset: {x: 0, y: 175, z: 0}
@@ -1501,6 +1503,8 @@ MonoBehaviour:
   shoulderCamOffset: {x: 0, y: 0.8, z: -0.4}
   cameraSmoothSpeed: 100
   cameraLookSmooth: 98
+  cinematicHeight: 20
+  cinematicDuration: 3
 --- !u!4 &715069709
 Transform:
   m_ObjectHideFlags: 0

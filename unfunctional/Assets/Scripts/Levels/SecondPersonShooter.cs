@@ -52,8 +52,10 @@ public class Level13_SecondPersonShooter : LevelManager
     public int npcDamage = 8;
 
     [Header("Gun Model")]
-    [Tooltip("Assign the AK47 prefab (or any gun model) here.")]
-    public GameObject gunPrefab;
+    [Tooltip("Gun prefab for the player.")]
+    public GameObject playerGunPrefab;
+    [Tooltip("Gun prefab for NPCs. If empty, uses the player gun prefab.")]
+    public GameObject npcGunPrefab;
     public Vector3 gunPositionOffset = new Vector3(0.3f, 0.3f, 0.35f);
     public Vector3 gunRotationOffset = Vector3.zero;
     public float gunScale = 1f;
@@ -323,9 +325,9 @@ public class Level13_SecondPersonShooter : LevelManager
 
     private void AttachGunToPlayer()
     {
-        if (gunPrefab == null || playerTransform == null) return;
+        if (playerGunPrefab == null || playerTransform == null) return;
 
-        GameObject gun = AttachGunModel(playerTransform, gunPositionOffset);
+        GameObject gun = AttachGunModel(playerGunPrefab, playerTransform, gunPositionOffset);
         if (gun != null)
         {
             playerGun = gun.transform;
@@ -338,11 +340,11 @@ public class Level13_SecondPersonShooter : LevelManager
     /// Instantiates the gun prefab as a child of <paramref name="parent"/>
     /// at the given local offset, applying the inspector scale and rotation.
     /// </summary>
-    private GameObject AttachGunModel(Transform parent, Vector3 localPos)
+    private GameObject AttachGunModel(GameObject prefab, Transform parent, Vector3 localPos)
     {
-        if (gunPrefab == null) return null;
+        if (prefab == null) return null;
 
-        GameObject gun = Instantiate(gunPrefab, parent);
+        GameObject gun = Instantiate(prefab, parent);
         gun.name = "GunModel";
         gun.transform.localPosition = localPos;
         gun.transform.localRotation = Quaternion.Euler(gunRotationOffset);
@@ -678,8 +680,9 @@ public class Level13_SecondPersonShooter : LevelManager
 
             bodyRenderer = npcObj.GetComponentInChildren<Renderer>();
 
-            if (gunPrefab != null)
-                AttachGunModel(npcObj.transform, gunPositionOffset);
+            GameObject npcGun = npcGunPrefab != null ? npcGunPrefab : playerGunPrefab;
+            if (npcGun != null)
+                AttachGunModel(npcGun, npcObj.transform, gunPositionOffset);
         }
         else
         {
@@ -790,9 +793,10 @@ public class Level13_SecondPersonShooter : LevelManager
         SetMaterialColor(head.GetComponent<Renderer>(), npcColor * 0.8f);
         Destroy(head.GetComponent<Collider>());
 
-        if (gunPrefab != null)
+        GameObject fallbackGun = npcGunPrefab != null ? npcGunPrefab : playerGunPrefab;
+        if (fallbackGun != null)
         {
-            AttachGunModel(body.transform, gunPositionOffset);
+            AttachGunModel(fallbackGun, body.transform, gunPositionOffset);
         }
         else
         {
