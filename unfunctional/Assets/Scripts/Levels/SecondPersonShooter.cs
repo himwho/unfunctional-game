@@ -115,6 +115,12 @@ public class Level13_SecondPersonShooter : LevelManager
     // Arena objects (so we can clean up)
     private List<GameObject> arenaObjects = new List<GameObject>();
 
+    // Player CharacterController — level-specific overrides, restored on destroy
+    private CharacterController playerCC;
+    private float originalCCHeight;
+    private float originalCCRadius;
+    private Vector3 originalCCCenter;
+
     // =========================================================================
     // Lifecycle
     // =========================================================================
@@ -160,6 +166,18 @@ public class Level13_SecondPersonShooter : LevelManager
         // Tag the player so NPC hit-detection can find them
         playerTransform.gameObject.tag = "Player";
 
+        // Adjust CharacterController for this level to prevent floating
+        playerCC = playerController.GetComponent<CharacterController>();
+        if (playerCC != null)
+        {
+            originalCCHeight = playerCC.height;
+            originalCCRadius = playerCC.radius;
+            originalCCCenter = playerCC.center;
+            playerCC.height = 2f;
+            playerCC.radius = 0.4f;
+            playerCC.center = Vector3.up;
+        }
+
         // Initialize state
         playerHealth = playerMaxHealth;
         currentAmmo = maxAmmo;
@@ -187,6 +205,14 @@ public class Level13_SecondPersonShooter : LevelManager
         if (playerCamera != null) playerCamera.enabled = true;
         if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
         if (playerGun != null) Destroy(playerGun.gameObject);
+
+        // Restore player CharacterController to original settings
+        if (playerCC != null)
+        {
+            playerCC.height = originalCCHeight;
+            playerCC.radius = originalCCRadius;
+            playerCC.center = originalCCCenter;
+        }
 
         foreach (var obj in arenaObjects)
         {
@@ -547,13 +573,17 @@ public class Level13_SecondPersonShooter : LevelManager
             npcObj = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
             npcObj.name = "NPC_Enemy";
 
-            // Ensure the prefab has a collider for raycasts
-            if (npcObj.GetComponent<Collider>() == null)
+            // Strip player-specific components immediately so they can't
+            // process input or render even for a single frame.
+            foreach (var pc in npcObj.GetComponentsInChildren<PlayerController>())
+                DestroyImmediate(pc);
+            foreach (var cam in npcObj.GetComponentsInChildren<Camera>())
             {
-                CapsuleCollider col = npcObj.AddComponent<CapsuleCollider>();
-                col.height = 2f;
-                col.center = Vector3.up;
+                cam.enabled = false;
+                DestroyImmediate(cam.gameObject);
             }
+            foreach (var al in npcObj.GetComponentsInChildren<AudioListener>())
+                DestroyImmediate(al);
 
             bodyRenderer = npcObj.GetComponentInChildren<Renderer>();
 
@@ -565,6 +595,17 @@ public class Level13_SecondPersonShooter : LevelManager
             npcObj = CreateFallbackNPCVisual(spawnPos);
             bodyRenderer = npcObj.GetComponent<Renderer>();
         }
+
+        // Reuse existing CharacterController if the prefab has one (e.g. player
+        // prefab), otherwise add a new one. Never destroy + re-add since
+        // Destroy is deferred and AddComponent would fail on duplicates.
+        CharacterController cc = npcObj.GetComponent<CharacterController>();
+        if (cc == null) cc = npcObj.AddComponent<CharacterController>();
+        cc.height = 2f;
+        cc.radius = 0.4f;
+        cc.center = Vector3.up;
+        cc.slopeLimit = 45f;
+        cc.stepOffset = 0.4f;
 
         SecondPersonNPC npc = npcObj.AddComponent<SecondPersonNPC>();
         npc.SetBodyRenderer(bodyRenderer);
