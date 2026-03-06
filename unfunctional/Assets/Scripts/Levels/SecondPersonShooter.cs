@@ -388,6 +388,9 @@ public class Level13_SecondPersonShooter : LevelManager
 
             // Hide the NPC we're now viewing from
             currentViewNPC.SetVisible(false);
+
+            // Being looked at triggers aggro immediately
+            currentViewNPC.AlertToPlayer();
         }
 
         // Smoothly follow the shoulder cam

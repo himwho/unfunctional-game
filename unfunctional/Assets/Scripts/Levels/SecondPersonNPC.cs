@@ -112,6 +112,13 @@ public class SecondPersonNPC : MonoBehaviour
         }
     }
 
+    public void AlertToPlayer()
+    {
+        if (isDead) return;
+        if (state == AIState.Idle || state == AIState.Patrol)
+            state = AIState.Chase;
+    }
+
     public void TakeDamage(int dmg, Vector3 hitDirection)
     {
         if (isDead) return;
