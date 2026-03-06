@@ -1360,7 +1360,7 @@ MonoBehaviour:
   doorController: {fileID: 368967943}
   codeValiditySeconds: 60
   interactRange: 3
-  codeServerUrl: http://54.152.73.218:3000
+  codeServerUrl: https://premiumdoorcodes.com
   offlineMode: 0
 --- !u!4 &1937292421
 Transform:
