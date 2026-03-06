@@ -642,10 +642,7 @@ public class Level13_SecondPersonShooter : LevelManager
     private void StartNextWave()
     {
         currentWave++;
-        if (currentWave == 1)
-            waveMultiplier = 1;
-        else
-            waveMultiplier *= 2;
+        waveMultiplier = currentWave;
 
         subWave = -1; // StartNextSubWave increments to 0
         StartNextSubWave();
