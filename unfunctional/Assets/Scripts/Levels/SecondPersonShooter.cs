@@ -349,8 +349,17 @@ public class Level13_SecondPersonShooter : LevelManager
             }
         }
 
-        if (best != null)
+        if (best != null && best != currentViewNPC)
+        {
+            // Show the NPC we're leaving
+            if (currentViewNPC != null && !currentViewNPC.isDead)
+                currentViewNPC.SetVisible(true);
+
             currentViewNPC = best;
+
+            // Hide the NPC we're now viewing from
+            currentViewNPC.SetVisible(false);
+        }
 
         // Smoothly follow the shoulder cam
         if (currentViewNPC != null && currentViewNPC.shoulderCamPoint != null)
@@ -479,7 +488,10 @@ public class Level13_SecondPersonShooter : LevelManager
         activeNPCs.Remove(npc);
 
         if (currentViewNPC == npc)
+        {
+            npc.SetVisible(true);
             currentViewNPC = null;
+        }
 
         // Check if wave is clear
         int alive = 0;

@@ -92,6 +92,17 @@ public class SecondPersonNPC : MonoBehaviour
         if (r != null) originalColor = r.material.color;
     }
 
+    public void SetVisible(bool visible)
+    {
+        Transform gunModel = transform.Find("GunModel");
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+        {
+            if (gunModel != null && r.transform.IsChildOf(gunModel))
+                continue;
+            r.enabled = visible;
+        }
+    }
+
     public void TakeDamage(int dmg, Vector3 hitDirection)
     {
         if (isDead) return;
