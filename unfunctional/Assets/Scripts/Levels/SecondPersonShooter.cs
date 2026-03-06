@@ -26,7 +26,8 @@ public class Level13_SecondPersonShooter : LevelManager
     // =========================================================================
 
     [Header("Level 13 — 2nd Person Shooter")]
-    public int npcsPerWave = 1;
+    [Tooltip("Base multiplier for NPC spawn counts. Wave 1 spawns 1×, 2×, 3× this value per sub-wave.")]
+    public int npcWaveBaseMultiplier = 1;
     public int totalWaves = 1;
     [Tooltip("Assign a BoxCollider to define the NPC spawn region. If empty, spawns around the player using the radius fields below.")]
     public BoxCollider spawnZone;
@@ -94,6 +95,8 @@ public class Level13_SecondPersonShooter : LevelManager
     private int currentAmmo;
     private int kills;
     private int currentWave;
+    private int subWave;           // 0, 1, 2 within each wave (spawns 1, 2, 3 × multiplier)
+    private int waveMultiplier;    // doubles each wave: 1, 2, 4, 8...
     private float fireCooldown;
     private bool isReloading;
     private bool gameOver;
@@ -538,13 +541,25 @@ public class Level13_SecondPersonShooter : LevelManager
             currentViewNPC = null;
         }
 
-        // Check if wave is clear
         int alive = 0;
         foreach (var n in activeNPCs)
             if (n != null && !n.isDead) alive++;
 
         if (alive == 0)
-            StartCoroutine(OnWaveCleared());
+        {
+            if (subWave < 2)
+                StartNextSubWave();
+            else
+                StartCoroutine(OnWaveCleared());
+        }
+    }
+
+    private void StartNextSubWave()
+    {
+        subWave++;
+        int count = (subWave + 1) * waveMultiplier * npcWaveBaseMultiplier;
+        for (int i = 0; i < count; i++)
+            SpawnNPC();
     }
 
     private IEnumerator OnWaveCleared()
@@ -568,10 +583,13 @@ public class Level13_SecondPersonShooter : LevelManager
     private void StartNextWave()
     {
         currentWave++;
-        int count = npcsPerWave + (currentWave - 1) * 2; // escalate each wave
+        if (currentWave == 1)
+            waveMultiplier = 1;
+        else
+            waveMultiplier *= 2;
 
-        for (int i = 0; i < count; i++)
-            SpawnNPC();
+        subWave = -1; // StartNextSubWave increments to 0
+        StartNextSubWave();
 
         if (waveText != null)
             waveText.text = $"WAVE  {currentWave} / {totalWaves}";

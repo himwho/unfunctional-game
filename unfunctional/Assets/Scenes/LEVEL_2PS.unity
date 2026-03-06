@@ -1474,12 +1474,12 @@ MonoBehaviour:
   needsPlayer: 1
   playerSpawnPoint: {fileID: 859949736}
   levelComplete: 0
-  npcsPerWave: 1
+  npcWaveBaseMultiplier: 1
   totalWaves: 3
   spawnZone: {fileID: 378358745}
   spawnRadius: 28
   minSpawnDistance: 12
-  playerMaxHealth: 100000
+  playerMaxHealth: 100
   playerDamage: 25
   maxAmmo: 30
   fireRate: 6
@@ -1490,8 +1490,8 @@ MonoBehaviour:
   npcMoveSpeed: 3
   npcDetectionRange: 30
   npcAttackRange: 18
-  npcFireRate: 0.6
-  npcDamage: 8
+  npcFireRate: 0.1
+  npcDamage: 5
   gunPrefab: {fileID: 1624210991221728572, guid: 71b8465c8ee480e46a494e019e87c1c8,
     type: 3}
   gunPositionOffset: {x: 0.5, y: 0.3, z: 0.35}
