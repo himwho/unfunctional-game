@@ -58,10 +58,10 @@ public class Level13_SecondPersonShooter : LevelManager
     // Player refs
     private PlayerController playerController;
     private Transform playerTransform;
-    private Camera playerCamera;           // disabled but transform still used for aim
-    private Transform playerCamTransform;  // shorthand
+    private Camera playerCamera;           // disabled; its transform is still used for aim
+    private Transform playerCamTransform;  // shorthand for playerCamera.transform
 
-    // 2nd-person camera
+    // 2nd-person camera (cloned from the player camera to inherit all URP settings)
     private Camera secondPersonCam;
 
     // NPCs
@@ -136,6 +136,9 @@ public class Level13_SecondPersonShooter : LevelManager
         playerCamera = playerController.GetComponentInChildren<Camera>();
         playerCamTransform = playerCamera != null ? playerCamera.transform : playerTransform;
 
+        Debug.Log($"[Level13] Player found at {playerTransform.position}, " +
+                  $"camera={(playerCamera != null ? playerCamera.name : "NULL")}");
+
         // Tag the player so NPC hit-detection can find them
         playerTransform.gameObject.tag = "Player";
 
@@ -152,7 +155,9 @@ public class Level13_SecondPersonShooter : LevelManager
         }
 
         SetupSecondPersonCamera();
-        BuildHUD();
+
+        try { BuildHUD(); }
+        catch (System.Exception e) { Debug.LogError($"[Level13] HUD setup failed: {e}"); }
 
         yield return new WaitForSeconds(1.5f);
         StartNextWave();
@@ -160,13 +165,9 @@ public class Level13_SecondPersonShooter : LevelManager
 
     protected override void OnDestroy()
     {
-        // Re-enable player camera so the next level isn't broken
         if (playerCamera != null) playerCamera.enabled = true;
-
-        // Destroy the 2nd-person camera
         if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
 
-        // Clean up arena geometry if we made it
         foreach (var obj in arenaObjects)
         {
             if (obj != null) Destroy(obj);
@@ -196,21 +197,43 @@ public class Level13_SecondPersonShooter : LevelManager
 
     private void SetupSecondPersonCamera()
     {
-        // Disable the player's own camera (keep transform for aim direction)
-        if (playerCamera != null)
-            playerCamera.enabled = false;
+        if (playerCamera == null)
+        {
+            Debug.LogError("[Level13] Player has no camera — cannot set up 2nd-person view.");
+            return;
+        }
 
-        // Create the 2nd-person rendering camera
-        GameObject camObj = new GameObject("SecondPersonCamera");
-        secondPersonCam = camObj.AddComponent<Camera>();
+        Debug.Log($"[Level13] Player camera found: {playerCamera.name}, " +
+                  $"enabled={playerCamera.enabled}, depth={playerCamera.depth}");
+
+        // Clone the player's camera object so the copy inherits all URP /
+        // UniversalAdditionalCameraData / renderer settings automatically.
+        GameObject camClone = Instantiate(playerCamera.gameObject);
+        camClone.name = "SecondPersonCamera";
+        camClone.transform.SetParent(null);
+
+        // Remove AudioListener from clone to avoid duplicate warnings
+        AudioListener al = camClone.GetComponent<AudioListener>();
+        if (al != null) Destroy(al);
+
+        secondPersonCam = camClone.GetComponent<Camera>();
+        secondPersonCam.enabled = true;
+        secondPersonCam.depth = playerCamera.depth + 1;
         secondPersonCam.fieldOfView = 65f;
-        secondPersonCam.nearClipPlane = 0.15f;
-        secondPersonCam.farClipPlane = 500f;
-        secondPersonCam.depth = 10;
 
-        // Start above the player as a neutral position
-        camObj.transform.position = playerTransform.position + new Vector3(0, 4, -6);
-        camObj.transform.LookAt(playerTransform);
+        // Start behind the player at head height
+        Vector3 startPos = playerTransform.position
+                           + Vector3.up * 1.8f
+                           - playerTransform.forward * 2f;
+        camClone.transform.position = startPos;
+        camClone.transform.LookAt(playerTransform.position + Vector3.up * 1.2f);
+
+        // Disable the player's own camera (keep its transform for aim direction;
+        // PlayerController.HandleLook still rotates it even when disabled).
+        playerCamera.enabled = false;
+
+        Debug.Log($"[Level13] 2nd-person camera set up at {startPos}, " +
+                  $"depth={secondPersonCam.depth}");
     }
 
     /// <summary>
@@ -274,11 +297,14 @@ public class Level13_SecondPersonShooter : LevelManager
         }
         else
         {
-            // Fallback: hover behind the player
-            Vector3 fallback = playerTransform.position - playerTransform.forward * 6f + Vector3.up * 4f;
+            // Fallback: stay close behind the player at head height so the
+            // camera doesn't end up outside enclosed arenas.
+            Vector3 fallback = playerTransform.position
+                               - playerTransform.forward * 2.5f
+                               + Vector3.up * 1.8f;
             secondPersonCam.transform.position = Vector3.Lerp(
                 secondPersonCam.transform.position, fallback, Time.deltaTime * 5f);
-            secondPersonCam.transform.LookAt(playerTransform.position + Vector3.up * 1f);
+            secondPersonCam.transform.LookAt(playerTransform.position + Vector3.up * 1.2f);
         }
     }
 
@@ -425,16 +451,8 @@ public class Level13_SecondPersonShooter : LevelManager
 
     private void SpawnNPC()
     {
-        // Pick a random position around the player
-        Vector2 circle = Random.insideUnitCircle.normalized
-                         * Random.Range(minSpawnDistance, spawnRadius);
-        Vector3 spawnPos = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+        Vector3 spawnPos = FindValidSpawnPosition();
 
-        // Snap to ground
-        if (Physics.Raycast(spawnPos + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
-            spawnPos.y = ground.point.y;
-
-        // Build the NPC visual (capsule + head + gun)
         GameObject npcObj = CreateNPCVisual(spawnPos);
 
         SecondPersonNPC npc = npcObj.AddComponent<SecondPersonNPC>();
@@ -452,6 +470,36 @@ public class Level13_SecondPersonShooter : LevelManager
 
         npc.Initialize(playerTransform, this);
         activeNPCs.Add(npc);
+    }
+
+    /// <summary>
+    /// Picks a random point around the player and validates that it has arena
+    /// floor beneath it (downward raycast). Retries up to 30 times with
+    /// shrinking radius, then falls back to a position near the player.
+    /// </summary>
+    private Vector3 FindValidSpawnPosition()
+    {
+        for (int attempt = 0; attempt < 30; attempt++)
+        {
+            float radius = Random.Range(minSpawnDistance, spawnRadius);
+
+            // Shrink search radius on repeated failures to converge
+            // toward the arena interior
+            if (attempt > 10)
+                radius *= 0.5f;
+
+            Vector2 circle = Random.insideUnitCircle.normalized * radius;
+            Vector3 candidate = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+
+            if (Physics.Raycast(candidate + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
+            {
+                candidate.y = ground.point.y;
+                return candidate;
+            }
+        }
+
+        Debug.LogWarning("[Level13] Could not find valid NPC spawn position, spawning near player.");
+        return playerTransform.position + playerTransform.forward * 3f;
     }
 
     private GameObject CreateNPCVisual(Vector3 position)
@@ -525,7 +573,6 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         yield return new WaitForSeconds(delay);
 
-        // Re-enable player cam before transitioning
         if (playerCamera != null) playerCamera.enabled = true;
         if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
 
