@@ -26,8 +26,8 @@ public class Level13_SecondPersonShooter : LevelManager
     // =========================================================================
 
     [Header("Level 13 — 2nd Person Shooter")]
-    public int npcsPerWave = 6;
-    public int totalWaves = 3;
+    public int npcsPerWave = 1;
+    public int totalWaves = 1;
     public float spawnRadius = 28f;
     public float minSpawnDistance = 12f;
 
@@ -46,6 +46,13 @@ public class Level13_SecondPersonShooter : LevelManager
     public float npcFireRate = 0.6f;
     public int npcDamage = 8;
 
+    [Header("Gun Model")]
+    [Tooltip("Assign the AK47 prefab (or any gun model) here.")]
+    public GameObject gunPrefab;
+    public Vector3 gunPositionOffset = new Vector3(0.3f, 0.3f, 0.35f);
+    public Vector3 gunRotationOffset = Vector3.zero;
+    public float gunScale = 1f;
+
     [Header("Camera")]
     [Tooltip("How fast the 2nd-person camera lerps to the new shoulder.")]
     public float cameraSmoothSpeed = 14f;
@@ -63,6 +70,10 @@ public class Level13_SecondPersonShooter : LevelManager
 
     // 2nd-person camera (cloned from the player camera to inherit all URP settings)
     private Camera secondPersonCam;
+
+    // All gun model instances (player + NPCs) so inspector tweaks apply live
+    private List<Transform> allGuns = new List<Transform>();
+    private Transform playerGun;
 
     // NPCs
     private List<SecondPersonNPC> activeNPCs = new List<SecondPersonNPC>();
@@ -155,6 +166,7 @@ public class Level13_SecondPersonShooter : LevelManager
         }
 
         SetupSecondPersonCamera();
+        AttachGunToPlayer();
 
         try { BuildHUD(); }
         catch (System.Exception e) { Debug.LogError($"[Level13] HUD setup failed: {e}"); }
@@ -167,6 +179,7 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         if (playerCamera != null) playerCamera.enabled = true;
         if (secondPersonCam != null) Destroy(secondPersonCam.gameObject);
+        if (playerGun != null) Destroy(playerGun.gameObject);
 
         foreach (var obj in arenaObjects)
         {
@@ -189,6 +202,30 @@ public class Level13_SecondPersonShooter : LevelManager
         HandleShooting();
         HandleReload();
         UpdateHUD();
+    }
+
+    private void LateUpdate()
+    {
+        // Apply inspector gun values live so they can be tweaked at runtime
+        for (int i = allGuns.Count - 1; i >= 0; i--)
+        {
+            if (allGuns[i] == null) { allGuns.RemoveAt(i); continue; }
+
+            Transform gun = allGuns[i];
+            gun.localPosition = gunPositionOffset;
+            gun.localScale = Vector3.one * gunScale;
+
+            // NPC guns inherit body rotation; only apply the static offset
+            if (gun != playerGun)
+                gun.localRotation = Quaternion.Euler(gunRotationOffset);
+        }
+
+        // Player gun overrides rotation to follow the aim direction
+        if (playerGun != null && playerCamTransform != null)
+        {
+            playerGun.rotation = Quaternion.LookRotation(playerCamTransform.forward, Vector3.up)
+                                 * Quaternion.Euler(gunRotationOffset);
+        }
     }
 
     // =========================================================================
@@ -234,6 +271,36 @@ public class Level13_SecondPersonShooter : LevelManager
 
         Debug.Log($"[Level13] 2nd-person camera set up at {startPos}, " +
                   $"depth={secondPersonCam.depth}");
+    }
+
+    private void AttachGunToPlayer()
+    {
+        if (gunPrefab == null || playerTransform == null) return;
+
+        GameObject gun = AttachGunModel(playerTransform, gunPositionOffset);
+        if (gun != null)
+            playerGun = gun.transform;
+    }
+
+    /// <summary>
+    /// Instantiates the gun prefab as a child of <paramref name="parent"/>
+    /// at the given local offset, applying the inspector scale and rotation.
+    /// </summary>
+    private GameObject AttachGunModel(Transform parent, Vector3 localPos)
+    {
+        if (gunPrefab == null) return null;
+
+        GameObject gun = Instantiate(gunPrefab, parent);
+        gun.name = "GunModel";
+        gun.transform.localPosition = localPos;
+        gun.transform.localRotation = Quaternion.Euler(gunRotationOffset);
+        gun.transform.localScale = Vector3.one * gunScale;
+
+        foreach (Collider col in gun.GetComponentsInChildren<Collider>())
+            Destroy(col);
+
+        allGuns.Add(gun.transform);
+        return gun;
     }
 
     /// <summary>
@@ -524,14 +591,21 @@ public class Level13_SecondPersonShooter : LevelManager
         SetMaterialColor(head.GetComponent<Renderer>(), npcColor * 0.8f);
         Destroy(head.GetComponent<Collider>());
 
-        // Gun stub
-        GameObject gun = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        gun.name = "Gun";
-        gun.transform.SetParent(body.transform);
-        gun.transform.localPosition = new Vector3(0.4f, 0.3f, 0.35f);
-        gun.transform.localScale = new Vector3(0.08f, 0.08f, 0.45f);
-        SetMaterialColor(gun.GetComponent<Renderer>(), new Color(0.25f, 0.25f, 0.28f));
-        Destroy(gun.GetComponent<Collider>());
+        // Gun model (AK47 prefab if assigned, otherwise a simple cube stub)
+        if (gunPrefab != null)
+        {
+            AttachGunModel(body.transform, gunPositionOffset);
+        }
+        else
+        {
+            GameObject gun = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            gun.name = "Gun";
+            gun.transform.SetParent(body.transform);
+            gun.transform.localPosition = new Vector3(0.4f, 0.3f, 0.35f);
+            gun.transform.localScale = new Vector3(0.08f, 0.08f, 0.45f);
+            SetMaterialColor(gun.GetComponent<Renderer>(), new Color(0.25f, 0.25f, 0.28f));
+            Destroy(gun.GetComponent<Collider>());
+        }
 
         return body;
     }
