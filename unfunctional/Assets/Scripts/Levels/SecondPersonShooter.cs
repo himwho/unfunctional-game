@@ -28,6 +28,8 @@ public class Level13_SecondPersonShooter : LevelManager
     [Header("Level 13 — 2nd Person Shooter")]
     public int npcsPerWave = 1;
     public int totalWaves = 1;
+    [Tooltip("Assign a BoxCollider to define the NPC spawn region. If empty, spawns around the player using the radius fields below.")]
+    public BoxCollider spawnZone;
     public float spawnRadius = 28f;
     public float minSpawnDistance = 12f;
 
@@ -591,14 +593,27 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         for (int attempt = 0; attempt < 30; attempt++)
         {
-            float radius = Random.Range(minSpawnDistance, spawnRadius);
+            Vector3 candidate;
 
-            if (attempt > 10)
-                radius *= 0.5f;
+            if (spawnZone != null)
+            {
+                // Pick a random point inside the box collider's world-space bounds
+                Bounds b = spawnZone.bounds;
+                candidate = new Vector3(
+                    Random.Range(b.min.x, b.max.x),
+                    b.center.y,
+                    Random.Range(b.min.z, b.max.z));
+            }
+            else
+            {
+                float radius = Random.Range(minSpawnDistance, spawnRadius);
+                if (attempt > 10) radius *= 0.5f;
 
-            Vector2 circle = Random.insideUnitCircle.normalized * radius;
-            Vector3 candidate = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+                Vector2 circle = Random.insideUnitCircle.normalized * radius;
+                candidate = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+            }
 
+            // Must have floor beneath
             if (!Physics.Raycast(candidate + Vector3.up * 10f, Vector3.down, out RaycastHit ground, 30f))
                 continue;
 
