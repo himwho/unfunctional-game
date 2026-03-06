@@ -597,6 +597,8 @@ public class Level13_SecondPersonShooter : LevelManager
 
     private IEnumerator OnWaveCleared()
     {
+        playerHealth = playerMaxHealth;
+
         if (centerMsg != null) { centerMsg.text = "WAVE CLEAR!"; centerMsg.gameObject.SetActive(true); }
 
         yield return new WaitForSeconds(2f);
