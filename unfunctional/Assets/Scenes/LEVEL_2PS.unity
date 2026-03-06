@@ -1444,8 +1444,8 @@ MonoBehaviour:
   gunRotationOffset: {x: 0, y: 175, z: 0}
   gunScale: 1
   shoulderCamOffset: {x: 0, y: 0.8, z: -0.4}
-  cameraSmoothSpeed: 14
-  cameraLookSmooth: 12
+  cameraSmoothSpeed: 100
+  cameraLookSmooth: 98
 --- !u!4 &715069709
 Transform:
   m_ObjectHideFlags: 0
