@@ -236,7 +236,6 @@ GameObject:
   m_Component:
   - component: {fileID: 347862778}
   - component: {fileID: 347862777}
-  - component: {fileID: 347862776}
   - component: {fileID: 347862775}
   m_Layer: 0
   m_Name: LEVEL4
@@ -341,14 +340,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 347862777}
   m_maskType: 0
---- !u!222 &347862776
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 347862774}
-  m_CullTransparentMesh: 0
 --- !u!23 &347862777
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -452,7 +443,7 @@ PrefabInstance:
     - target: {fileID: 1127294887145582950, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: hintText
-      value: Did you get the email response?
+      value: Did you ask Rodney for the door code?
       objectReference: {fileID: 0}
     - target: {fileID: 1463171650039979990, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
@@ -1367,7 +1358,7 @@ MonoBehaviour:
   stickyNotePoint: {fileID: 0}
   playerSpawnTransform: {fileID: 0}
   doorController: {fileID: 368967943}
-  codeValiditySeconds: 30
+  codeValiditySeconds: 60
   interactRange: 3
   codeServerUrl: http://54.152.73.218:3000
   offlineMode: 0
