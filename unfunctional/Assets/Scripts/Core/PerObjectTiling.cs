@@ -9,6 +9,18 @@ using UnityEngine;
 [RequireComponent(typeof(Renderer))]
 public class PerObjectTiling : MonoBehaviour
 {
+    /// <summary>
+    /// Which plane of the object the primary textured surface lies on.
+    /// Auto detects this from the mesh's world-space bounds (thinnest axis = normal).
+    /// </summary>
+    public enum SurfacePlane
+    {
+        Auto,
+        XY,
+        XZ,
+        YZ,
+    }
+
     [Header("Texture Property")]
     [Tooltip("The shader texture property name to override tiling for. " +
              "URP Lit uses _BaseMap. Built-in Standard shader uses _MainTex.")]
@@ -17,9 +29,15 @@ public class PerObjectTiling : MonoBehaviour
     [Header("Tiling")]
     [SerializeField] private Vector2 tiling = Vector2.one;
 
-    [Tooltip("When enabled, tiling is multiplied by the object's world scale " +
-             "so texture density stays consistent across differently sized objects.")]
+    [Tooltip("When enabled, tiling is multiplied by the object's world-space surface " +
+             "dimensions (mesh bounds * scale) so texture density stays consistent " +
+             "across differently sized objects. The tiling value becomes tiles-per-unit.")]
     [SerializeField] private bool scaleCompensation = false;
+
+    [Tooltip("Which plane of the object the main textured surface lies on. " +
+             "Auto detects from mesh bounds (thinnest axis = surface normal). " +
+             "XY = wall facing Z, XZ = floor/ceiling, YZ = side wall facing X.")]
+    [SerializeField] private SurfacePlane surfacePlane = SurfacePlane.Auto;
 
     [Header("Offset")]
     [SerializeField] private Vector2 offset = Vector2.zero;
@@ -60,7 +78,6 @@ public class PerObjectTiling : MonoBehaviour
         Material mat = cachedRenderer.sharedMaterial;
         if (mat == null) return;
 
-        // Verify the texture property exists on this shader
         if (!mat.HasProperty(texturePropertyName))
         {
             Debug.LogWarning(
@@ -70,7 +87,6 @@ public class PerObjectTiling : MonoBehaviour
             return;
         }
 
-        // Get existing property block so we don't overwrite other per-object overrides
         cachedRenderer.GetPropertyBlock(propertyBlock);
 
         string stProperty = texturePropertyName + "_ST";
@@ -78,9 +94,10 @@ public class PerObjectTiling : MonoBehaviour
         Vector2 finalTiling = tiling;
         if (scaleCompensation)
         {
-            Vector3 scale = transform.lossyScale;
-            finalTiling.x *= scale.x;
-            finalTiling.y *= scale.y;
+            Vector3 worldSize = GetWorldSize();
+            ResolveSurfaceAxes(worldSize, out int uAxis, out int vAxis);
+            finalTiling.x *= Mathf.Abs(AxisComponent(worldSize, uAxis));
+            finalTiling.y *= Mathf.Abs(AxisComponent(worldSize, vAxis));
         }
 
         Vector4 tilingOffset = new Vector4(finalTiling.x, finalTiling.y, offset.x, offset.y);
@@ -90,33 +107,107 @@ public class PerObjectTiling : MonoBehaviour
 
         if (debugLog)
         {
+            Vector3 ws = GetWorldSize();
+            ResolveSurfaceAxes(ws, out int dbgU, out int dbgV);
+            string axisNames = "XYZ";
             Debug.Log(
                 $"[PerObjectTiling] '{gameObject.name}': set {stProperty} = {tilingOffset} " +
-                $"(shader: {mat.shader.name}, scale: {transform.lossyScale})", this);
+                $"(shader: {mat.shader.name}, worldSize: {ws}, " +
+                $"surfacePlane: {surfacePlane}, " +
+                $"axes: U→{axisNames[dbgU]} V→{axisNames[dbgV]}, " +
+                $"scale: {transform.lossyScale})", this);
         }
     }
 
     /// <summary>
-    /// Set tiling from code at runtime.
+    /// World-space dimensions: mesh bounds size * absolute lossy scale.
+    /// Falls back to lossy scale alone when no mesh is available.
     /// </summary>
+    private Vector3 GetWorldSize()
+    {
+        Mesh mesh = GetMesh();
+        Vector3 boundsSize = mesh != null ? mesh.bounds.size : Vector3.one;
+        Vector3 s = transform.lossyScale;
+        return new Vector3(
+            boundsSize.x * Mathf.Abs(s.x),
+            boundsSize.y * Mathf.Abs(s.y),
+            boundsSize.z * Mathf.Abs(s.z));
+    }
+
+    private Mesh GetMesh()
+    {
+        MeshFilter mf = GetComponent<MeshFilter>();
+        if (mf != null && mf.sharedMesh != null) return mf.sharedMesh;
+
+        SkinnedMeshRenderer smr = GetComponent<SkinnedMeshRenderer>();
+        if (smr != null && smr.sharedMesh != null) return smr.sharedMesh;
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines which world axes map to UV U and V based on the chosen
+    /// surface plane. In Auto mode the thinnest world-space axis is treated
+    /// as the surface normal and the other two become U and V.
+    /// </summary>
+    private void ResolveSurfaceAxes(Vector3 worldSize, out int uAxis, out int vAxis)
+    {
+        switch (surfacePlane)
+        {
+            case SurfacePlane.XY:
+                uAxis = 0; vAxis = 1;
+                return;
+            case SurfacePlane.XZ:
+                uAxis = 0; vAxis = 2;
+                return;
+            case SurfacePlane.YZ:
+                uAxis = 1; vAxis = 2;
+                return;
+            default:
+                break;
+        }
+
+        float absX = Mathf.Abs(worldSize.x);
+        float absY = Mathf.Abs(worldSize.y);
+        float absZ = Mathf.Abs(worldSize.z);
+
+        if (absY <= absX && absY <= absZ)
+        {
+            uAxis = 0; vAxis = 2; // XZ — floor / ceiling
+        }
+        else if (absZ <= absX && absZ <= absY)
+        {
+            uAxis = 0; vAxis = 1; // XY — wall facing Z
+        }
+        else
+        {
+            uAxis = 1; vAxis = 2; // YZ — side wall facing X
+        }
+    }
+
+    private static float AxisComponent(Vector3 v, int axis)
+    {
+        switch (axis)
+        {
+            case 0:  return v.x;
+            case 1:  return v.y;
+            case 2:  return v.z;
+            default: return 1f;
+        }
+    }
+
     public void SetTiling(Vector2 newTiling)
     {
         tiling = newTiling;
         Apply();
     }
 
-    /// <summary>
-    /// Set offset from code at runtime.
-    /// </summary>
     public void SetOffset(Vector2 newOffset)
     {
         offset = newOffset;
         Apply();
     }
 
-    /// <summary>
-    /// Set both tiling and offset from code at runtime.
-    /// </summary>
     public void SetTilingAndOffset(Vector2 newTiling, Vector2 newOffset)
     {
         tiling = newTiling;
@@ -124,10 +215,6 @@ public class PerObjectTiling : MonoBehaviour
         Apply();
     }
 
-    /// <summary>
-    /// Logs all texture property names on this object's material for debugging.
-    /// Call from a context menu or Inspector button.
-    /// </summary>
     [ContextMenu("Log Shader Texture Properties")]
     private void LogShaderProperties()
     {
