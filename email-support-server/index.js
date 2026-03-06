@@ -53,16 +53,71 @@ const TRIGGER_KEYWORDS = ["door", "code", "please"];
 // Rodney's annoyed replies when no trigger keywords are found
 const GENERIC_REPLIES = [
   "What are you asking for?!",
-  "I'm busy. If you need a code, just say so.",
-  "Do I look like I have time for this? Ask for a CODE.",
-  "Wrong guy. Unless you need a door code. Do you need a door code?",
-  "I don't do small talk. I do door codes.",
+  "I'm busy. If you need something, just say so.",
+  "Do I look like I have time for this?",
+  "Wrong guy. Or is it? Try being more specific.",
+  "I don't do small talk.",
   "Read the sticky note again and try harder.",
-  "I'm not your pen pal. Need a code or not?",
+  "I'm not your pen pal.",
   "You're wasting my time AND yours.",
-  "I swear if this isn't about a door code...",
-  "Unbelievable. Just say 'door code' like a normal person.",
+  "I have no idea what you want from me.",
+  "Unbelievable. Try again, with feeling.",
+  "I deal in digits, not conversation.",
+  "You want a passcode or what? Spit it out.",
+  "I sell entry numbers. That's it. That's the whole business.",
+  "This inbox is for access requests only. Goodbye.",
+  "Do you need to get through something or not?",
+  "I'm a combination guy. You want a combination or are you lost?",
+  "Look, I've got 999,999,999 things to do. Be specific.",
+  "If this isn't about getting past a locked entrance, lose my address.",
+  "I don't do tech support, life advice, or whatever this is.",
+  "State your business or stop emailing me.",
+  "My keys are numbers. You want some or not?",
+  "Buddy. I unlock things. That's the gig. What do you WANT?",
+  "I've got a PIN with your name on it. IF you ask right.",
+  "You're one word away from getting what you need. Think harder.",
+  "Wrong approach. Hint: what's on the sticky note?",
+  "Not sure why you're emailing me unless you need to get in somewhere.",
+  "I have exactly zero time for mystery emails.",
+  "You need access digits? Then say so. Otherwise, bye.",
+  "I can open any entrance. But you gotta ask nicely. Or at all.",
+  "Three seconds before I delete this. What. Do. You. Want.",
 ];
+
+/**
+ * Strips quoted reply content from a plain-text email body so that only
+ * the sender's own words are checked for trigger keywords.
+ *
+ * Handles:
+ *   - "On <date>, <name> wrote:" reply headers (Apple Mail, Gmail, etc.)
+ *   - "> " prefixed quote lines (standard email quoting)
+ *   - "--- Original Message ---" / "-----" separator blocks (Outlook, etc.)
+ *   - "From: <address>" forwarded-message headers
+ */
+function stripQuotedText(bodyText) {
+  const lines = bodyText.split("\n");
+  const freshLines = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Stop at "On ... wrote:" reply headers
+    if (/^on .+ wrote:$/i.test(trimmed)) break;
+
+    // Stop at forwarded-message / original-message separators
+    if (/^-{3,}\s*(original message|forwarded message)/i.test(trimmed)) break;
+
+    // Stop at "From: <email>" forwarded headers
+    if (/^from:\s+\S+@\S+/i.test(trimmed)) break;
+
+    // Skip individual quoted lines ("> ...")
+    if (trimmed.startsWith(">")) continue;
+
+    freshLines.push(line);
+  }
+
+  return freshLines.join("\n");
+}
 
 // =========================================================================
 // Code Store (in-memory OTP with TTL)
@@ -274,9 +329,16 @@ const smtpServer = new SMTPServer({
             ? parsed.from.value[0].address
             : null;
 
-        const subject = (parsed.subject || "").toLowerCase();
-        const bodyText = (parsed.text || "").toLowerCase();
-        const combined = subject + " " + bodyText;
+        const rawSubject = (parsed.subject || "").toLowerCase();
+        // Strip Re:/Fwd: prefixes and Rodney's own subject lines so
+        // replying to "Re: Your door code" doesn't auto-trigger.
+        const subject = rawSubject
+          .replace(/^(re|fwd?)\s*:\s*/gi, "")
+          .replace(/^your door code$/i, "")
+          .replace(/^\?\?\?$/i, "");
+        const rawBody = (parsed.text || "").toLowerCase();
+        const freshBody = stripQuotedText(rawBody);
+        const combined = subject + " " + freshBody;
 
         console.log(
           "[SMTP] Received email from",
@@ -289,6 +351,10 @@ const smtpServer = new SMTPServer({
           console.log("[SMTP] No sender address found, skipping reply");
           callback();
           return;
+        }
+
+        if (DEBUG_LOG) {
+          console.log(`[SMTP] Checking (quotes stripped): "${combined.trim().substring(0, 120)}"`);
         }
 
         const triggered = TRIGGER_KEYWORDS.some((kw) => combined.includes(kw));
