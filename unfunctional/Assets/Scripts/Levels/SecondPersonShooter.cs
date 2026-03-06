@@ -601,9 +601,9 @@ public class Level13_SecondPersonShooter : LevelManager
         // Destroy is deferred and AddComponent would fail on duplicates.
         CharacterController cc = npcObj.GetComponent<CharacterController>();
         if (cc == null) cc = npcObj.AddComponent<CharacterController>();
-        cc.height = 2f;
-        cc.radius = 0.4f;
-        cc.center = Vector3.up;
+        cc.height = 2.2f;
+        cc.radius = 0.6f;
+        cc.center = Vector3.up * 1.1f;
         cc.slopeLimit = 45f;
         cc.stepOffset = 0.4f;
 
