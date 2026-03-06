@@ -7,8 +7,11 @@ using UnityEngine.Networking;
 /// LEVEL 4: A room with a locked door and a keypad. Above the keypad are sticky
 /// notes with an email address (rodney@premiumdoorcodes.com) and a warning that "this guy
 /// always changes the code". The player is expected to alt-tab out of the game,
-/// send an email to that address, receive a 9-digit code that expires in 15
-/// seconds, then type it into the keypad.
+/// send an email to that address asking for the door code, receive a 9-digit
+/// code that expires in 60 seconds, then alt-tab back and type it into the keypad.
+///
+/// The server only replies with a code if the email contains a trigger keyword
+/// ("door", "code", or "please"). Otherwise Rodney sends an annoyed non-code reply.
 ///
 /// The backend is a simple Node.js service that auto-replies with a fresh code.
 /// For offline/testing, a debug mode generates codes locally.
@@ -35,12 +38,13 @@ public class Level4_KeypadPuzzle : LevelManager
     public DoorController doorController;
 
     [Header("Keypad Settings")]
-    public float codeValiditySeconds = 15f;
+    public float codeValiditySeconds = 60f;
     public float interactRange = 3f;
 
     [Header("Server")]
     [Tooltip("Base URL of the email support server, e.g. http://your-ec2:3000. " +
              "Endpoints: POST /api/request-code, POST /api/validate. " +
+             "Server requires trigger keywords (door/code/please) in email. " +
              "Leave empty to use offline/debug mode.")]
     public string codeServerUrl = "";
 
@@ -74,16 +78,18 @@ public class Level4_KeypadPuzzle : LevelManager
     {
         "There's an email address on a sticky note: rodney@premiumdoorcodes.com",
         "Another note says: \"this guy always changes the code\"",
-        "Looks like you'll need to email Rodney for the door code.",
+        "A third note: \"just ask him for the door code -- he's picky about wording\"",
+        "Looks like you'll need to email Rodney and ask for the door code.",
     };
 
     private static readonly string[] failNarration = new string[]
     {
-        "Wrong code. Rodney's codes expire fast.",
+        "Wrong code. Rodney's codes expire after 60 seconds.",
         "Nope. Did you type it in time?",
         "Still wrong. Maybe email Rodney again?",
         "The code changes every time. You need a fresh one.",
         "This is the point where you alt-tab and send an email.",
+        "Make sure you actually ask for the door code. Rodney's picky.",
     };
 
     // =========================================================================
@@ -110,9 +116,8 @@ public class Level4_KeypadPuzzle : LevelManager
             // Configure the keypad for this level
             keypad.codeLength = 9;
             keypad.keypadTitle = "DOOR ACCESS KEYPAD";
-            keypad.hintText = "Sticky Note: \"rodney@premiumdoorcodes.com\"\n\"this guy always changes the code\"";
-            keypad.showRequestCodeButton = true;
-            keypad.requestCodeLabel = "Email Rodney for Code";
+            keypad.hintText = "Sticky Note: \"rodney@premiumdoorcodes.com\"\n\"this guy always changes the code\"\n\"just ask him for the door code\"";
+            keypad.showRequestCodeButton = false;
 
             // Subscribe to events
             keypad.OnCodeSubmitted += HandleCodeSubmitted;
@@ -292,7 +297,7 @@ public class Level4_KeypadPuzzle : LevelManager
         }
         else
         {
-            ShowNarration("rodney@premiumdoorcodes.com -- email him for the code.\nHurry, it only lasts 15 seconds.", 4f);
+            ShowNarration("rodney@premiumdoorcodes.com -- ask him for the door code.\nYou have 60 seconds once he sends it.", 4f);
         }
     }
 
