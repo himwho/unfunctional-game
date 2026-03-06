@@ -1480,6 +1480,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: LEVEL_DOOR
       objectReference: {fileID: 0}
+    - target: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: unlockMethod
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7100464717677757828, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -2439,7 +2444,7 @@ Light:
   serializedVersion: 11
   m_Type: 3
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.5
+  m_Intensity: 0.8
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2798,7 +2803,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
   tiling: {x: 0.5, y: 0.5}
-  offset: {x: 0, y: 0}
+  offset: {x: 0.1, y: 0.408}
 --- !u!64 &1742121676
 MeshCollider:
   m_ObjectHideFlags: 0
