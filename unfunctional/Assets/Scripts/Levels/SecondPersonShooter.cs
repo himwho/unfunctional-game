@@ -56,6 +56,8 @@ public class Level13_SecondPersonShooter : LevelManager
     public Vector3 gunPositionOffset = new Vector3(0.3f, 0.3f, 0.35f);
     public Vector3 gunRotationOffset = Vector3.zero;
     public float gunScale = 1f;
+    [Tooltip("Local offset from the gun model's pivot to the barrel tip. X=right, Y=up, Z=forward.")]
+    public Vector3 muzzleTipOffset = new Vector3(0f, 0f, 1.5f);
 
     [Header("Camera")]
     [Tooltip("Shoulder cam offset relative to each NPC. Adjust live in play mode.")]
@@ -80,6 +82,7 @@ public class Level13_SecondPersonShooter : LevelManager
     // All gun model instances (player + NPCs) so inspector tweaks apply live
     private List<Transform> allGuns = new List<Transform>();
     private Transform playerGun;
+    private Transform playerMuzzlePoint;
 
     // NPCs
     private List<SecondPersonNPC> activeNPCs = new List<SecondPersonNPC>();
@@ -313,7 +316,11 @@ public class Level13_SecondPersonShooter : LevelManager
 
         GameObject gun = AttachGunModel(playerTransform, gunPositionOffset);
         if (gun != null)
+        {
             playerGun = gun.transform;
+            Transform mp = gun.transform.Find("MuzzlePoint");
+            if (mp != null) playerMuzzlePoint = mp;
+        }
     }
 
     /// <summary>
@@ -470,8 +477,10 @@ public class Level13_SecondPersonShooter : LevelManager
         }
 
         Vector3 muzzle;
-        if (playerGun != null)
-            muzzle = playerGun.position + playerGun.forward * 0.5f;
+        if (playerMuzzlePoint != null)
+            muzzle = playerMuzzlePoint.position;
+        else if (playerGun != null)
+            muzzle = playerGun.TransformPoint(muzzleTipOffset);
         else
             muzzle = playerTransform.position + Vector3.up * 1.3f
                      + playerTransform.forward * 0.4f
