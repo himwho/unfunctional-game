@@ -1,26 +1,16 @@
 using UnityEngine;
 
 /// <summary>
-/// Overrides texture tiling and offset per-object using MaterialPropertyBlock.
-/// Attach this to any GameObject with a Renderer to give it unique tiling
-/// without affecting other objects that share the same material.
+/// Per-object texture tiling. Two modes:
+///   - Scale Compensation OFF: simple _ST override via MaterialPropertyBlock.
+///   - Scale Compensation ON:  rewrites mesh UVs with world-space triplanar
+///     projection so every face of every object gets uniform texel density.
+///     Tiling becomes tiles-per-world-unit.
 /// </summary>
 [ExecuteInEditMode]
 [RequireComponent(typeof(Renderer))]
 public class PerObjectTiling : MonoBehaviour
 {
-    /// <summary>
-    /// Which plane of the object the primary textured surface lies on.
-    /// Auto detects this from the mesh's world-space bounds (thinnest axis = normal).
-    /// </summary>
-    public enum SurfacePlane
-    {
-        Auto,
-        XY,
-        XZ,
-        YZ,
-    }
-
     [Header("Texture Property")]
     [Tooltip("The shader texture property name to override tiling for. " +
              "URP Lit uses _BaseMap. Built-in Standard shader uses _MainTex.")]
@@ -29,31 +19,42 @@ public class PerObjectTiling : MonoBehaviour
     [Header("Tiling")]
     [SerializeField] private Vector2 tiling = Vector2.one;
 
-    [Tooltip("When enabled, tiling is multiplied by the object's world-space surface " +
-             "dimensions (mesh bounds * scale) so texture density stays consistent " +
-             "across differently sized objects. The tiling value becomes tiles-per-unit.")]
+    [Tooltip("When enabled, mesh UVs are rewritten using world-space projection " +
+             "so that texture density is uniform across all faces and all objects. " +
+             "The tiling value becomes tiles-per-world-unit.")]
     [SerializeField] private bool scaleCompensation = false;
-
-    [Tooltip("Which plane of the object the main textured surface lies on. " +
-             "Auto detects from mesh bounds (thinnest axis = surface normal). " +
-             "XY = wall facing Z, XZ = floor/ceiling, YZ = side wall facing X.")]
-    [SerializeField] private SurfacePlane surfacePlane = SurfacePlane.Auto;
 
     [Header("Offset")]
     [SerializeField] private Vector2 offset = Vector2.zero;
 
     [Header("Debug")]
-    [Tooltip("Log the shader property name being set. Useful for troubleshooting.")]
+    [Tooltip("Log the applied tiling info. Useful for troubleshooting.")]
     [SerializeField] private bool debugLog = false;
+
+    [SerializeField, HideInInspector] private Mesh originalSharedMesh;
 
     private Renderer cachedRenderer;
     private MaterialPropertyBlock propertyBlock;
+    private Mesh meshInstance;
 
     private void OnEnable()
     {
         cachedRenderer = GetComponent<Renderer>();
         propertyBlock = new MaterialPropertyBlock();
+        CacheOriginalMesh();
         Apply();
+    }
+
+    private void OnDisable()
+    {
+        RestoreOriginalMesh();
+        CleanupMeshInstance();
+    }
+
+    private void OnDestroy()
+    {
+        RestoreOriginalMesh();
+        CleanupMeshInstance();
     }
 
     private void OnValidate()
@@ -64,13 +65,10 @@ public class PerObjectTiling : MonoBehaviour
         if (propertyBlock == null)
             propertyBlock = new MaterialPropertyBlock();
 
+        CacheOriginalMesh();
         Apply();
     }
 
-    /// <summary>
-    /// Applies the tiling and offset override to this object's renderer.
-    /// The _ST convention is a Vector4: (tiling.x, tiling.y, offset.x, offset.y).
-    /// </summary>
     public void Apply()
     {
         if (cachedRenderer == null) return;
@@ -88,112 +86,121 @@ public class PerObjectTiling : MonoBehaviour
         }
 
         cachedRenderer.GetPropertyBlock(propertyBlock);
-
         string stProperty = texturePropertyName + "_ST";
 
-        Vector2 finalTiling = tiling;
         if (scaleCompensation)
         {
-            Vector3 worldSize = GetWorldSize();
-            ResolveSurfaceAxes(worldSize, out int uAxis, out int vAxis);
-            finalTiling.x *= Mathf.Abs(AxisComponent(worldSize, uAxis));
-            finalTiling.y *= Mathf.Abs(AxisComponent(worldSize, vAxis));
+            ApplyWorldSpaceUVs();
+            propertyBlock.SetVector(stProperty, new Vector4(1, 1, 0, 0));
         }
-
-        Vector4 tilingOffset = new Vector4(finalTiling.x, finalTiling.y, offset.x, offset.y);
-        propertyBlock.SetVector(stProperty, tilingOffset);
+        else
+        {
+            RestoreOriginalMesh();
+            CleanupMeshInstance();
+            propertyBlock.SetVector(stProperty,
+                new Vector4(tiling.x, tiling.y, offset.x, offset.y));
+        }
 
         cachedRenderer.SetPropertyBlock(propertyBlock);
 
         if (debugLog)
         {
-            Vector3 ws = GetWorldSize();
-            ResolveSurfaceAxes(ws, out int dbgU, out int dbgV);
-            string axisNames = "XYZ";
             Debug.Log(
-                $"[PerObjectTiling] '{gameObject.name}': set {stProperty} = {tilingOffset} " +
-                $"(shader: {mat.shader.name}, worldSize: {ws}, " +
-                $"surfacePlane: {surfacePlane}, " +
-                $"axes: U→{axisNames[dbgU]} V→{axisNames[dbgV]}, " +
-                $"scale: {transform.lossyScale})", this);
+                $"[PerObjectTiling] '{gameObject.name}': " +
+                $"mode={(scaleCompensation ? "WorldSpaceUV" : "PropertyBlock")}, " +
+                $"tiling={tiling}, offset={offset}, scale={transform.lossyScale}", this);
         }
     }
 
     /// <summary>
-    /// World-space dimensions: mesh bounds size * absolute lossy scale.
-    /// Falls back to lossy scale alone when no mesh is available.
+    /// Rewrites mesh UVs so each face is projected from world space based on
+    /// its normal direction, giving uniform texel density on every surface.
     /// </summary>
-    private Vector3 GetWorldSize()
+    private void ApplyWorldSpaceUVs()
     {
-        Mesh mesh = GetMesh();
-        Vector3 boundsSize = mesh != null ? mesh.bounds.size : Vector3.one;
-        Vector3 s = transform.lossyScale;
-        return new Vector3(
-            boundsSize.x * Mathf.Abs(s.x),
-            boundsSize.y * Mathf.Abs(s.y),
-            boundsSize.z * Mathf.Abs(s.z));
+        Mesh sourceMesh = originalSharedMesh;
+        if (sourceMesh == null)
+        {
+            MeshFilter mf = GetComponent<MeshFilter>();
+            if (mf != null) sourceMesh = mf.sharedMesh;
+        }
+
+        if (sourceMesh == null || sourceMesh.vertexCount == 0) return;
+
+        if (meshInstance == null)
+        {
+            meshInstance = Instantiate(sourceMesh);
+            meshInstance.name = sourceMesh.name + "_PerObjectTiling";
+            meshInstance.hideFlags = HideFlags.HideAndDontSave;
+        }
+
+        Vector3[] vertices = sourceMesh.vertices;
+        Vector3[] normals = sourceMesh.normals;
+
+        if (normals == null || normals.Length != vertices.Length)
+        {
+            meshInstance.RecalculateNormals();
+            normals = meshInstance.normals;
+        }
+
+        Vector2[] uvs = new Vector2[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 worldPos = transform.TransformPoint(vertices[i]);
+            Vector3 worldNormal = transform.TransformDirection(normals[i]).normalized;
+
+            float absX = Mathf.Abs(worldNormal.x);
+            float absY = Mathf.Abs(worldNormal.y);
+            float absZ = Mathf.Abs(worldNormal.z);
+
+            Vector2 uv;
+            if (absY >= absX && absY >= absZ)
+                uv = new Vector2(worldPos.x, worldPos.z);   // up/down face → XZ
+            else if (absX >= absZ)
+                uv = new Vector2(worldPos.z, worldPos.y);   // left/right face → ZY
+            else
+                uv = new Vector2(worldPos.x, worldPos.y);   // front/back face → XY
+
+            uvs[i] = new Vector2(uv.x * tiling.x + offset.x,
+                                 uv.y * tiling.y + offset.y);
+        }
+
+        meshInstance.uv = uvs;
+
+        MeshFilter meshFilter = GetComponent<MeshFilter>();
+        if (meshFilter != null)
+            meshFilter.sharedMesh = meshInstance;
     }
 
-    private Mesh GetMesh()
+    private void CacheOriginalMesh()
     {
+        if (originalSharedMesh != null) return;
+
         MeshFilter mf = GetComponent<MeshFilter>();
-        if (mf != null && mf.sharedMesh != null) return mf.sharedMesh;
-
-        SkinnedMeshRenderer smr = GetComponent<SkinnedMeshRenderer>();
-        if (smr != null && smr.sharedMesh != null) return smr.sharedMesh;
-
-        return null;
+        if (mf != null && mf.sharedMesh != null && mf.sharedMesh != meshInstance)
+            originalSharedMesh = mf.sharedMesh;
     }
 
-    /// <summary>
-    /// Determines which world axes map to UV U and V based on the chosen
-    /// surface plane. In Auto mode the thinnest world-space axis is treated
-    /// as the surface normal and the other two become U and V.
-    /// </summary>
-    private void ResolveSurfaceAxes(Vector3 worldSize, out int uAxis, out int vAxis)
+    private void RestoreOriginalMesh()
     {
-        switch (surfacePlane)
-        {
-            case SurfacePlane.XY:
-                uAxis = 0; vAxis = 1;
-                return;
-            case SurfacePlane.XZ:
-                uAxis = 0; vAxis = 2;
-                return;
-            case SurfacePlane.YZ:
-                uAxis = 1; vAxis = 2;
-                return;
-            default:
-                break;
-        }
+        if (originalSharedMesh == null) return;
 
-        float absX = Mathf.Abs(worldSize.x);
-        float absY = Mathf.Abs(worldSize.y);
-        float absZ = Mathf.Abs(worldSize.z);
+        MeshFilter mf = GetComponent<MeshFilter>();
+        if (mf != null && mf.sharedMesh == meshInstance)
+            mf.sharedMesh = originalSharedMesh;
+    }
 
-        if (absY <= absX && absY <= absZ)
-        {
-            uAxis = 0; vAxis = 2; // XZ — floor / ceiling
-        }
-        else if (absZ <= absX && absZ <= absY)
-        {
-            uAxis = 0; vAxis = 1; // XY — wall facing Z
-        }
+    private void CleanupMeshInstance()
+    {
+        if (meshInstance == null) return;
+
+        if (Application.isPlaying)
+            Destroy(meshInstance);
         else
-        {
-            uAxis = 1; vAxis = 2; // YZ — side wall facing X
-        }
-    }
+            DestroyImmediate(meshInstance);
 
-    private static float AxisComponent(Vector3 v, int axis)
-    {
-        switch (axis)
-        {
-            case 0:  return v.x;
-            case 1:  return v.y;
-            case 2:  return v.z;
-            default: return 1f;
-        }
+        meshInstance = null;
     }
 
     public void SetTiling(Vector2 newTiling)
