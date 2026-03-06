@@ -1479,7 +1479,7 @@ MonoBehaviour:
   spawnZone: {fileID: 378358745}
   spawnRadius: 28
   minSpawnDistance: 12
-  playerMaxHealth: 100000
+  playerMaxHealth: 100
   playerDamage: 25
   maxAmmo: 30
   fireRate: 6

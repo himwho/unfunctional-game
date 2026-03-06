@@ -60,6 +60,8 @@ public class SecondPersonNPC : MonoBehaviour
     private const float OBSTACLE_CHECK_DIST = 1.5f;
     private const float AVOIDANCE_ANGLE = 50f;
 
+    private bool hasEngagedPlayer;
+
     // Visuals
     private LineRenderer shotLine;
     private Color originalColor;
@@ -115,6 +117,7 @@ public class SecondPersonNPC : MonoBehaviour
     public void AlertToPlayer()
     {
         if (isDead) return;
+        hasEngagedPlayer = true;
         if (state == AIState.Idle || state == AIState.Patrol)
             state = AIState.Chase;
     }
@@ -226,7 +229,12 @@ public class SecondPersonNPC : MonoBehaviour
 
     private void UpdateIdle(float distToPlayer)
     {
-        if (distToPlayer < detectionRange) { state = AIState.Chase; return; }
+        if (hasEngagedPlayer || distToPlayer < detectionRange)
+        {
+            hasEngagedPlayer = true;
+            state = AIState.Chase;
+            return;
+        }
 
         stateTimer += Time.deltaTime;
         if (stateTimer >= idleDuration)
@@ -240,7 +248,12 @@ public class SecondPersonNPC : MonoBehaviour
 
     private void UpdatePatrol(float distToPlayer)
     {
-        if (distToPlayer < detectionRange) { state = AIState.Chase; return; }
+        if (hasEngagedPlayer || distToPlayer < detectionRange)
+        {
+            hasEngagedPlayer = true;
+            state = AIState.Chase;
+            return;
+        }
 
         Vector3 dir = patrolTarget - transform.position;
         dir.y = 0;
@@ -260,19 +273,15 @@ public class SecondPersonNPC : MonoBehaviour
 
     private void UpdateChase(float distToPlayer)
     {
-        if (distToPlayer > detectionRange * 1.3f)
-        {
-            state = AIState.Patrol;
-            PickNewPatrolTarget();
-            return;
-        }
+        hasEngagedPlayer = true;
 
-        if (distToPlayer <= attackRange)
+        if (distToPlayer <= attackRange && HasLineOfSight())
         {
             state = AIState.Attack;
             return;
         }
 
+        // Always close the distance and navigate around obstacles
         Vector3 dir = player.position - transform.position;
         MoveToward(dir, moveSpeed);
     }
@@ -281,7 +290,12 @@ public class SecondPersonNPC : MonoBehaviour
 
     private void UpdateAttack(float distToPlayer)
     {
-        if (distToPlayer > attackRange * 1.3f) { state = AIState.Chase; return; }
+        // If too far or lost line of sight, reposition
+        if (distToPlayer > attackRange * 1.3f || !HasLineOfSight())
+        {
+            state = AIState.Chase;
+            return;
+        }
 
         Vector3 dir = (player.position - transform.position);
         dir.y = 0;
@@ -462,6 +476,20 @@ public class SecondPersonNPC : MonoBehaviour
             else
                 transform.position += sepMove;
         }
+    }
+
+    private bool HasLineOfSight()
+    {
+        if (player == null) return false;
+        Vector3 eyePos = transform.position + Vector3.up * 1.5f;
+        Vector3 targetPos = player.position + Vector3.up * 1f;
+        Vector3 dir = targetPos - eyePos;
+        float dist = dir.magnitude;
+
+        if (Physics.Raycast(eyePos, dir.normalized, out RaycastHit hit, dist))
+            return hit.collider.GetComponentInParent<PlayerController>() != null;
+
+        return true;
     }
 
     private void RotateToward(Vector3 dir)
