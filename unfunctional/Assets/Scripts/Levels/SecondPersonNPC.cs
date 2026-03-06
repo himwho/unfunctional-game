@@ -44,6 +44,7 @@ public class SecondPersonNPC : MonoBehaviour
     private Level13_SecondPersonShooter levelManager;
     private Renderer bodyRenderer;
     private CharacterController controller;
+    private Transform gunModelTransform;
 
     // AI
     private enum AIState { Idle, Patrol, Chase, Attack, Dead }
@@ -79,6 +80,9 @@ public class SecondPersonNPC : MonoBehaviour
         spawnPosition = transform.position;
 
         controller = GetComponent<CharacterController>();
+
+        Transform gm = transform.Find("GunModel");
+        if (gm != null) gunModelTransform = gm;
 
         GameObject shoulder = new GameObject("ShoulderCamPoint");
         shoulder.transform.SetParent(transform);
@@ -327,7 +331,11 @@ public class SecondPersonNPC : MonoBehaviour
     {
         if (player == null) return;
 
-        Vector3 muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
+        Vector3 muzzlePos;
+        if (gunModelTransform != null)
+            muzzlePos = gunModelTransform.position + gunModelTransform.forward * 0.5f;
+        else
+            muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
         Vector3 targetPos = player.position + Vector3.up * 1f;
         Vector3 losDir = (targetPos - muzzlePos).normalized;
         float losDist = Vector3.Distance(muzzlePos, targetPos);

@@ -469,10 +469,13 @@ public class Level13_SecondPersonShooter : LevelManager
             }
         }
 
-        // Muzzle origin (slightly offset so line is visible from 2nd-person view)
-        Vector3 muzzle = playerTransform.position + Vector3.up * 1.3f
-                         + playerTransform.forward * 0.4f
-                         + playerTransform.right * 0.25f;
+        Vector3 muzzle;
+        if (playerGun != null)
+            muzzle = playerGun.position + playerGun.forward * 0.5f;
+        else
+            muzzle = playerTransform.position + Vector3.up * 1.3f
+                     + playerTransform.forward * 0.4f
+                     + playerTransform.right * 0.25f;
 
         ShowPlayerShotLine(muzzle, endPoint);
 
