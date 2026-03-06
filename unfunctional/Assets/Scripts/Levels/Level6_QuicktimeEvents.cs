@@ -704,15 +704,9 @@ public class Level6_QuicktimeEvents : LevelManager
         if (progressBarFill != null)
             progressBarFill.fillAmount = 1f;
 
-        // Open the door and complete the level
-        if (doorController != null)
-        {
-            doorController.OpenDoor();
-        }
-
         Debug.Log("[Level6] QTE gauntlet + door code complete! Door opened.");
         RestorePlayerMovement();
-        StartCoroutine(CompleteLevelAfterDelay(2f));
+        StartCoroutine(DoorFallAndComplete());
     }
 
     // =========================================================================
@@ -955,6 +949,47 @@ public class Level6_QuicktimeEvents : LevelManager
     private IEnumerator CompleteLevelAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
+        CompleteLevel();
+    }
+
+    private IEnumerator DoorFallAndComplete()
+    {
+        if (doorController != null && doorController.doorPanel != null)
+        {
+            GameObject panel = doorController.doorPanel;
+            panel.transform.SetParent(null);
+
+            if (doorController.frameLeft != null)
+                doorController.frameLeft.SetActive(false);
+            if (doorController.frameRight != null)
+                doorController.frameRight.SetActive(false);
+            if (doorController.frameTop != null)
+                doorController.frameTop.SetActive(false);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.constraints = RigidbodyConstraints.None;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            yield return new WaitForFixedUpdate();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+            rb.AddTorque(panel.transform.right * 80f, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(3f);
+        }
+
         CompleteLevel();
     }
 }
