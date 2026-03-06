@@ -56,6 +56,8 @@ public class Level13_SecondPersonShooter : LevelManager
     public Vector3 gunPositionOffset = new Vector3(0.3f, 0.3f, 0.35f);
     public Vector3 gunRotationOffset = Vector3.zero;
     public float gunScale = 1f;
+    [Tooltip("Local offset from the gun model's pivot to the barrel tip. X=right, Y=up, Z=forward.")]
+    public Vector3 muzzleTipOffset = new Vector3(0f, 0f, 1.5f);
 
     [Header("Camera")]
     [Tooltip("Shoulder cam offset relative to each NPC. Adjust live in play mode.")]
@@ -80,6 +82,7 @@ public class Level13_SecondPersonShooter : LevelManager
     // All gun model instances (player + NPCs) so inspector tweaks apply live
     private List<Transform> allGuns = new List<Transform>();
     private Transform playerGun;
+    private Transform playerMuzzlePoint;
 
     // NPCs
     private List<SecondPersonNPC> activeNPCs = new List<SecondPersonNPC>();
@@ -111,6 +114,7 @@ public class Level13_SecondPersonShooter : LevelManager
     private Text centerMsg;       // reload / game over / wave clear
     private Image damageFlash;
     private Image hitMarkerImg;
+    private Text debugNPCStateText;
 
     // Arena objects (so we can clean up)
     private List<GameObject> arenaObjects = new List<GameObject>();
@@ -312,7 +316,11 @@ public class Level13_SecondPersonShooter : LevelManager
 
         GameObject gun = AttachGunModel(playerTransform, gunPositionOffset);
         if (gun != null)
+        {
             playerGun = gun.transform;
+            Transform mp = gun.transform.Find("MuzzlePoint");
+            if (mp != null) playerMuzzlePoint = mp;
+        }
     }
 
     /// <summary>
@@ -456,7 +464,7 @@ public class Level13_SecondPersonShooter : LevelManager
         Vector3 endPoint = origin + dir * 100f;
         bool hitNPC = false;
 
-        if (Physics.Raycast(origin, dir, out RaycastHit hit, 200f))
+        if (SecondPersonNPC.RaycastIgnoringWindows(origin, dir, out RaycastHit hit, 200f))
         {
             endPoint = hit.point;
 
@@ -468,10 +476,15 @@ public class Level13_SecondPersonShooter : LevelManager
             }
         }
 
-        // Muzzle origin (slightly offset so line is visible from 2nd-person view)
-        Vector3 muzzle = playerTransform.position + Vector3.up * 1.3f
-                         + playerTransform.forward * 0.4f
-                         + playerTransform.right * 0.25f;
+        Vector3 muzzle;
+        if (playerMuzzlePoint != null)
+            muzzle = playerMuzzlePoint.position;
+        else if (playerGun != null)
+            muzzle = playerGun.TransformPoint(muzzleTipOffset);
+        else
+            muzzle = playerTransform.position + Vector3.up * 1.3f
+                     + playerTransform.forward * 0.4f
+                     + playerTransform.right * 0.25f;
 
         ShowPlayerShotLine(muzzle, endPoint);
 
@@ -869,6 +882,11 @@ public class Level13_SecondPersonShooter : LevelManager
             40, Color.white, TextAnchor.MiddleCenter);
         centerMsg.gameObject.SetActive(false);
 
+        // -- Debug: NPC state (bottom-center) --
+        debugNPCStateText = MakeText(canvasObj, "DebugNPCState", "",
+            new Vector2(0.3f, 0.01f), new Vector2(0.7f, 0.06f),
+            18, Color.yellow, TextAnchor.MiddleCenter);
+
         // -- Full-screen damage flash --
         damageFlash = MakeImage(canvasObj, "DamageFlash",
             Vector2.zero, Vector2.one,
@@ -892,6 +910,14 @@ public class Level13_SecondPersonShooter : LevelManager
 
         if (killText != null)
             killText.text = $"KILLS: {kills}";
+
+        if (debugNPCStateText != null)
+        {
+            if (currentViewNPC != null && !currentViewNPC.isDead)
+                debugNPCStateText.text = $"NPC: {currentViewNPC.CurrentStateName} | HP: {currentViewNPC.currentHealth}/{currentViewNPC.maxHealth}";
+            else
+                debugNPCStateText.text = "NPC: ---";
+        }
     }
 
     // =========================================================================

@@ -24,7 +24,8 @@ public class SecondPersonNPC : MonoBehaviour
     [Header("Combat")]
     public float detectionRange = 30f;
     public float attackRange = 18f;
-    public float fireRate = 0.6f;     // shots per second
+    public float fireRate = 0.6f;     // accurate (damage) shots per second
+    public float visualFireRate = 5f; // cosmetic shots per second (no damage)
     public int damage = 8;
     public float accuracy = 0.5f;     // 0 = wild, 1 = aimbot
 
@@ -44,6 +45,8 @@ public class SecondPersonNPC : MonoBehaviour
     private Level13_SecondPersonShooter levelManager;
     private Renderer bodyRenderer;
     private CharacterController controller;
+    private Transform gunModelTransform;
+    private Transform muzzlePoint;
 
     // AI
     private enum AIState { Idle, Patrol, Chase, Attack, Dead }
@@ -53,6 +56,7 @@ public class SecondPersonNPC : MonoBehaviour
     private float stateTimer;
     private float idleDuration;
     private float fireCooldown;
+    private float visualFireCooldown;
 
     // Physics
     private float verticalVelocity;
@@ -79,6 +83,14 @@ public class SecondPersonNPC : MonoBehaviour
         spawnPosition = transform.position;
 
         controller = GetComponent<CharacterController>();
+
+        Transform gm = transform.Find("GunModel");
+        if (gm != null)
+        {
+            gunModelTransform = gm;
+            Transform mp = gm.Find("MuzzlePoint");
+            if (mp != null) muzzlePoint = mp;
+        }
 
         GameObject shoulder = new GameObject("ShoulderCamPoint");
         shoulder.transform.SetParent(transform);
@@ -113,6 +125,8 @@ public class SecondPersonNPC : MonoBehaviour
             r.enabled = visible;
         }
     }
+
+    public string CurrentStateName => state.ToString();
 
     public void AlertToPlayer()
     {
@@ -169,6 +183,7 @@ public class SecondPersonNPC : MonoBehaviour
         }
 
         fireCooldown -= Time.deltaTime;
+        visualFireCooldown -= Time.deltaTime;
     }
 
     // ── Physics ──────────────────────────────────────────────────────────────
@@ -310,10 +325,18 @@ public class SecondPersonNPC : MonoBehaviour
         else
             transform.position += strafeMove;
 
+        // Real damage shot at fireRate
         if (fireCooldown <= 0f)
         {
-            Shoot();
+            Shoot(true);
             fireCooldown = 1f / Mathf.Max(fireRate, 0.1f);
+            visualFireCooldown = 1f / Mathf.Max(visualFireRate, 0.1f);
+        }
+        // Visual-only suppressive fire between real shots
+        else if (visualFireCooldown <= 0f)
+        {
+            Shoot(false);
+            visualFireCooldown = 1f / Mathf.Max(visualFireRate, 0.1f);
         }
     }
 
@@ -321,17 +344,26 @@ public class SecondPersonNPC : MonoBehaviour
     // Combat
     // =========================================================================
 
-    private void Shoot()
+    private void Shoot(bool canDamage)
     {
         if (player == null) return;
 
-        Vector3 muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
+        Vector3 muzzlePos;
+        if (muzzlePoint != null)
+            muzzlePos = muzzlePoint.position;
+        else if (gunModelTransform != null)
+        {
+            Vector3 tipOffset = (levelManager != null) ? levelManager.muzzleTipOffset : new Vector3(0f, 0f, 1.5f);
+            muzzlePos = gunModelTransform.TransformPoint(tipOffset);
+        }
+        else
+            muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
         Vector3 targetPos = player.position + Vector3.up * 1f;
         Vector3 losDir = (targetPos - muzzlePos).normalized;
         float losDist = Vector3.Distance(muzzlePos, targetPos);
 
-        // Line-of-sight check — don't fire if a wall is between us and the player
-        if (Physics.Raycast(muzzlePos, losDir, out RaycastHit losHit, losDist))
+        // Line-of-sight check — don't fire if a solid wall is between us and the player
+        if (RaycastIgnoringWindows(muzzlePos, losDir, out RaycastHit losHit, losDist))
         {
             if (losHit.collider.GetComponentInParent<PlayerController>() == null)
                 return;
@@ -339,8 +371,10 @@ public class SecondPersonNPC : MonoBehaviour
 
         Vector3 shotDir = losDir;
 
-        // Inaccuracy spread
-        float spread = (1f - Mathf.Clamp01(accuracy)) * 0.15f;
+        // Visual shots get extra spread so they miss; real shots use normal accuracy
+        float spread = canDamage
+            ? (1f - Mathf.Clamp01(accuracy)) * 0.15f
+            : Random.Range(0.12f, 0.25f);
         shotDir += new Vector3(
             Random.Range(-spread, spread),
             Random.Range(-spread, spread),
@@ -350,12 +384,15 @@ public class SecondPersonNPC : MonoBehaviour
         float maxRange = Mathf.Min(attackRange, 30f);
         Vector3 endPoint = muzzlePos + shotDir * maxRange;
 
-        if (Physics.Raycast(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
+        if (RaycastIgnoringWindows(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
         {
             endPoint = hit.point;
-            PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
-            if (pc != null && levelManager != null)
-                levelManager.DamagePlayer(damage);
+            if (canDamage)
+            {
+                PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
+                if (pc != null && levelManager != null)
+                    levelManager.DamagePlayer(damage);
+            }
         }
 
         ShowShotLine(muzzlePos, endPoint);
@@ -486,10 +523,28 @@ public class SecondPersonNPC : MonoBehaviour
         Vector3 dir = targetPos - eyePos;
         float dist = dir.magnitude;
 
-        if (Physics.Raycast(eyePos, dir.normalized, out RaycastHit hit, dist))
-            return hit.collider.GetComponentInParent<PlayerController>() != null;
+        return !RaycastIgnoringWindows(eyePos, dir.normalized, out RaycastHit hit, dist)
+               || hit.collider.GetComponentInParent<PlayerController>() != null;
+    }
 
-        return true;
+    /// <summary>
+    /// Casts a ray that passes through any collider tagged "Window".
+    /// Returns true + the first non-window hit, or false if nothing solid was hit.
+    /// </summary>
+    public static bool RaycastIgnoringWindows(Vector3 origin, Vector3 dir, out RaycastHit solidHit, float maxDist)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(origin, dir, maxDist);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        solidHit = default;
+        foreach (var h in hits)
+        {
+            if (h.collider.gameObject.name.Contains("WindowGlass"))
+                continue;
+            solidHit = h;
+            return true;
+        }
+        return false;
     }
 
     private void RotateToward(Vector3 dir)

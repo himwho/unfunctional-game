@@ -1474,12 +1474,12 @@ MonoBehaviour:
   needsPlayer: 1
   playerSpawnPoint: {fileID: 859949736}
   levelComplete: 0
-  npcsPerWave: 2
+  npcsPerWave: 1
   totalWaves: 3
   spawnZone: {fileID: 378358745}
   spawnRadius: 28
   minSpawnDistance: 12
-  playerMaxHealth: 100
+  playerMaxHealth: 100000
   playerDamage: 25
   maxAmmo: 30
   fireRate: 6
@@ -1492,11 +1492,12 @@ MonoBehaviour:
   npcAttackRange: 18
   npcFireRate: 0.6
   npcDamage: 8
-  gunPrefab: {fileID: 919132149155446097, guid: 51f83f0b8b89fa144ba9660ef5000501,
+  gunPrefab: {fileID: 1624210991221728572, guid: 71b8465c8ee480e46a494e019e87c1c8,
     type: 3}
   gunPositionOffset: {x: 0.5, y: 0.3, z: 0.35}
   gunRotationOffset: {x: 0, y: 175, z: 0}
   gunScale: 1
+  muzzleTipOffset: {x: 0, y: 0, z: 1.5}
   shoulderCamOffset: {x: 0, y: 0.8, z: -0.4}
   cameraSmoothSpeed: 100
   cameraLookSmooth: 98
@@ -1581,6 +1582,7 @@ MonoBehaviour:
   detectionRange: 30
   attackRange: 18
   fireRate: 0.6
+  visualFireRate: 5
   damage: 8
   accuracy: 0.5
   patrolRadius: 15
