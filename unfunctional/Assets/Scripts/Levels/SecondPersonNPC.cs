@@ -69,10 +69,9 @@ public class SecondPersonNPC : MonoBehaviour
         isDead = false;
         spawnPosition = transform.position;
 
-        // Shoulder camera point (right shoulder, head height, slightly behind)
         GameObject shoulder = new GameObject("ShoulderCamPoint");
         shoulder.transform.SetParent(transform);
-        shoulder.transform.localPosition = new Vector3(0.55f, 1.6f, -0.4f);
+        shoulder.transform.localPosition = manager.shoulderCamOffset;
         shoulderCamPoint = shoulder.transform;
 
         // Cache body renderer
@@ -120,9 +119,14 @@ public class SecondPersonNPC : MonoBehaviour
 
         float distToPlayer = Vector3.Distance(transform.position, player.position);
 
-        // Shoulder cam always looks toward the player
         if (shoulderCamPoint != null)
+        {
+            // Live-update offset from inspector
+            if (levelManager != null)
+                shoulderCamPoint.localPosition = levelManager.shoulderCamOffset;
+
             shoulderCamPoint.LookAt(player.position + Vector3.up * 1.2f);
+        }
 
         switch (state)
         {

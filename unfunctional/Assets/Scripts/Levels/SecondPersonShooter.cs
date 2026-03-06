@@ -56,6 +56,8 @@ public class Level13_SecondPersonShooter : LevelManager
     public float gunScale = 1f;
 
     [Header("Camera")]
+    [Tooltip("Shoulder cam offset relative to each NPC. Adjust live in play mode.")]
+    public Vector3 shoulderCamOffset = new Vector3(0.55f, 1.6f, -0.4f);
     [Tooltip("How fast the 2nd-person camera lerps to the new shoulder.")]
     public float cameraSmoothSpeed = 14f;
     public float cameraLookSmooth = 12f;

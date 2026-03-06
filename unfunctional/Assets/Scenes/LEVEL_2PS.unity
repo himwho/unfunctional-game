@@ -1430,7 +1430,7 @@ MonoBehaviour:
   maxAmmo: 30
   fireRate: 6
   reloadTime: 1.8
-  npcPrefab: {fileID: 7894247577456986327, guid: ca4465e70ddd9c3449a7e9547d834522,
+  npcPrefab: {fileID: 7894247577456986327, guid: 9c278cea62944e44f8270fd8c4e04dbf,
     type: 3}
   npcHealth: 80
   npcMoveSpeed: 3
@@ -1443,6 +1443,7 @@ MonoBehaviour:
   gunPositionOffset: {x: 0.5, y: 0.3, z: 0.35}
   gunRotationOffset: {x: 0, y: 175, z: 0}
   gunScale: 1
+  shoulderCamOffset: {x: 0, y: 0.8, z: -0.4}
   cameraSmoothSpeed: 14
   cameraLookSmooth: 12
 --- !u!4 &715069709
