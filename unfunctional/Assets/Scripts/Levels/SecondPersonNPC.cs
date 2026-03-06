@@ -24,7 +24,8 @@ public class SecondPersonNPC : MonoBehaviour
     [Header("Combat")]
     public float detectionRange = 30f;
     public float attackRange = 18f;
-    public float fireRate = 0.6f;     // shots per second
+    public float fireRate = 0.6f;     // accurate (damage) shots per second
+    public float visualFireRate = 5f; // cosmetic shots per second (no damage)
     public int damage = 8;
     public float accuracy = 0.5f;     // 0 = wild, 1 = aimbot
 
@@ -54,6 +55,7 @@ public class SecondPersonNPC : MonoBehaviour
     private float stateTimer;
     private float idleDuration;
     private float fireCooldown;
+    private float visualFireCooldown;
 
     // Physics
     private float verticalVelocity;
@@ -175,6 +177,7 @@ public class SecondPersonNPC : MonoBehaviour
         }
 
         fireCooldown -= Time.deltaTime;
+        visualFireCooldown -= Time.deltaTime;
     }
 
     // ── Physics ──────────────────────────────────────────────────────────────
@@ -316,10 +319,18 @@ public class SecondPersonNPC : MonoBehaviour
         else
             transform.position += strafeMove;
 
+        // Real damage shot at fireRate
         if (fireCooldown <= 0f)
         {
-            Shoot();
+            Shoot(true);
             fireCooldown = 1f / Mathf.Max(fireRate, 0.1f);
+            visualFireCooldown = 1f / Mathf.Max(visualFireRate, 0.1f);
+        }
+        // Visual-only suppressive fire between real shots
+        else if (visualFireCooldown <= 0f)
+        {
+            Shoot(false);
+            visualFireCooldown = 1f / Mathf.Max(visualFireRate, 0.1f);
         }
     }
 
@@ -327,7 +338,7 @@ public class SecondPersonNPC : MonoBehaviour
     // Combat
     // =========================================================================
 
-    private void Shoot()
+    private void Shoot(bool canDamage)
     {
         if (player == null) return;
 
@@ -349,8 +360,10 @@ public class SecondPersonNPC : MonoBehaviour
 
         Vector3 shotDir = losDir;
 
-        // Inaccuracy spread
-        float spread = (1f - Mathf.Clamp01(accuracy)) * 0.15f;
+        // Visual shots get extra spread so they miss; real shots use normal accuracy
+        float spread = canDamage
+            ? (1f - Mathf.Clamp01(accuracy)) * 0.15f
+            : Random.Range(0.12f, 0.25f);
         shotDir += new Vector3(
             Random.Range(-spread, spread),
             Random.Range(-spread, spread),
@@ -363,9 +376,12 @@ public class SecondPersonNPC : MonoBehaviour
         if (Physics.Raycast(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
         {
             endPoint = hit.point;
-            PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
-            if (pc != null && levelManager != null)
-                levelManager.DamagePlayer(damage);
+            if (canDamage)
+            {
+                PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
+                if (pc != null && levelManager != null)
+                    levelManager.DamagePlayer(damage);
+            }
         }
 
         ShowShotLine(muzzlePos, endPoint);
