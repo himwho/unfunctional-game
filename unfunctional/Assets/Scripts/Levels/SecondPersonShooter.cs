@@ -639,22 +639,21 @@ public class Level13_SecondPersonShooter : LevelManager
         {
             Vector3 candidate;
 
-            if (spawnZone != null)
-            {
-                // Pick a random point inside the box collider's world-space bounds
-                Bounds b = spawnZone.bounds;
-                candidate = new Vector3(
-                    Random.Range(b.min.x, b.max.x),
-                    b.center.y,
-                    Random.Range(b.min.z, b.max.z));
-            }
-            else
             {
                 float radius = Random.Range(minSpawnDistance, spawnRadius);
                 if (attempt > 10) radius *= 0.5f;
 
                 Vector2 circle = Random.insideUnitCircle.normalized * radius;
                 candidate = playerTransform.position + new Vector3(circle.x, 0, circle.y);
+
+                // If a spawn zone is defined, clamp the candidate inside its bounds
+                if (spawnZone != null)
+                {
+                    Bounds b = spawnZone.bounds;
+                    candidate.x = Mathf.Clamp(candidate.x, b.min.x, b.max.x);
+                    candidate.y = b.center.y;
+                    candidate.z = Mathf.Clamp(candidate.z, b.min.z, b.max.z);
+                }
             }
 
             // Must have floor beneath
