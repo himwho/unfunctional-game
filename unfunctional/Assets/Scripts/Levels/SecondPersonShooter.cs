@@ -769,18 +769,18 @@ public class Level13_SecondPersonShooter : LevelManager
             new Vector2(0.78f, 0.93f), new Vector2(0.99f, 0.99f),
             20, Color.white, TextAnchor.UpperRight);
 
-        // -- Crosshair (center) --
-        crosshairDot = MakeImage(canvasObj, "CrosshairDot",
-            new Vector2(0.498f, 0.494f), new Vector2(0.502f, 0.506f),
-            Color.white);
-
-        crosshairH = MakeImage(canvasObj, "CrosshairH",
-            new Vector2(0.485f, 0.499f), new Vector2(0.515f, 0.501f),
-            new Color(1, 1, 1, 0.7f));
-
-        crosshairV = MakeImage(canvasObj, "CrosshairV",
-            new Vector2(0.4995f, 0.48f), new Vector2(0.5005f, 0.52f),
-            new Color(1, 1, 1, 0.7f));
+        // -- Crosshair (center) -- disabled for now
+        // crosshairDot = MakeImage(canvasObj, "CrosshairDot",
+        //     new Vector2(0.498f, 0.494f), new Vector2(0.502f, 0.506f),
+        //     Color.white);
+        //
+        // crosshairH = MakeImage(canvasObj, "CrosshairH",
+        //     new Vector2(0.485f, 0.499f), new Vector2(0.515f, 0.501f),
+        //     new Color(1, 1, 1, 0.7f));
+        //
+        // crosshairV = MakeImage(canvasObj, "CrosshairV",
+        //     new Vector2(0.4995f, 0.48f), new Vector2(0.5005f, 0.52f),
+        //     new Color(1, 1, 1, 0.7f));
 
         // -- Hit marker (flashes over crosshair) --
         hitMarkerImg = MakeImage(canvasObj, "HitMarker",
