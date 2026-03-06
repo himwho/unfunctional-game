@@ -38,7 +38,9 @@ public class Level13_SecondPersonShooter : LevelManager
     public float fireRate = 6f;       // shots per second
     public float reloadTime = 1.8f;
 
-    [Header("NPC Defaults")]
+    [Header("NPC")]
+    [Tooltip("Optional NPC body prefab. If empty, a capsule+sphere is generated at runtime.")]
+    public GameObject npcPrefab;
     public int npcHealth = 80;
     public float npcMoveSpeed = 3f;
     public float npcDetectionRange = 30f;
@@ -520,12 +522,36 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         Vector3 spawnPos = FindValidSpawnPosition();
 
-        GameObject npcObj = CreateNPCVisual(spawnPos);
+        GameObject npcObj;
+        Renderer bodyRenderer;
+
+        if (npcPrefab != null)
+        {
+            npcObj = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
+            npcObj.name = "NPC_Enemy";
+
+            // Ensure the prefab has a collider for raycasts
+            if (npcObj.GetComponent<Collider>() == null)
+            {
+                CapsuleCollider col = npcObj.AddComponent<CapsuleCollider>();
+                col.height = 2f;
+                col.center = Vector3.up;
+            }
+
+            bodyRenderer = npcObj.GetComponentInChildren<Renderer>();
+
+            if (gunPrefab != null)
+                AttachGunModel(npcObj.transform, gunPositionOffset);
+        }
+        else
+        {
+            npcObj = CreateFallbackNPCVisual(spawnPos);
+            bodyRenderer = npcObj.GetComponent<Renderer>();
+        }
 
         SecondPersonNPC npc = npcObj.AddComponent<SecondPersonNPC>();
-        npc.SetBodyRenderer(npcObj.GetComponent<Renderer>());
+        npc.SetBodyRenderer(bodyRenderer);
 
-        // Scale stats with wave
         int waveBonus = currentWave - 1;
         npc.maxHealth       = npcHealth + waveBonus * 10;
         npc.moveSpeed       = npcMoveSpeed + waveBonus * 0.3f;
@@ -569,9 +595,8 @@ public class Level13_SecondPersonShooter : LevelManager
         return playerTransform.position + playerTransform.forward * 3f;
     }
 
-    private GameObject CreateNPCVisual(Vector3 position)
+    private GameObject CreateFallbackNPCVisual(Vector3 position)
     {
-        // Body capsule
         GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         body.name = "NPC_Enemy";
         body.transform.position = position + Vector3.up * 1f;
@@ -582,7 +607,6 @@ public class Level13_SecondPersonShooter : LevelManager
             Random.Range(0.1f, 0.3f));
         SetMaterialColor(body.GetComponent<Renderer>(), npcColor);
 
-        // Head
         GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         head.name = "Head";
         head.transform.SetParent(body.transform);
@@ -591,7 +615,6 @@ public class Level13_SecondPersonShooter : LevelManager
         SetMaterialColor(head.GetComponent<Renderer>(), npcColor * 0.8f);
         Destroy(head.GetComponent<Collider>());
 
-        // Gun model (AK47 prefab if assigned, otherwise a simple cube stub)
         if (gunPrefab != null)
         {
             AttachGunModel(body.transform, gunPositionOffset);

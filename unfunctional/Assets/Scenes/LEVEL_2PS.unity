@@ -1430,6 +1430,8 @@ MonoBehaviour:
   maxAmmo: 30
   fireRate: 6
   reloadTime: 1.8
+  npcPrefab: {fileID: 7894247577456986327, guid: ca4465e70ddd9c3449a7e9547d834522,
+    type: 3}
   npcHealth: 80
   npcMoveSpeed: 3
   npcDetectionRange: 30
