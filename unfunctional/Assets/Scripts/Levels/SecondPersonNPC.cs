@@ -306,7 +306,17 @@ public class SecondPersonNPC : MonoBehaviour
 
         Vector3 muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
         Vector3 targetPos = player.position + Vector3.up * 1f;
-        Vector3 shotDir = (targetPos - muzzlePos).normalized;
+        Vector3 losDir = (targetPos - muzzlePos).normalized;
+        float losDist = Vector3.Distance(muzzlePos, targetPos);
+
+        // Line-of-sight check — don't fire if a wall is between us and the player
+        if (Physics.Raycast(muzzlePos, losDir, out RaycastHit losHit, losDist))
+        {
+            if (losHit.collider.GetComponentInParent<PlayerController>() == null)
+                return;
+        }
+
+        Vector3 shotDir = losDir;
 
         // Inaccuracy spread
         float spread = (1f - Mathf.Clamp01(accuracy)) * 0.15f;
@@ -316,15 +326,18 @@ public class SecondPersonNPC : MonoBehaviour
             Random.Range(-spread, spread));
         shotDir.Normalize();
 
-        // Check line-of-sight and hit
+        float maxRange = Mathf.Min(attackRange, 30f);
+        Vector3 endPoint = muzzlePos + shotDir * maxRange;
+
         if (Physics.Raycast(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
         {
+            endPoint = hit.point;
             PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
             if (pc != null && levelManager != null)
                 levelManager.DamagePlayer(damage);
         }
 
-        ShowShotLine(muzzlePos, muzzlePos + shotDir * Mathf.Min(attackRange, 30f));
+        ShowShotLine(muzzlePos, endPoint);
     }
 
     // =========================================================================
