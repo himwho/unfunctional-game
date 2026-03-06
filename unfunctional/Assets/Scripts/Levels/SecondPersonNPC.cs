@@ -43,6 +43,7 @@ public class SecondPersonNPC : MonoBehaviour
     private Transform player;
     private Level13_SecondPersonShooter levelManager;
     private Renderer bodyRenderer;
+    private CharacterController controller;
 
     // AI
     private enum AIState { Idle, Patrol, Chase, Attack, Dead }
@@ -52,6 +53,12 @@ public class SecondPersonNPC : MonoBehaviour
     private float stateTimer;
     private float idleDuration;
     private float fireCooldown;
+
+    // Physics
+    private float verticalVelocity;
+    private const float GRAVITY = -20f;
+    private const float OBSTACLE_CHECK_DIST = 1.5f;
+    private const float AVOIDANCE_ANGLE = 50f;
 
     // Visuals
     private LineRenderer shotLine;
@@ -68,6 +75,8 @@ public class SecondPersonNPC : MonoBehaviour
         currentHealth = maxHealth;
         isDead = false;
         spawnPosition = transform.position;
+
+        controller = GetComponent<CharacterController>();
 
         GameObject shoulder = new GameObject("ShoulderCamPoint");
         shoulder.transform.SetParent(transform);
@@ -132,13 +141,13 @@ public class SecondPersonNPC : MonoBehaviour
 
         if (shoulderCamPoint != null)
         {
-            // Live-update offset from inspector
             if (levelManager != null)
                 shoulderCamPoint.localPosition = levelManager.shoulderCamOffset;
 
             shoulderCamPoint.LookAt(player.position + Vector3.up * 1.2f);
         }
 
+        ApplyGravity();
         SeparateFromOtherNPCs();
 
         switch (state)
@@ -150,6 +159,60 @@ public class SecondPersonNPC : MonoBehaviour
         }
 
         fireCooldown -= Time.deltaTime;
+    }
+
+    // ── Physics ──────────────────────────────────────────────────────────────
+
+    private void ApplyGravity()
+    {
+        if (controller == null) return;
+
+        if (controller.isGrounded)
+            verticalVelocity = -2f;
+        else
+            verticalVelocity += GRAVITY * Time.deltaTime;
+
+        controller.Move(new Vector3(0f, verticalVelocity * Time.deltaTime, 0f));
+    }
+
+    /// <summary>
+    /// Move toward a direction using the CharacterController, with obstacle
+    /// avoidance via raycasts. Falls back to direct position if no CC.
+    /// </summary>
+    private void MoveToward(Vector3 desiredDir, float speed)
+    {
+        desiredDir.y = 0;
+        if (desiredDir.sqrMagnitude < 0.001f) return;
+        desiredDir.Normalize();
+
+        Vector3 moveDir = desiredDir;
+
+        if (controller != null)
+        {
+            Vector3 origin = transform.position + Vector3.up * 0.5f;
+            if (Physics.Raycast(origin, desiredDir, OBSTACLE_CHECK_DIST))
+            {
+                // Try steering left and right to find a clear path
+                Vector3 left = Quaternion.Euler(0, -AVOIDANCE_ANGLE, 0) * desiredDir;
+                Vector3 right = Quaternion.Euler(0, AVOIDANCE_ANGLE, 0) * desiredDir;
+
+                bool leftClear = !Physics.Raycast(origin, left, OBSTACLE_CHECK_DIST);
+                bool rightClear = !Physics.Raycast(origin, right, OBSTACLE_CHECK_DIST);
+
+                if (leftClear && !rightClear) moveDir = left;
+                else if (rightClear && !leftClear) moveDir = right;
+                else if (leftClear && rightClear) moveDir = (Random.value > 0.5f) ? left : right;
+                else moveDir = -desiredDir; // back away if totally blocked
+            }
+
+            controller.Move(moveDir * speed * Time.deltaTime);
+        }
+        else
+        {
+            transform.position += moveDir * speed * Time.deltaTime;
+        }
+
+        RotateToward(moveDir);
     }
 
     // ── Idle ─────────────────────────────────────────────────────────────────
@@ -183,9 +246,7 @@ public class SecondPersonNPC : MonoBehaviour
             return;
         }
 
-        dir.Normalize();
-        transform.position += dir * (moveSpeed * 0.5f) * Time.deltaTime;
-        RotateToward(dir);
+        MoveToward(dir, moveSpeed * 0.5f);
     }
 
     // ── Chase ────────────────────────────────────────────────────────────────
@@ -205,32 +266,29 @@ public class SecondPersonNPC : MonoBehaviour
             return;
         }
 
-        Vector3 dir = (player.position - transform.position);
-        dir.y = 0;
-        dir.Normalize();
-
-        transform.position += dir * moveSpeed * Time.deltaTime;
-        RotateToward(dir);
+        Vector3 dir = player.position - transform.position;
+        MoveToward(dir, moveSpeed);
     }
 
     // ── Attack ───────────────────────────────────────────────────────────────
 
     private void UpdateAttack(float distToPlayer)
     {
-        // Disengage if player moves away
         if (distToPlayer > attackRange * 1.3f) { state = AIState.Chase; return; }
 
-        // Face player
         Vector3 dir = (player.position - transform.position);
         dir.y = 0;
         if (dir.sqrMagnitude > 0.01f)
             RotateToward(dir.normalized);
 
-        // Strafe a little
+        // Strafe using CharacterController
         float strafe = Mathf.Sin(Time.time * 1.5f + GetInstanceID()) * 0.5f;
-        transform.position += transform.right * (strafe * moveSpeed * 0.3f * Time.deltaTime);
+        Vector3 strafeMove = transform.right * (strafe * moveSpeed * 0.3f * Time.deltaTime);
+        if (controller != null)
+            controller.Move(strafeMove);
+        else
+            transform.position += strafeMove;
 
-        // Shoot
         if (fireCooldown <= 0f)
         {
             Shoot();
@@ -248,7 +306,17 @@ public class SecondPersonNPC : MonoBehaviour
 
         Vector3 muzzlePos = transform.position + Vector3.up * 1.3f + transform.forward * 0.5f;
         Vector3 targetPos = player.position + Vector3.up * 1f;
-        Vector3 shotDir = (targetPos - muzzlePos).normalized;
+        Vector3 losDir = (targetPos - muzzlePos).normalized;
+        float losDist = Vector3.Distance(muzzlePos, targetPos);
+
+        // Line-of-sight check — don't fire if a wall is between us and the player
+        if (Physics.Raycast(muzzlePos, losDir, out RaycastHit losHit, losDist))
+        {
+            if (losHit.collider.GetComponentInParent<PlayerController>() == null)
+                return;
+        }
+
+        Vector3 shotDir = losDir;
 
         // Inaccuracy spread
         float spread = (1f - Mathf.Clamp01(accuracy)) * 0.15f;
@@ -258,15 +326,18 @@ public class SecondPersonNPC : MonoBehaviour
             Random.Range(-spread, spread));
         shotDir.Normalize();
 
-        // Check line-of-sight and hit
+        float maxRange = Mathf.Min(attackRange, 30f);
+        Vector3 endPoint = muzzlePos + shotDir * maxRange;
+
         if (Physics.Raycast(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
         {
+            endPoint = hit.point;
             PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
             if (pc != null && levelManager != null)
                 levelManager.DamagePlayer(damage);
         }
 
-        ShowShotLine(muzzlePos, muzzlePos + shotDir * Mathf.Min(attackRange, 30f));
+        ShowShotLine(muzzlePos, endPoint);
     }
 
     // =========================================================================
@@ -281,9 +352,10 @@ public class SecondPersonNPC : MonoBehaviour
         if (levelManager != null)
             levelManager.OnNPCKilled(this);
 
-        // Disable collider so it stops blocking
+        // Disable CharacterController and any other collider so it stops blocking
+        if (controller != null) controller.enabled = false;
         Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        if (col != null && col != controller) col.enabled = false;
 
         StartCoroutine(DeathAnimation(hitDirection));
     }
@@ -376,7 +448,13 @@ public class SecondPersonNPC : MonoBehaviour
         }
 
         if (push.sqrMagnitude > 0.001f)
-            transform.position += push.normalized * SEPARATION_FORCE * Time.deltaTime;
+        {
+            Vector3 sepMove = push.normalized * SEPARATION_FORCE * Time.deltaTime;
+            if (controller != null)
+                controller.Move(sepMove);
+            else
+                transform.position += sepMove;
+        }
     }
 
     private void RotateToward(Vector3 dir)
