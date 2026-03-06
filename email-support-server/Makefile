@@ -15,7 +15,9 @@
 # 2. Security Group inbound rules:
 #      - TCP 22   (SSH)          - your IP only
 #      - TCP 25   (SMTP inbound) - 0.0.0.0/0  (so anyone can email Rodney)
-#      - TCP 3000 (HTTP API)     - 0.0.0.0/0  (game client validates codes)
+#      - TCP 80   (HTTP)         - 0.0.0.0/0  (certbot ACME challenge + redirect)
+#      - TCP 443  (HTTPS)        - 0.0.0.0/0  (game client validates codes)
+#      NOTE: Port 3000 no longer needs to be public (nginx proxies to it).
 #      NOTE: AWS blocks outbound port 25 by default on new accounts.
 #            You must submit a "Request to remove email sending limitations"
 #            form in AWS Support, or use an SMTP relay (SES, Mailgun, etc.)
@@ -44,7 +46,7 @@ REMOTE_DIR     ?= /home/ec2-user/email-support-server
 SSH_CMD        = ssh -i $(KEY_FILE) -o StrictHostKeyChecking=no $(EC2_HOST)
 SCP_CMD        = scp -i $(KEY_FILE) -o StrictHostKeyChecking=no
 
-.PHONY: help setup-instructions setup-ec2 deploy push start stop restart \
+.PHONY: help setup-instructions setup-ec2 setup-ssl deploy push start stop restart \
         logs status ssh env-push clean-remote test-smtp test-smtp-code \
         test-api-code test-api-validate
 
@@ -74,7 +76,8 @@ setup-instructions: ## Print EC2 free tier setup walkthrough
 	@echo     Inbound rules:
 	@echo       SSH    TCP 22    Your IP
 	@echo       SMTP   TCP 25    0.0.0.0/0   (receive email from anyone)
-	@echo       HTTP   TCP 3000  0.0.0.0/0   (game API)
+	@echo       HTTP   TCP 80    0.0.0.0/0   (certbot + redirect to HTTPS)
+	@echo       HTTPS  TCP 443   0.0.0.0/0   (game API via nginx)
 	@echo.
 	@echo  3. Elastic IP:
 	@echo     EC2 ^> Elastic IPs ^> Allocate ^> Associate with instance
@@ -108,12 +111,12 @@ setup-instructions: ## Print EC2 free tier setup walkthrough
 # EC2 Instance Provisioning (run once on a fresh instance)
 # --------------------------------------------------------------------------
 
-setup-ec2: ## First-time EC2 setup: install Node.js 20, pm2, create dirs
+setup-ec2: ## First-time EC2 setup: install Node.js 20, pm2, nginx, create dirs
 	$(SSH_CMD) 'set -e && \
-		echo ">>> Installing Node.js 20 LTS via dnf..." && \
+		echo ">>> Installing Node.js 20 LTS + nginx via dnf..." && \
 		sudo dnf update -y && \
-		sudo dnf install -y nodejs20 git && \
-		node --version && npm --version && \
+		sudo dnf install -y nodejs20 git nginx && \
+		node --version && npm --version && nginx -v && \
 		echo ">>> Installing pm2 globally..." && \
 		sudo npm install -g pm2 && \
 		pm2 --version && \
@@ -121,7 +124,60 @@ setup-ec2: ## First-time EC2 setup: install Node.js 20, pm2, create dirs
 		mkdir -p $(REMOTE_DIR) && \
 		echo ">>> Configuring pm2 to start on boot..." && \
 		pm2 startup systemd -u ec2-user --hp /home/ec2-user | tail -1 | sudo bash && \
-		echo ">>> Done. Run: make deploy"'
+		echo ">>> Starting nginx and enabling on boot..." && \
+		sudo systemctl enable nginx && \
+		sudo systemctl start nginx && \
+		echo ">>> Done. Run: make setup-ssl  then  make deploy"'
+
+# --------------------------------------------------------------------------
+# SSL Setup (nginx + certbot / Let's Encrypt)
+# --------------------------------------------------------------------------
+
+setup-ssl: ## Install certbot, configure nginx reverse proxy, get SSL cert
+	@echo ">>> This will install certbot and provision an SSL certificate"
+	@echo ">>> for premiumdoorcodes.com via Let's Encrypt."
+	@echo ">>> Make sure your DNS A record points to this server first!"
+	@echo ""
+	$(SSH_CMD) 'set -e && \
+		echo ">>> Installing certbot..." && \
+		sudo dnf install -y certbot python3-certbot-nginx && \
+		echo ">>> Writing nginx config for premiumdoorcodes.com..." && \
+		sudo tee /etc/nginx/conf.d/premiumdoorcodes.conf > /dev/null <<-"NGINX" && \
+	server { \
+	    listen 80; \
+	    server_name premiumdoorcodes.com; \
+	    location /.well-known/acme-challenge/ { \
+	        root /var/www/html; \
+	    } \
+	    location / { \
+	        return 301 https://$$host$$request_uri; \
+	    } \
+	} \
+	server { \
+	    listen 443 ssl; \
+	    server_name premiumdoorcodes.com; \
+	    ssl_certificate     /etc/letsencrypt/live/premiumdoorcodes.com/fullchain.pem; \
+	    ssl_certificate_key /etc/letsencrypt/live/premiumdoorcodes.com/privkey.pem; \
+	    ssl_protocols TLSv1.2 TLSv1.3; \
+	    ssl_ciphers HIGH:!aNULL:!MD5; \
+	    location / { \
+	        proxy_pass http://127.0.0.1:3000; \
+	        proxy_set_header Host $$host; \
+	        proxy_set_header X-Real-IP $$remote_addr; \
+	        proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for; \
+	        proxy_set_header X-Forwarded-Proto $$scheme; \
+	    } \
+	} \
+	NGINX \
+		echo ">>> Testing nginx config..." && \
+		sudo nginx -t && \
+		echo ">>> Obtaining SSL certificate (this will fail if DNS is not pointed here)..." && \
+		sudo certbot certonly --nginx -d premiumdoorcodes.com --non-interactive --agree-tos --register-unsafely-without-email && \
+		echo ">>> Reloading nginx with SSL..." && \
+		sudo systemctl reload nginx && \
+		echo ">>> Setting up auto-renewal cron..." && \
+		(sudo crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet --post-hook \"systemctl reload nginx\"") | sort -u | sudo crontab - && \
+		echo ">>> SSL setup complete! https://premiumdoorcodes.com should now work."'
 
 # --------------------------------------------------------------------------
 # Deployment
@@ -181,10 +237,10 @@ ssh: ## SSH into the EC2 instance
 	$(SSH_CMD)
 
 health: ## Hit the /health endpoint on the remote server
-	@echo ">>> Checking health..."
+	@echo ">>> Checking health via HTTPS..."
 	@curl -s --connect-timeout 5 --max-time 10 \
-		http://$(subst ec2-user@,,$(EC2_HOST)):3000/health | python3 -m json.tool 2>/dev/null || \
-		echo ">>> Failed (is port 3000 open and the server running?)"
+		https://premiumdoorcodes.com/health | python3 -m json.tool 2>/dev/null || \
+		echo ">>> Failed (is nginx running and SSL configured?)"
 
 test-smtp: ## Send a no-keyword email (should get "What are you asking for?!" reply)
 	@echo ">>> Sending email with no trigger keywords..."
@@ -202,21 +258,21 @@ test-smtp-code: ## Send a keyword email (should get a door code reply)
 		--mail-rcpt "rodney@premiumdoorcodes.com" \
 		-T - 2>&1 && echo ">>> Sent (expect code reply)" || echo ">>> Failed (is port 25 open?)"
 
-test-api-code: ## Request a door code via the HTTP API (game client path)
+test-api-code: ## Request a door code via the HTTPS API (game client path)
 	@echo ">>> POST /api/request-code ..."
 	@curl -s --connect-timeout 5 --max-time 10 -X POST \
-		http://$(subst ec2-user@,,$(EC2_HOST)):3000/api/request-code \
+		https://premiumdoorcodes.com/api/request-code \
 		-H "Content-Type: application/json" \
 		-d '{}' | python3 -m json.tool 2>/dev/null || \
-		echo ">>> Failed (is port 3000 open and the server running?)"
+		echo ">>> Failed (is nginx running and SSL configured?)"
 
-test-api-validate: ## Validate a code via the HTTP API (usage: make test-api-validate CODE=123456789)
+test-api-validate: ## Validate a code via the HTTPS API (usage: make test-api-validate CODE=123456789)
 	@echo ">>> POST /api/validate with code=$(CODE) ..."
 	@curl -s --connect-timeout 5 --max-time 10 -X POST \
-		http://$(subst ec2-user@,,$(EC2_HOST)):3000/api/validate \
+		https://premiumdoorcodes.com/api/validate \
 		-H "Content-Type: application/json" \
 		-d '{"code":"$(CODE)"}' | python3 -m json.tool 2>/dev/null || \
-		echo ">>> Failed (is port 3000 open and the server running?)"
+		echo ">>> Failed (is nginx running and SSL configured?)"
 
 clean-remote: ## Remove app files from EC2 (leaves node/pm2 installed)
 	$(SSH_CMD) 'pm2 delete unfunctional-email 2>/dev/null; rm -rf $(REMOTE_DIR)'
