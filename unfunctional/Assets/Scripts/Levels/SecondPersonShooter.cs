@@ -705,7 +705,7 @@ public class Level13_SecondPersonShooter : LevelManager
         npc.detectionRange  = npcDetectionRange;
         npc.attackRange     = npcAttackRange;
         npc.fireRate        = npcFireRate + waveBonus * 0.1f;
-        npc.damage          = npcDamage + waveBonus * 2;
+        npc.damage          = currentWave <= 1 ? 10 : currentWave <= 2 ? 5 : 2;
         npc.accuracy        = Mathf.Clamp01(0.35f + waveBonus * 0.1f);
 
         npc.Initialize(playerTransform, this);
