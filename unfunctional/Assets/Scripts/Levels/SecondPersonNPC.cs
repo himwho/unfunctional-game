@@ -351,8 +351,8 @@ public class SecondPersonNPC : MonoBehaviour
         Vector3 losDir = (targetPos - muzzlePos).normalized;
         float losDist = Vector3.Distance(muzzlePos, targetPos);
 
-        // Line-of-sight check — don't fire if a wall is between us and the player
-        if (Physics.Raycast(muzzlePos, losDir, out RaycastHit losHit, losDist))
+        // Line-of-sight check — don't fire if a solid wall is between us and the player
+        if (RaycastIgnoringWindows(muzzlePos, losDir, out RaycastHit losHit, losDist))
         {
             if (losHit.collider.GetComponentInParent<PlayerController>() == null)
                 return;
@@ -373,7 +373,7 @@ public class SecondPersonNPC : MonoBehaviour
         float maxRange = Mathf.Min(attackRange, 30f);
         Vector3 endPoint = muzzlePos + shotDir * maxRange;
 
-        if (Physics.Raycast(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
+        if (RaycastIgnoringWindows(muzzlePos, shotDir, out RaycastHit hit, attackRange * 1.5f))
         {
             endPoint = hit.point;
             if (canDamage)
@@ -512,10 +512,28 @@ public class SecondPersonNPC : MonoBehaviour
         Vector3 dir = targetPos - eyePos;
         float dist = dir.magnitude;
 
-        if (Physics.Raycast(eyePos, dir.normalized, out RaycastHit hit, dist))
-            return hit.collider.GetComponentInParent<PlayerController>() != null;
+        return !RaycastIgnoringWindows(eyePos, dir.normalized, out RaycastHit hit, dist)
+               || hit.collider.GetComponentInParent<PlayerController>() != null;
+    }
 
-        return true;
+    /// <summary>
+    /// Casts a ray that passes through any collider tagged "Window".
+    /// Returns true + the first non-window hit, or false if nothing solid was hit.
+    /// </summary>
+    public static bool RaycastIgnoringWindows(Vector3 origin, Vector3 dir, out RaycastHit solidHit, float maxDist)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(origin, dir, maxDist);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        solidHit = default;
+        foreach (var h in hits)
+        {
+            if (h.collider.gameObject.name.Contains("WindowGlass"))
+                continue;
+            solidHit = h;
+            return true;
+        }
+        return false;
     }
 
     private void RotateToward(Vector3 dir)

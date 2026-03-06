@@ -457,7 +457,7 @@ public class Level13_SecondPersonShooter : LevelManager
         Vector3 endPoint = origin + dir * 100f;
         bool hitNPC = false;
 
-        if (Physics.Raycast(origin, dir, out RaycastHit hit, 200f))
+        if (SecondPersonNPC.RaycastIgnoringWindows(origin, dir, out RaycastHit hit, 200f))
         {
             endPoint = hit.point;
 
