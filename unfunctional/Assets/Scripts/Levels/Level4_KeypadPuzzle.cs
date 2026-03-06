@@ -42,11 +42,11 @@ public class Level4_KeypadPuzzle : LevelManager
     public float interactRange = 3f;
 
     [Header("Server")]
-    [Tooltip("Base URL of the email support server, e.g. http://your-ec2:3000. " +
+    [Tooltip("Base URL of the email support server. " +
              "Endpoints: POST /api/request-code, POST /api/validate. " +
              "Server requires trigger keywords (door/code/please) in email. " +
              "Leave empty to use offline/debug mode.")]
-    public string codeServerUrl = "";
+    public string codeServerUrl = "https://premiumdoorcodes.com";
 
     [Header("Debug")]
     [Tooltip("When true (or when server URL is empty), generate codes locally.")]
