@@ -111,6 +111,7 @@ public class Level13_SecondPersonShooter : LevelManager
     private Text centerMsg;       // reload / game over / wave clear
     private Image damageFlash;
     private Image hitMarkerImg;
+    private Text debugNPCStateText;
 
     // Arena objects (so we can clean up)
     private List<GameObject> arenaObjects = new List<GameObject>();
@@ -869,6 +870,11 @@ public class Level13_SecondPersonShooter : LevelManager
             40, Color.white, TextAnchor.MiddleCenter);
         centerMsg.gameObject.SetActive(false);
 
+        // -- Debug: NPC state (bottom-center) --
+        debugNPCStateText = MakeText(canvasObj, "DebugNPCState", "",
+            new Vector2(0.3f, 0.01f), new Vector2(0.7f, 0.06f),
+            18, Color.yellow, TextAnchor.MiddleCenter);
+
         // -- Full-screen damage flash --
         damageFlash = MakeImage(canvasObj, "DamageFlash",
             Vector2.zero, Vector2.one,
@@ -892,6 +898,14 @@ public class Level13_SecondPersonShooter : LevelManager
 
         if (killText != null)
             killText.text = $"KILLS: {kills}";
+
+        if (debugNPCStateText != null)
+        {
+            if (currentViewNPC != null && !currentViewNPC.isDead)
+                debugNPCStateText.text = $"NPC: {currentViewNPC.CurrentStateName} | HP: {currentViewNPC.currentHealth}/{currentViewNPC.maxHealth}";
+            else
+                debugNPCStateText.text = "NPC: ---";
+        }
     }
 
     // =========================================================================

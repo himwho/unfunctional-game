@@ -114,6 +114,8 @@ public class SecondPersonNPC : MonoBehaviour
         }
     }
 
+    public string CurrentStateName => state.ToString();
+
     public void AlertToPlayer()
     {
         if (isDead) return;
