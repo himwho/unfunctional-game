@@ -26,6 +26,14 @@ public class Level7_CompassHallways : LevelManager
     [Tooltip("How fast Gorp turns to face the player (degrees/sec).")]
     public float npcTurnSpeed = 90f;
 
+    [Header("NPC Reposition After Dialogue")]
+    [Tooltip("Target X position Gorp moves to after dialogue.")]
+    public float npcTargetX = 1.608f;
+    [Tooltip("Target Y rotation Gorp turns to after dialogue.")]
+    public float npcTargetYRotation = -90f;
+    [Tooltip("How long the reposition takes in seconds.")]
+    public float npcRepositionDuration = 1.0f;
+
     [Header("Exit")]
     [Tooltip("Transform marking the exit location. The compass needle points here.")]
     public Transform exitPoint;
@@ -48,6 +56,8 @@ public class Level7_CompassHallways : LevelManager
     public bool spotlightShadows = false;
     [Tooltip("Scene object to attach above the player as the visible light fixture (e.g. LED_Light_7).")]
     public GameObject spotlightFixture;
+    [Tooltip("Height for the visible fixture model. Set below the ceiling so the player can see it.")]
+    public float fixtureHeight = 2.8f;
 
     private Light playerSpotlight;
 
@@ -67,6 +77,7 @@ public class Level7_CompassHallways : LevelManager
     private Text dialogueDismissText;
     private bool inDialogue = false;
     private bool hasSpokenToNpc = false;
+    private bool npcRepositioning = false;
     private Coroutine typingCoroutine;
     private Animator npcAnimator;
 
@@ -101,6 +112,15 @@ public class Level7_CompassHallways : LevelManager
         UpdateDoorInteraction();
         UpdateNpcInteraction();
         RotateNPCTowardsPlayer();
+    }
+
+    private void LateUpdate()
+    {
+        if (playerSpotlight != null)
+            playerSpotlight.transform.localPosition = new Vector3(0f, spotlightHeight, 0f);
+
+        if (spotlightFixture != null && spotlightFixture.transform.parent != null)
+            spotlightFixture.transform.localPosition = new Vector3(0f, fixtureHeight, 0f);
     }
 
     // =========================================================================
@@ -225,9 +245,15 @@ public class Level7_CompassHallways : LevelManager
         if (spotlightFixture != null)
         {
             Quaternion originalRotation = spotlightFixture.transform.rotation;
+            Vector3 originalScale = spotlightFixture.transform.lossyScale;
             spotlightFixture.transform.SetParent(player, false);
-            spotlightFixture.transform.localPosition = new Vector3(0f, spotlightHeight, 0f);
+            spotlightFixture.transform.localPosition = new Vector3(0f, fixtureHeight, 0f);
             spotlightFixture.transform.rotation = originalRotation;
+            spotlightFixture.transform.localScale = new Vector3(
+                originalScale.x / player.lossyScale.x,
+                originalScale.y / player.lossyScale.y,
+                originalScale.z / player.lossyScale.z
+            );
         }
     }
 
@@ -354,6 +380,38 @@ public class Level7_CompassHallways : LevelManager
 
         if (!compassCanvas.gameObject.activeSelf)
             compassCanvas.gameObject.SetActive(true);
+
+        if (npcObject != null)
+            StartCoroutine(RepositionNpc());
+    }
+
+    private IEnumerator RepositionNpc()
+    {
+        npcRepositioning = true;
+
+        Vector3 startPos = npcObject.transform.position;
+        Vector3 endPos = new Vector3(npcTargetX, startPos.y, startPos.z);
+
+        Quaternion startRot = npcObject.transform.rotation;
+        Quaternion endRot = Quaternion.Euler(
+            startRot.eulerAngles.x,
+            npcTargetYRotation,
+            startRot.eulerAngles.z
+        );
+
+        float elapsed = 0f;
+        while (elapsed < npcRepositionDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / npcRepositionDuration));
+            npcObject.transform.position = Vector3.Lerp(startPos, endPos, t);
+            npcObject.transform.rotation = Quaternion.Slerp(startRot, endRot, t);
+            yield return null;
+        }
+
+        npcObject.transform.position = endPos;
+        npcObject.transform.rotation = endRot;
+        npcRepositioning = false;
     }
 
     // =========================================================================
@@ -362,7 +420,7 @@ public class Level7_CompassHallways : LevelManager
 
     private void RotateNPCTowardsPlayer()
     {
-        if (npcObject == null) return;
+        if (npcObject == null || npcRepositioning) return;
 
         Camera cam = Camera.main;
         if (cam == null) return;
@@ -553,24 +611,38 @@ public class Level7_CompassHallways : LevelManager
 
         reachedEnd = true;
         doorPromptCanvas.gameObject.SetActive(false);
-
-        if (doorController != null)
-        {
-            doorController.OpenDoor();
-            StartCoroutine(WaitForDoorThenComplete());
-        }
-        else
-        {
-            CompleteLevel();
-        }
+        StartCoroutine(DoorOpenSequence());
     }
 
-    private IEnumerator WaitForDoorThenComplete()
+    private IEnumerator DoorOpenSequence()
     {
-        while (doorController != null && doorController.IsAnimating)
-            yield return null;
+        yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitForSeconds(1.5f);
+        if (doorController != null && doorController.doorPanel != null)
+        {
+            GameObject panel = doorController.doorPanel;
+            panel.transform.SetParent(null);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(3f);
+        }
+
         CompleteLevel();
     }
 
