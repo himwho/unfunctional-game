@@ -81,6 +81,7 @@ public class Level5_DumbNPC : LevelManager
     private bool doorOpening = false;
     private bool dialogueCompleted = false;
 
+
     // Base font sizes (set during HUD creation, used for distance scaling)
     private int baseFontSizeDialogue;
     private int baseFontSizeName;
@@ -499,16 +500,33 @@ public class Level5_DumbNPC : LevelManager
     {
         doorOpening = true;
 
-        yield return new WaitForSeconds(0.8f);
-
+        yield return new WaitForSeconds(0.5f);
         if (keypad != null) keypad.Close();
 
-        yield return new WaitForSeconds(0.3f);
+        if (doorController != null && doorController.doorPanel != null)
+        {
+            GameObject panel = doorController.doorPanel;
+            panel.transform.SetParent(null);
 
-        if (doorController != null)
-            doorController.OpenDoor();
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
 
-        yield return new WaitForSeconds(1.5f);
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(3f);
+        }
 
         CompleteLevel();
     }
