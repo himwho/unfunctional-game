@@ -548,7 +548,7 @@ public class Level9_WalkingSimulator : LevelManager
 
     private IEnumerator SubtleLightingTransition()
     {
-        float duration = 3f;
+        float duration = 4f;
         float elapsed = 0f;
 
         Color startAmbient = RenderSettings.ambientSkyColor;
@@ -556,21 +556,36 @@ public class Level9_WalkingSimulator : LevelManager
         float startIntensity = RenderSettings.ambientIntensity;
         float startReflection = RenderSettings.reflectionIntensity;
 
-        // Shift toward a slightly warmer, dimmer tone
+        // Shift toward a noticeably warmer, dimmer tone
         Color targetAmbient = new Color(
-            startAmbient.r + 0.06f,
-            startAmbient.g + 0.02f,
-            startAmbient.b - 0.04f,
+            Mathf.Min(startAmbient.r + 0.08f, 1f),
+            startAmbient.g - 0.01f,
+            Mathf.Max(startAmbient.b - 0.06f, 0f),
             startAmbient.a
         );
         Color targetEquator = new Color(
-            startEquator.r + 0.04f,
-            startEquator.g + 0.01f,
-            startEquator.b - 0.03f,
+            Mathf.Min(startEquator.r + 0.12f, 1f),
+            startEquator.g - 0.01f,
+            Mathf.Max(startEquator.b - 0.10f, 0f),
             startEquator.a
         );
-        float targetIntensity = startIntensity * 0.85f;
-        float targetReflection = startReflection * 0.9f;
+        float targetIntensity = startIntensity * 0.6f;
+        float targetReflection = startReflection * 0.7f;
+
+        // Also dim directional lights so the change is visible even with many lights
+        Light[] allLights = FindObjectsByType<Light>(FindObjectsSortMode.None);
+        var dirLights = new System.Collections.Generic.List<Light>();
+        var dirStartIntensities = new System.Collections.Generic.List<float>();
+        var dirStartColors = new System.Collections.Generic.List<Color>();
+        foreach (var l in allLights)
+        {
+            if (l.type == LightType.Directional)
+            {
+                dirLights.Add(l);
+                dirStartIntensities.Add(l.intensity);
+                dirStartColors.Add(l.color);
+            }
+        }
 
         while (elapsed < duration)
         {
@@ -582,6 +597,19 @@ public class Level9_WalkingSimulator : LevelManager
             RenderSettings.ambientIntensity = Mathf.Lerp(startIntensity, targetIntensity, t);
             RenderSettings.reflectionIntensity = Mathf.Lerp(startReflection, targetReflection, t);
 
+            for (int i = 0; i < dirLights.Count; i++)
+            {
+                if (dirLights[i] == null) continue;
+                dirLights[i].intensity = Mathf.Lerp(dirStartIntensities[i], dirStartIntensities[i] * 0.85f, t);
+                Color warmShift = new Color(
+                    Mathf.Min(dirStartColors[i].r + 0.08f, 1f),
+                    dirStartColors[i].g - 0.02f,
+                    Mathf.Max(dirStartColors[i].b - 0.08f, 0f),
+                    dirStartColors[i].a
+                );
+                dirLights[i].color = Color.Lerp(dirStartColors[i], warmShift, t);
+            }
+
             yield return null;
         }
 
@@ -589,6 +617,18 @@ public class Level9_WalkingSimulator : LevelManager
         RenderSettings.ambientEquatorColor = targetEquator;
         RenderSettings.ambientIntensity = targetIntensity;
         RenderSettings.reflectionIntensity = targetReflection;
+
+        for (int i = 0; i < dirLights.Count; i++)
+        {
+            if (dirLights[i] == null) continue;
+            dirLights[i].intensity = dirStartIntensities[i] * 0.85f;
+            dirLights[i].color = new Color(
+                Mathf.Min(dirStartColors[i].r + 0.08f, 1f),
+                dirStartColors[i].g - 0.02f,
+                Mathf.Max(dirStartColors[i].b - 0.08f, 0f),
+                dirStartColors[i].a
+            );
+        }
     }
 
     // =========================================================================
