@@ -7,8 +7,8 @@ using System.Collections;
 /// a door, Option B is "DLC locked" and never works. If Option A fails, the
 /// player must restart the ENTIRE GAME (no level restart allowed).
 ///
-/// Expects "Button1" and "Button2" GameObjects in the scene (Meshy FBX models).
-/// The script finds renderers on the buttons for highlight/emission effects.
+/// Expects "Button1" and "Button2" parent GameObjects in the scene, each with
+/// "ButtonTop" and "ButtonBase" children. The press animation targets "ButtonTop".
 /// </summary>
 public class Level11_BadRNG : LevelManager
 {
@@ -19,12 +19,15 @@ public class Level11_BadRNG : LevelManager
     [Tooltip("Option B door (right) - DLC locked, never opens")]
     public DoorController optionBDoor;
 
-    [Header("Buttons (scene objects)")]
-    [Tooltip("Option A button object in scene")]
+    [Header("Buttons (scene objects — parent with ButtonTop / ButtonBase children)")]
+    [Tooltip("Option A button parent in scene")]
     public GameObject buttonA;
 
-    [Tooltip("Option B button object in scene")]
+    [Tooltip("Option B button parent in scene")]
     public GameObject buttonB;
+
+    private Transform buttonATop;
+    private Transform buttonBTop;
 
     [Header("RNG Settings")]
     [Range(0f, 1f)]
@@ -46,6 +49,10 @@ public class Level11_BadRNG : LevelManager
     private int attemptCount = 0;
     private bool hasChosen = false;
     private bool doorOpened = false;
+
+    // Billboard labels
+    private Transform[] labelTransforms = new Transform[2];
+    private int labelCount = 0;
 
     private readonly string[] tauntMessages = new string[]
     {
@@ -165,10 +172,16 @@ public class Level11_BadRNG : LevelManager
     private void SetupButtons()
     {
         if (buttonA != null)
+        {
+            buttonATop = buttonA.transform.Find("ButtonTop");
             SpawnLabel(buttonA, "OPTION A\nEASY ROOM\n75% Chance");
+        }
 
         if (buttonB != null)
+        {
+            buttonBTop = buttonB.transform.Find("ButtonTop");
             SpawnLabel(buttonB, "OPTION B\nDIFFICULT ROOM\nCOMING SOON");
+        }
     }
 
     private void SpawnLabel(GameObject button, string label)
@@ -176,9 +189,8 @@ public class Level11_BadRNG : LevelManager
         if (button.transform.Find("Label") != null) return;
 
         GameObject labelObj = new GameObject("Label");
-        labelObj.transform.SetParent(button.transform, false);
-        labelObj.transform.localPosition = new Vector3(0f, 0.8f, 0f);
-        labelObj.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        labelObj.transform.SetParent(button.transform, true);
+        labelObj.transform.position = button.transform.position + Vector3.up * 1.3f;
         TextMesh tm = labelObj.AddComponent<TextMesh>();
         tm.text = label;
         tm.fontSize = 28;
@@ -193,6 +205,24 @@ public class Level11_BadRNG : LevelManager
             MeshRenderer mr = labelObj.GetComponent<MeshRenderer>();
             if (mr != null && font.material != null)
                 mr.material = font.material;
+        }
+
+        if (labelCount < labelTransforms.Length)
+            labelTransforms[labelCount++] = labelObj.transform;
+    }
+
+    private void LateUpdate()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        for (int i = 0; i < labelCount; i++)
+        {
+            if (labelTransforms[i] == null) continue;
+            Vector3 dir = labelTransforms[i].position - cam.transform.position;
+            dir.y = 0f;
+            if (dir.sqrMagnitude > 0.001f)
+                labelTransforms[i].rotation = Quaternion.LookRotation(dir);
         }
     }
 
@@ -211,11 +241,11 @@ public class Level11_BadRNG : LevelManager
 
         if (Physics.Raycast(ray, out RaycastHit hit, 5f))
         {
-            Transform hitRoot = hit.collider.transform.root;
+            Transform hitTransform = hit.collider.transform;
 
-            if (buttonA != null && hitRoot == buttonA.transform)
+            if (buttonA != null && hitTransform.IsChildOf(buttonA.transform))
                 lookingAtA = true;
-            else if (buttonB != null && hitRoot == buttonB.transform)
+            else if (buttonB != null && hitTransform.IsChildOf(buttonB.transform))
                 lookingAtB = true;
         }
 
@@ -248,8 +278,8 @@ public class Level11_BadRNG : LevelManager
         attemptCount++;
         UpdateAttemptDisplay();
 
-        if (buttonA != null)
-            StartCoroutine(ButtonPressAnimation(buttonA.transform));
+        if (buttonATop != null)
+            StartCoroutine(ButtonPressAnimation(buttonATop));
 
         bool success = Random.value <= doorSpawnChance;
         Debug.Log($"[Level11] Attempt #{attemptCount}: Success = {success}");
@@ -261,12 +291,7 @@ public class Level11_BadRNG : LevelManager
             statusText.color = new Color(0.3f, 1f, 0.5f);
             tauntText.text = "";
 
-            if (optionADoor != null)
-                optionADoor.OpenDoor();
-
-            if (frontWallCollider != null)
-                frontWallCollider.enabled = false;
-
+            StartCoroutine(DoorFallSequence());
         }
         else
         {
@@ -287,8 +312,8 @@ public class Level11_BadRNG : LevelManager
         statusText.color = new Color(1f, 0.6f, 0.2f);
         tauntText.text = "Purchase for only $49.99! (Not really available)";
 
-        if (buttonB != null)
-            StartCoroutine(ButtonPressAnimation(buttonB.transform));
+        if (buttonBTop != null)
+            StartCoroutine(ButtonPressAnimation(buttonBTop));
 
         if (optionBDoor != null)
             optionBDoor.ShakeDoor(0.3f, 0.02f);
@@ -322,6 +347,37 @@ public class Level11_BadRNG : LevelManager
         }
 
         button.localPosition = originalPos;
+    }
+
+    private IEnumerator DoorFallSequence()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        if (optionADoor != null && optionADoor.doorPanel != null)
+        {
+            GameObject panel = optionADoor.doorPanel;
+            panel.transform.SetParent(null);
+
+            Rigidbody rb = panel.GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = panel.AddComponent<Rigidbody>();
+
+            rb.isKinematic = false;
+            rb.mass = 40f;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+
+            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
+            Vector3 pushDir = -panel.transform.forward;
+            rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
+        }
+
+        if (frontWallCollider != null)
+            frontWallCollider.enabled = false;
     }
 
     private IEnumerator ResetAfterDLCTaunt()
