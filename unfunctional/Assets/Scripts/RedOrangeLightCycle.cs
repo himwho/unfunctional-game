@@ -24,6 +24,10 @@ public class RedOrangeLightCycle : MonoBehaviour
     [Range(0f, 1f)]
     public float hueMin = 0f;
 
+    [Tooltip("Boundary hue between red and orange phases. Each phase gets half the cycle.")]
+    [Range(0f, 1f)]
+    public float hueMid = 0.04f;
+
     [Tooltip("Maximum hue (orange). ~0.11 = orange, ~0.08 = red-orange.")]
     [Range(0f, 1f)]
     public float hueMax = 0.11f;
@@ -72,7 +76,12 @@ public class RedOrangeLightCycle : MonoBehaviour
         if (_lights == null || _lights.Length == 0) return;
 
         float t = Mathf.PingPong(Time.time / cycleDuration, 1f);
-        float h = Mathf.Lerp(hueMin, hueMax, t);
+
+        float h;
+        if (t < 0.5f)
+            h = Mathf.Lerp(hueMin, hueMid, t * 2f);
+        else
+            h = Mathf.Lerp(hueMid, hueMax, (t - 0.5f) * 2f);
         Color color = Color.HSVToRGB(h, 1f, 1f);
 
         for (int i = 0; i < _lights.Length; i++)
