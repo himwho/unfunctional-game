@@ -1,5 +1,7 @@
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+#endif
 
 namespace SingularBear.Glass
 {
@@ -70,6 +72,7 @@ namespace SingularBear.Glass
 
     private void HandleInput()
     {
+#if ENABLE_INPUT_SYSTEM
         if (Mouse.current == null) return;
 
         if (Mouse.current.rightButton.isPressed)
@@ -89,6 +92,23 @@ namespace SingularBear.Glass
             float zoomInput = scroll * zoomSensitivity;
             _targetDistance -= IsOutsideDistance() ? zoomInput * overShootResistance : zoomInput;
         }
+#else
+        if (Input.GetMouseButton(1))
+        {
+            float yawInput = Input.GetAxis("Mouse X") * rotationSensitivity.x;
+            float pitchInput = Input.GetAxis("Mouse Y") * rotationSensitivity.y;
+
+            _targetYaw += IsOutsideYaw() ? yawInput * overShootResistance : yawInput;
+            _targetPitch -= IsOutsidePitch() ? pitchInput * overShootResistance : pitchInput;
+        }
+
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (Mathf.Abs(scroll) > 0.0001f)
+        {
+            float zoomInput = scroll * zoomSensitivity * 100f;
+            _targetDistance -= IsOutsideDistance() ? zoomInput * overShootResistance : zoomInput;
+        }
+#endif
     }
 
     private void ApplyElasticBounds()
