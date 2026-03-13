@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2529bd80936fbba4199d53a40ef276ef
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/Materials/MAT_Demo_Glass_LightIridecent.mat
+  uploadId: 856524

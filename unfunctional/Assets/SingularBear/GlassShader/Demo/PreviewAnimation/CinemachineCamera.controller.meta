@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cde4270728df5634ea152b25f2f53d58
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288791
+  packageName: PRO GLASS SHADER - Singular Bear
+  packageVersion: 1.0.2
+  assetPath: Assets/SingularBear/GlassShader/Demo/PreviewAnimation/CinemachineCamera.controller
+  uploadId: 856524
