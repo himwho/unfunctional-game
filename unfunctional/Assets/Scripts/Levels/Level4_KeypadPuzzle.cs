@@ -172,6 +172,15 @@ public class Level4_KeypadPuzzle : LevelManager
             Debug.LogWarning("[Level4] No KeypadController found! Add one to the LEVEL_DOOR prefab.");
         }
 
+        if (doorController != null)
+        {
+            GameObject panel = doorController.doorPanel;
+            if (panel == null)
+                panel = doorController.gameObject;
+            if (panel.GetComponent<Collider>() == null)
+                panel.AddComponent<BoxCollider>();
+        }
+
         CreateHUD();
         SetupPhysicalKeypad();
         StartCoroutine(EquipFingerWhenPlayerReady());
@@ -206,8 +215,7 @@ public class Level4_KeypadPuzzle : LevelManager
         hoveredKeypadButton = GetHoveredKeypadButton();
 
         HandleFingerClickAnimation();
-        UpdateInteractPrompt();
-        CheckInteraction();
+        UpdateInteraction();
         UpdateKeypadTimer();
     }
 
@@ -215,75 +223,58 @@ public class Level4_KeypadPuzzle : LevelManager
     // Interaction (raycasting in 3D world)
     // =========================================================================
 
-    private enum InteractTarget { None, Door, StickyNotes }
-
-    /// <summary>
-    /// Uses RaycastAll to collect every collider along the crosshair ray, then
-    /// picks the highest-priority target. This avoids the door's large root
-    /// trigger collider stealing focus from the smaller keypad collider when
-    /// the two overlap.
-    /// </summary>
-    private InteractTarget GetInteractTarget()
-    {
-        Camera cam = Camera.main;
-        if (cam == null) return InteractTarget.None;
-
-        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        RaycastHit[] hits = Physics.RaycastAll(ray, interactRange, ~0, QueryTriggerInteraction.Collide);
-
-        bool foundDoor = false;
-        bool foundSticky = false;
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            if (IsHitOnDoor(hits[i]))
-                foundDoor = true;
-            else if (stickyNotePoint != null &&
-                     Vector3.Distance(hits[i].point, stickyNotePoint.position) < 1.5f)
-                foundSticky = true;
-        }
-
-        if (foundSticky) return InteractTarget.StickyNotes;
-        if (foundDoor) return InteractTarget.Door;
-        return InteractTarget.None;
-    }
-
-    private void CheckInteraction()
-    {
-        if (InputManager.Instance == null || !InputManager.Instance.InteractPressed) return;
-
-        switch (GetInteractTarget())
-        {
-            case InteractTarget.Door:
-                ShowNarration("The door is locked. Use the keypad.", 2.5f);
-                if (doorController != null) doorController.ShakeDoor();
-                break;
-            case InteractTarget.StickyNotes:
-                ShowStickyNoteInfo();
-                break;
-        }
-    }
-
-    private void UpdateInteractPrompt()
+    private void UpdateInteraction()
     {
         if (interactPromptText == null) return;
 
-        string prompt;
-        switch (GetInteractTarget())
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        bool lookingAtDoor = false;
+        bool lookingAtStickyNotes = false;
+
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Collide))
         {
-            case InteractTarget.Door:
-                prompt = "[E] Try Door";
-                break;
-            case InteractTarget.StickyNotes:
-                prompt = "[E] Read Notes";
-                break;
-            default:
-                interactPromptText.enabled = false;
-                return;
+            if (IsHitOnKeypad(hit))
+            {
+                // looking at keypad — no prompt, finger handles it
+            }
+            else if (IsHitOnDoor(hit))
+            {
+                lookingAtDoor = true;
+            }
+            else if (stickyNotePoint != null &&
+                     Vector3.Distance(hit.point, stickyNotePoint.position) < 1.5f)
+            {
+                lookingAtStickyNotes = true;
+            }
         }
 
-        interactPromptText.enabled = true;
-        interactPromptText.text = prompt;
+        if (lookingAtDoor)
+        {
+            interactPromptText.text = "Press [E] to open";
+            interactPromptText.enabled = true;
+            if (InputManager.Instance != null && InputManager.Instance.InteractPressed)
+            {
+                if (doorController != null)
+                    doorController.ShakeDoor();
+                ShowNarration("Did you e-mail Rodney for the code?", 3f);
+            }
+        }
+        else if (lookingAtStickyNotes)
+        {
+            interactPromptText.text = "[E] Read Notes";
+            interactPromptText.enabled = true;
+            if (InputManager.Instance != null && InputManager.Instance.InteractPressed)
+            {
+                ShowStickyNoteInfo();
+            }
+        }
+        else
+        {
+            interactPromptText.enabled = false;
+        }
     }
 
     // =========================================================================
@@ -667,6 +658,7 @@ public class Level4_KeypadPuzzle : LevelManager
     private void OnCodeRejected(string reason)
     {
         if (keypad != null) keypad.FlashRejectCode();
+        if (doorController != null) doorController.ShakeDoor();
         failedAttempts++;
         ShowFailNarration();
     }
