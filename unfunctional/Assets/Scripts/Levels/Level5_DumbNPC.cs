@@ -74,6 +74,8 @@ public class Level5_DumbNPC : LevelManager
     private Text dialogueText;
     private Text promptText;
     private CanvasGroup dialogueCanvasGroup;
+    private Text narrationText;
+    private CanvasGroup narrationCanvasGroup;
 
     // Interact prompt (shown when near NPC but not yet talking)
     private Canvas interactPromptCanvas;
@@ -104,6 +106,8 @@ public class Level5_DumbNPC : LevelManager
     private KeypadController keypad;
     private bool doorOpening = false;
     private bool dialogueCompleted = false;
+    private Coroutine pendingWrongCodeHintCoroutine;
+    private Coroutine narrationFadeCoroutine;
     private GameObject equippedFingerInstance;
     private Animator equippedFingerAnimator;
     private WorldKeypadButton hoveredKeypadButton;
@@ -175,6 +179,7 @@ public class Level5_DumbNPC : LevelManager
         CreateInteractPrompt();
         CreateDoorHUD();
         StartCoroutine(EquipFingerWhenPlayerReady());
+        ShowNarration("A padded room...creepy. Who is that at the end?", 4f);
 
         baseFontSizeDialogue = dialogueText.fontSize;
         baseFontSizeName = npcNameText.fontSize;
@@ -771,8 +776,26 @@ public class Level5_DumbNPC : LevelManager
             keypad.FlashRejectCode();
 
             if (!dialogueCompleted)
-                keypad.SetStatus("Maybe talk to " + npcName + " first?", new Color(1f, 0.8f, 0.3f));
+            {
+                if (pendingWrongCodeHintCoroutine != null)
+                    StopCoroutine(pendingWrongCodeHintCoroutine);
+
+                pendingWrongCodeHintCoroutine = StartCoroutine(ShowWrongCodeHintAfterRejectFlash());
+            }
         }
+    }
+
+    private IEnumerator ShowWrongCodeHintAfterRejectFlash()
+    {
+        yield return new WaitForSeconds(0.36f);
+
+        if (!dialogueCompleted && keypad != null)
+        {
+            keypad.SetStatus("Maybe talk to " + npcName + " first?", new Color(1f, 0.8f, 0.3f));
+            ShowNarration("Maybe talk to " + npcName + " first?", 3f);
+        }
+
+        pendingWrongCodeHintCoroutine = null;
     }
 
     private IEnumerator OpenDoorSequence()
@@ -804,9 +827,9 @@ public class Level5_DumbNPC : LevelManager
             Vector3 pushDir = -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
 
-            yield return new WaitForSeconds(3f);
+            ShowNarration("Well done. Gorp was useful after all.", 3f);
+            yield return new WaitForSeconds(2f);
         }
-
         CompleteLevel();
     }
 
@@ -1367,6 +1390,24 @@ public class Level5_DumbNPC : LevelManager
         promptRect.anchorMax = new Vector2(0.7f, 0.48f);
         promptRect.offsetMin = Vector2.zero;
         promptRect.offsetMax = Vector2.zero;
+
+        GameObject narObj = new GameObject("NarrationText");
+        narObj.transform.SetParent(canvasObj.transform, false);
+        narrationCanvasGroup = narObj.AddComponent<CanvasGroup>();
+        narrationCanvasGroup.alpha = 0f;
+        narrationText = narObj.AddComponent<Text>();
+        narrationText.font = UIHelper.GetDefaultFont();
+        narrationText.fontSize = 24;
+        narrationText.alignment = TextAnchor.MiddleCenter;
+        narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        narrationText.fontStyle = FontStyle.Italic;
+        narrationText.raycastTarget = false;
+
+        RectTransform narRect = narObj.GetComponent<RectTransform>();
+        narRect.anchorMin = new Vector2(0.1f, 0.05f);
+        narRect.anchorMax = new Vector2(0.9f, 0.14f);
+        narRect.offsetMin = Vector2.zero;
+        narRect.offsetMax = Vector2.zero;
     }
 
     // =========================================================================
@@ -1442,6 +1483,43 @@ public class Level5_DumbNPC : LevelManager
         promptRect.anchorMax = new Vector2(0.9f, 0.10f);
         promptRect.offsetMin = Vector2.zero;
         promptRect.offsetMax = Vector2.zero;
+    }
+
+    private void ShowNarration(string text, float duration)
+    {
+        if (narrationText == null || narrationCanvasGroup == null) return;
+
+        narrationText.text = text;
+        if (narrationFadeCoroutine != null)
+            StopCoroutine(narrationFadeCoroutine);
+
+        narrationFadeCoroutine = StartCoroutine(FadeCanvasGroup(narrationCanvasGroup, duration));
+    }
+
+    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float holdDuration)
+    {
+        float fadeIn = 0.4f;
+        float fadeOut = 1f;
+
+        float t = 0f;
+        while (t < fadeIn)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Clamp01(t / fadeIn);
+            yield return null;
+        }
+        cg.alpha = 1f;
+
+        yield return new WaitForSeconds(holdDuration);
+
+        t = 0f;
+        while (t < fadeOut)
+        {
+            t += Time.deltaTime;
+            cg.alpha = 1f - Mathf.Clamp01(t / fadeOut);
+            yield return null;
+        }
+        cg.alpha = 0f;
     }
 
     // =========================================================================
