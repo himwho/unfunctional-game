@@ -1806,7 +1806,7 @@ MonoBehaviour:
   fingerTipChildName: FingerTip
   doorController: {fileID: 368967943}
   codeValiditySeconds: 60
-  interactRange: 3
+  interactRange: 1
   keypadButtonAimRadius: 0.08
   keypadAimOffsetX: 190
   keypadAimOffsetY: -320

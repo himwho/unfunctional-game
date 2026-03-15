@@ -537,7 +537,7 @@ public class Level4_KeypadPuzzle : LevelManager
         if (cam == null || physicalKeypadRoot == null)
             return null;
 
-        float maxDistance = Mathf.Max(interactRange, 6f);
+        float maxDistance = interactRange;
         Vector3 screenPoint = GetKeypadAimScreenPoint();
         Ray ray = cam.ScreenPointToRay(screenPoint);
         RaycastHit[] directHits = Physics.RaycastAll(ray, maxDistance, ~0, QueryTriggerInteraction.Collide);
