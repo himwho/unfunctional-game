@@ -950,6 +950,17 @@ MonoBehaviour:
   requiredBrowseCount: 8
   freeCreditsAmount: 99999
   doorDLCPrice: 49999
+  fingerAnimatedPrefab: {fileID: 8166403833701440023, guid: e18fd20247b4ed84bb8a2693722bb565,
+    type: 3}
+  fingerHeldLocalPosition: {x: 0.28, y: -0.4, z: 0.6}
+  fingerHeldLocalRotation: {x: 8, y: 90, z: 1}
+  fingerHeldLocalScale: {x: 0.7, y: 0.7, z: 0.7}
+  fingerClickTriggerName: Straighten
+  fingerKeypadPressDelay: 0.5
+  keypadButtonAimRadius: 0.08
+  keypadAimOffsetX: 190
+  keypadAimOffsetY: -320
+  doorInteractRange: 3
 --- !u!4 &798925454
 Transform:
   m_ObjectHideFlags: 0

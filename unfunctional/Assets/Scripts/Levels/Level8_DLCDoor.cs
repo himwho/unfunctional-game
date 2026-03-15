@@ -1,7 +1,10 @@
-using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using NavKeypad;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 /// <summary>
 /// LEVEL 8 – DLC Door
@@ -33,12 +36,38 @@ public class Level8_DLCDoor : LevelManager
     public int freeCreditsAmount = 99999;
     public int doorDLCPrice = 49999;
 
+    [Header("Player Prop")]
+    [Tooltip("Assign the Finger_Animated prefab here to equip it to the player.")]
+    public GameObject fingerAnimatedPrefab;
+    [Tooltip("Local position of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalPosition = new Vector3(0.28f, -0.4f, 0.6f);
+    [Tooltip("Local rotation of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalRotation = new Vector3(8f, 90f, 1f);
+    [Tooltip("Local scale of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalScale = new Vector3(0.7f, 0.7f, 0.7f);
+    [Tooltip("Animator trigger fired when the player left-clicks.")]
+    public string fingerClickTriggerName = "Straighten";
+    [Tooltip("Delay before a keypad button press is registered, so it lines up with the finger reaching full extension.")]
+    public float fingerKeypadPressDelay = 0.5f;
+
+    [Header("Physical Keypad")]
+    public float keypadButtonAimRadius = 0.08f;
+    [Tooltip("Horizontal screen-space offset in pixels used when aiming keypad buttons.")]
+    public float keypadAimOffsetX = 190f;
+    [Tooltip("Vertical screen-space offset in pixels used when aiming keypad buttons.")]
+    public float keypadAimOffsetY = -320f;
+    [Tooltip("How close the player needs to be to interact with the physical keypad.")]
+    public float doorInteractRange = 3f;
+
     // ── Runtime UI ──────────────────────────────────────────────────────────
     private Canvas shopCanvas;
     private Canvas hudCanvas;
     private Text hudPromptText;
     private Text creditText;
     private Text browseCountText;
+    private Text narrationText;
+    private CanvasGroup narrationCanvasGroup;
+    private Coroutine narrationFadeCoroutine;
 
     private GameObject shopPanel;
     private GameObject itemDetailPanel;
@@ -69,6 +98,18 @@ public class Level8_DLCDoor : LevelManager
     // ── Keypad / door code ──────────────────────────────────────────────────
     private KeypadController keypad;
     private string doorCode = "";
+
+    // ── Finger prop / physical keypad ────────────────────────────────────
+    private const int FingerViewModelLayer = 30;
+    private GameObject equippedFingerInstance;
+    private Animator equippedFingerAnimator;
+    private WorldKeypadButton hoveredKeypadButton;
+    private Transform physicalKeypadRoot;
+    private Coroutine pendingFingerPressCoroutine;
+    private Camera fingerViewModelCamera;
+    private Camera fingerBaseCamera;
+    private int fingerBaseCameraOriginalCullingMask;
+    private bool fingerBaseCameraMaskCaptured;
 
     // ── Shop catalogue ──────────────────────────────────────────────────────
     // Each item: { name, description, price, review, rating }
@@ -116,14 +157,31 @@ public class Level8_DLCDoor : LevelManager
         SetupDoor();
         CreateShopUI();
         CreateHUD();
+        StartCoroutine(EquipFingerWhenPlayerReady());
+    }
+
+    protected override void OnDestroy()
+    {
+        if (keypad != null)
+        {
+            keypad.OnCodeSubmitted -= HandleCodeSubmitted;
+            keypad.UnregisterExternalDisplay();
+        }
+
+        if (equippedFingerInstance != null)
+            Destroy(equippedFingerInstance);
+
+        CleanupFingerViewModelCamera();
+        base.OnDestroy();
     }
 
     private void Update()
     {
         if (levelComplete) return;
 
-        // Don't run interaction while the keypad overlay is active
-        if (keypad != null && keypad.IsOpen) return;
+        UpdateEquippedFingerTransform();
+        hoveredKeypadButton = GetHoveredKeypadButton();
+        HandleFingerClickAnimation();
 
         if (!shopOpen)
         {
@@ -152,23 +210,17 @@ public class Level8_DLCDoor : LevelManager
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Collide))
         {
-            Transform root = hit.collider.transform.root;
-            string hitName = hit.collider.gameObject.name;
-
             if (tabletObject != null &&
                 (hit.collider.gameObject == tabletObject ||
                  hit.collider.transform.IsChildOf(tabletObject.transform)))
             {
                 lookingAtTablet = true;
             }
-            else if (doorController != null && root == doorController.transform)
+            else if (IsHitOnKeypad(hit))
             {
-                if (hitName.Contains("Keypad") || hitName.Contains("keypad"))
-                    lookingAtKeypad = true;
-                else
-                    lookingAtDoor = true;
+                lookingAtKeypad = true;
             }
-            else if (hitName.Contains("Door") || hitName.Contains("DLC"))
+            else if (IsHitOnDoor(hit))
             {
                 lookingAtDoor = true;
             }
@@ -192,17 +244,17 @@ public class Level8_DLCDoor : LevelManager
             }
             else
             {
-                hudPromptText.text = "Enter the code on the door keypad";
+                hudCanvas.gameObject.SetActive(false);
+                return;
             }
             hudCanvas.gameObject.SetActive(true);
         }
-        else if (lookingAtAnyDoorPart)
+        else if (lookingAtDoor)
         {
             if (dlcPurchased && codeRevealed)
             {
-                hudPromptText.text = "Press [E] to enter door code";
-                if (Input.GetKeyDown(KeyCode.E) && keypad != null)
-                    keypad.Open();
+                hudCanvas.gameObject.SetActive(false);
+                return;
             }
             else if (dlcPurchased && !codeRevealed)
             {
@@ -212,7 +264,13 @@ public class Level8_DLCDoor : LevelManager
             }
             else
             {
-                hudPromptText.text = "Use the tablet to open the store";
+                hudPromptText.text = "Press [E] to open";
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    if (doorController != null)
+                        doorController.ShakeDoor();
+                    ShowNarration("You need to purchase DLC to get the code.", 3f);
+                }
             }
             hudCanvas.gameObject.SetActive(true);
         }
@@ -220,6 +278,38 @@ public class Level8_DLCDoor : LevelManager
         {
             hudCanvas.gameObject.SetActive(false);
         }
+    }
+
+    // =====================================================================
+    // Hit Detection Helpers
+    // =====================================================================
+
+    private bool IsHitOnKeypad(RaycastHit hit)
+    {
+        if (physicalKeypadRoot != null && hit.collider.transform.IsChildOf(physicalKeypadRoot))
+            return true;
+
+        if (doorController != null)
+        {
+            if (doorController.keypadMount != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadMount.transform))
+                return true;
+            if (doorController.keypadPanel != null &&
+                hit.collider.transform.IsChildOf(doorController.keypadPanel.transform))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsHitOnDoor(RaycastHit hit)
+    {
+        if (IsHitOnKeypad(hit)) return false;
+
+        if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
+            return true;
+
+        return false;
     }
 
     // =====================================================================
@@ -735,7 +825,7 @@ public class Level8_DLCDoor : LevelManager
         }
         else
         {
-            keypad.RejectCode("WRONG CODE – TRY AGAIN");
+            keypad.FlashRejectCode();
             if (doorController != null)
                 doorController.ShakeDoor();
         }
@@ -778,10 +868,485 @@ public class Level8_DLCDoor : LevelManager
             Vector3 pushDir = -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
 
+            ShowNarration("Thanks for purchasing DLC!", 3f);
             yield return new WaitForSeconds(3f);
         }
 
         CompleteLevel();
+    }
+
+    // =====================================================================
+    // Physical Keypad Setup
+    // =====================================================================
+
+    private void SetupPhysicalKeypad()
+    {
+        if (keypad == null || doorController == null)
+            return;
+
+        physicalKeypadRoot = ResolvePhysicalKeypadRoot();
+        if (physicalKeypadRoot == null)
+        {
+            Debug.LogWarning("[Level8] Could not resolve the physical keypad root.");
+            return;
+        }
+
+        DisableLegacyPhysicalKeypadBehavior();
+        SetupWorldKeypadDisplay();
+        SetupWorldKeypadButtons();
+        keypad.ClearInput();
+        keypad.SetStatus("Enter the " + keypad.codeLength + "-digit code", Color.white);
+        keypad.SetTimer("", Color.white);
+    }
+
+    private void DisableLegacyPhysicalKeypadBehavior()
+    {
+        if (physicalKeypadRoot == null) return;
+
+        Keypad[] legacyKeypads = physicalKeypadRoot.GetComponentsInParent<Keypad>(true);
+        for (int i = 0; i < legacyKeypads.Length; i++)
+            legacyKeypads[i].enabled = false;
+
+        KeypadButton[] legacyButtons = physicalKeypadRoot.GetComponentsInChildren<KeypadButton>(true);
+        for (int i = 0; i < legacyButtons.Length; i++)
+            legacyButtons[i].enabled = false;
+    }
+
+    private void SetupWorldKeypadDisplay()
+    {
+        Canvas displayCanvas = physicalKeypadRoot != null
+            ? physicalKeypadRoot.GetComponentInChildren<Canvas>(true)
+            : null;
+        if (displayCanvas == null)
+        {
+            Debug.LogWarning("[Level8] No world-space keypad display canvas found.");
+            return;
+        }
+
+        TMP_Text legacyDisplayText = null;
+        Transform legacyDisplayTextTransform = FindNamedDescendant(displayCanvas.transform, "DisplayText");
+        if (legacyDisplayTextTransform != null)
+            legacyDisplayText = legacyDisplayTextTransform.GetComponent<TMP_Text>();
+
+        if (legacyDisplayText != null)
+            keypad.RegisterExternalDisplay(legacyDisplayText);
+
+        Font font = UIHelper.GetDefaultFont();
+        Text statusDisplay = GetOrCreateWorldDisplayText(
+            displayCanvas.transform,
+            "Level8StatusDisplay",
+            font,
+            12,
+            new Color(0.8f, 0.8f, 0.8f),
+            new Vector2(0.02f, 0.02f),
+            new Vector2(0.98f, 0.18f),
+            TextAnchor.MiddleCenter);
+
+        keypad.RegisterExternalDisplay(null, null, statusDisplay);
+    }
+
+    private Text GetOrCreateWorldDisplayText(
+        Transform parent,
+        string name,
+        Font font,
+        int fontSize,
+        Color color,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        TextAnchor alignment)
+    {
+        Transform existing = parent.Find(name);
+        GameObject textObj = existing != null ? existing.gameObject : new GameObject(name);
+        if (existing == null)
+        {
+            textObj.transform.SetParent(parent, false);
+            textObj.AddComponent<RectTransform>();
+        }
+
+        RectTransform rect = textObj.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Text text = textObj.GetComponent<Text>();
+        if (text == null)
+            text = textObj.AddComponent<Text>();
+
+        text.font = font;
+        text.fontSize = fontSize;
+        text.alignment = alignment;
+        text.color = color;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private void SetupWorldKeypadButtons()
+    {
+        Transform keypadRoot = physicalKeypadRoot;
+
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn0", 0);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn1", 1);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn2", 2);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn3", 3);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn4", 4);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn5", 5);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn6", 6);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn7", 7);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn8", 8);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn9", 9);
+        ConfigureExistingKeypadAction(keypadRoot, "bttnEnter", WorldKeypadButton.ButtonAction.Submit, "OK");
+    }
+
+    private void ConfigureExistingKeypadDigit(Transform keypadRoot, string buttonName, int digit)
+    {
+        Transform buttonTransform = FindNamedDescendant(keypadRoot, buttonName);
+        if (buttonTransform == null)
+        {
+            Debug.LogWarning($"[Level8] Keypad button '{buttonName}' not found.");
+            return;
+        }
+
+        WorldKeypadButton button = GetOrAddWorldKeypadButton(buttonTransform);
+        button.ConfigureDigit(digit);
+    }
+
+    private void ConfigureExistingKeypadAction(
+        Transform keypadRoot,
+        string buttonName,
+        WorldKeypadButton.ButtonAction action,
+        string promptLabel)
+    {
+        Transform buttonTransform = FindNamedDescendant(keypadRoot, buttonName);
+        if (buttonTransform == null)
+        {
+            Debug.LogWarning($"[Level8] Keypad button '{buttonName}' not found.");
+            return;
+        }
+
+        WorldKeypadButton button = GetOrAddWorldKeypadButton(buttonTransform);
+        button.ConfigureAction(action, promptLabel);
+    }
+
+    private WorldKeypadButton GetOrAddWorldKeypadButton(Transform buttonTransform)
+    {
+        WorldKeypadButton button = buttonTransform.GetComponent<WorldKeypadButton>();
+        if (button == null)
+            button = buttonTransform.gameObject.AddComponent<WorldKeypadButton>();
+
+        Collider col = buttonTransform.GetComponent<Collider>();
+        if (col != null)
+            col.enabled = true;
+
+        return button;
+    }
+
+    private Transform FindNamedDescendant(Transform root, string objectName)
+    {
+        if (root == null) return null;
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == objectName)
+                return children[i];
+        }
+
+        return null;
+    }
+
+    private Transform ResolvePhysicalKeypadRoot()
+    {
+        if (doorController == null) return null;
+
+        Transform buttons = FindNamedDescendant(doorController.transform, "Buttons");
+        if (buttons != null && buttons.parent != null)
+            return buttons.parent;
+
+        Transform displayCanvas = FindNamedDescendant(doorController.transform, "DisplayCanvas");
+        if (displayCanvas != null && displayCanvas.parent != null)
+            return displayCanvas.parent;
+
+        if (doorController.keypadMount != null)
+            return doorController.keypadMount.transform;
+
+        return null;
+    }
+
+    private WorldKeypadButton GetHoveredKeypadButton()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || physicalKeypadRoot == null)
+            return null;
+
+        float maxDistance = doorInteractRange;
+        Vector3 screenPoint = GetKeypadAimScreenPoint();
+        Ray ray = cam.ScreenPointToRay(screenPoint);
+        RaycastHit[] directHits = Physics.RaycastAll(ray, maxDistance, ~0, QueryTriggerInteraction.Collide);
+        WorldKeypadButton directButton = FindClosestKeypadButton(directHits);
+        if (directButton != null)
+            return directButton;
+
+        RaycastHit[] hits = Physics.SphereCastAll(
+            ray,
+            keypadButtonAimRadius,
+            maxDistance,
+            ~0,
+            QueryTriggerInteraction.Collide);
+
+        return FindClosestKeypadButton(hits);
+    }
+
+    private Vector3 GetKeypadAimScreenPoint()
+    {
+        return new Vector3(
+            (Screen.width * 0.5f) + keypadAimOffsetX,
+            (Screen.height * 0.5f) + keypadAimOffsetY,
+            0f);
+    }
+
+    private WorldKeypadButton FindClosestKeypadButton(RaycastHit[] hits)
+    {
+        float closestDistance = float.MaxValue;
+        WorldKeypadButton closestButton = null;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            WorldKeypadButton button = hits[i].collider.GetComponentInParent<WorldKeypadButton>();
+            if (button == null) continue;
+            if (!button.transform.IsChildOf(physicalKeypadRoot)) continue;
+            if (hits[i].distance >= closestDistance) continue;
+
+            closestDistance = hits[i].distance;
+            closestButton = button;
+        }
+
+        return closestButton;
+    }
+
+    // =====================================================================
+    // Finger Prop
+    // =====================================================================
+
+    private IEnumerator EquipFingerWhenPlayerReady()
+    {
+        if (fingerAnimatedPrefab == null)
+        {
+            Debug.LogWarning("[Level8] No Finger_Animated prefab assigned.");
+            yield break;
+        }
+
+        const float timeoutSeconds = 5f;
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            Transform attachPoint = GetFingerAttachPoint();
+            if (attachPoint != null)
+            {
+                EquipFingerPrefab(attachPoint, fingerAnimatedPrefab);
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        Debug.LogWarning("[Level8] Could not find the player camera to equip Finger_Animated.");
+    }
+
+    private Transform GetFingerAttachPoint()
+    {
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+            return mainCam.transform;
+
+        PlayerController playerController = FindAnyObjectByType<PlayerController>();
+        if (playerController != null && playerController.cameraTransform != null)
+            return playerController.cameraTransform;
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Camera playerCamera = player.GetComponentInChildren<Camera>();
+            if (playerCamera != null)
+                return playerCamera.transform;
+        }
+
+        return null;
+    }
+
+    private void EquipFingerPrefab(Transform attachPoint, GameObject prefab)
+    {
+        Transform existing = attachPoint.Find("Finger_Animated_Equipped");
+        if (existing != null)
+        {
+            equippedFingerInstance = existing.gameObject;
+            CacheFingerAnimator();
+            SetupFingerViewModelRendering(attachPoint);
+            UpdateEquippedFingerTransform();
+            return;
+        }
+
+        equippedFingerInstance = Instantiate(prefab, attachPoint);
+        equippedFingerInstance.name = "Finger_Animated_Equipped";
+        CacheFingerAnimator();
+        SetupFingerViewModelRendering(attachPoint);
+        UpdateEquippedFingerTransform();
+
+        foreach (Collider col in equippedFingerInstance.GetComponentsInChildren<Collider>(true))
+            col.enabled = false;
+
+        foreach (Rigidbody rb in equippedFingerInstance.GetComponentsInChildren<Rigidbody>(true))
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+    }
+
+    private void CacheFingerAnimator()
+    {
+        equippedFingerAnimator = equippedFingerInstance != null
+            ? equippedFingerInstance.GetComponentInChildren<Animator>(true)
+            : null;
+    }
+
+    private void SetupFingerViewModelRendering(Transform attachPoint)
+    {
+        if (equippedFingerInstance == null || attachPoint == null) return;
+
+        Camera baseCamera = attachPoint.GetComponent<Camera>();
+        if (baseCamera == null)
+            baseCamera = attachPoint.GetComponentInChildren<Camera>();
+        if (baseCamera == null)
+            return;
+
+        fingerBaseCamera = baseCamera;
+        if (!fingerBaseCameraMaskCaptured)
+        {
+            fingerBaseCameraOriginalCullingMask = fingerBaseCamera.cullingMask;
+            fingerBaseCameraMaskCaptured = true;
+        }
+
+        SetLayerRecursively(equippedFingerInstance, FingerViewModelLayer);
+        fingerBaseCamera.cullingMask &= ~(1 << FingerViewModelLayer);
+
+        if (fingerViewModelCamera == null)
+        {
+            Transform existingCamera = attachPoint.Find("FingerViewModelCamera");
+            if (existingCamera != null)
+                fingerViewModelCamera = existingCamera.GetComponent<Camera>();
+        }
+
+        if (fingerViewModelCamera == null)
+        {
+            GameObject cameraObject = new GameObject("FingerViewModelCamera");
+            cameraObject.transform.SetParent(attachPoint, false);
+            fingerViewModelCamera = cameraObject.AddComponent<Camera>();
+        }
+
+        fingerViewModelCamera.transform.localPosition = Vector3.zero;
+        fingerViewModelCamera.transform.localRotation = Quaternion.identity;
+        fingerViewModelCamera.nearClipPlane = 0.01f;
+        fingerViewModelCamera.farClipPlane = 10f;
+        fingerViewModelCamera.fieldOfView = fingerBaseCamera.fieldOfView;
+        fingerViewModelCamera.cullingMask = 1 << FingerViewModelLayer;
+        fingerViewModelCamera.allowHDR = fingerBaseCamera.allowHDR;
+        fingerViewModelCamera.allowMSAA = fingerBaseCamera.allowMSAA;
+        fingerViewModelCamera.enabled = true;
+
+        UniversalAdditionalCameraData baseData = fingerBaseCamera.GetComponent<UniversalAdditionalCameraData>();
+        UniversalAdditionalCameraData viewModelData = fingerViewModelCamera.GetComponent<UniversalAdditionalCameraData>();
+        if (viewModelData == null)
+            viewModelData = fingerViewModelCamera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+
+        if (baseData != null)
+        {
+            viewModelData.renderType = CameraRenderType.Overlay;
+            if (!baseData.cameraStack.Contains(fingerViewModelCamera))
+                baseData.cameraStack.Add(fingerViewModelCamera);
+        }
+        else
+        {
+            fingerViewModelCamera.clearFlags = CameraClearFlags.Depth;
+            fingerViewModelCamera.depth = fingerBaseCamera.depth + 1f;
+        }
+    }
+
+    private void CleanupFingerViewModelCamera()
+    {
+        if (fingerBaseCamera != null && fingerBaseCameraMaskCaptured)
+            fingerBaseCamera.cullingMask = fingerBaseCameraOriginalCullingMask;
+
+        if (fingerBaseCamera != null)
+        {
+            UniversalAdditionalCameraData baseData = fingerBaseCamera.GetComponent<UniversalAdditionalCameraData>();
+            if (baseData != null && fingerViewModelCamera != null)
+                baseData.cameraStack.Remove(fingerViewModelCamera);
+        }
+
+        if (fingerViewModelCamera != null)
+            Destroy(fingerViewModelCamera.gameObject);
+
+        fingerViewModelCamera = null;
+        fingerBaseCamera = null;
+        fingerBaseCameraMaskCaptured = false;
+    }
+
+    private void SetLayerRecursively(GameObject obj, int layer)
+    {
+        if (obj == null) return;
+
+        obj.layer = layer;
+        Transform[] children = obj.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+            children[i].gameObject.layer = layer;
+    }
+
+    private void UpdateEquippedFingerTransform()
+    {
+        if (equippedFingerInstance == null) return;
+
+        equippedFingerInstance.transform.localPosition = fingerHeldLocalPosition;
+        equippedFingerInstance.transform.localRotation = Quaternion.Euler(fingerHeldLocalRotation);
+        equippedFingerInstance.transform.localScale = fingerHeldLocalScale;
+    }
+
+    private void HandleFingerClickAnimation()
+    {
+        if (!Input.GetMouseButtonDown(0)) return;
+
+        WorldKeypadButton targetButton = hoveredKeypadButton != null
+            ? hoveredKeypadButton
+            : GetHoveredKeypadButton();
+
+        if (equippedFingerAnimator != null && !string.IsNullOrWhiteSpace(fingerClickTriggerName))
+        {
+            equippedFingerAnimator.ResetTrigger(fingerClickTriggerName);
+            equippedFingerAnimator.SetTrigger(fingerClickTriggerName);
+        }
+
+        if (keypad != null)
+        {
+            if (pendingFingerPressCoroutine != null)
+                StopCoroutine(pendingFingerPressCoroutine);
+
+            pendingFingerPressCoroutine = StartCoroutine(PressKeypadButtonAfterDelay(
+                fingerKeypadPressDelay,
+                targetButton));
+        }
+    }
+
+    private IEnumerator PressKeypadButtonAfterDelay(float delay, WorldKeypadButton targetButton)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        if (targetButton != null && keypad != null)
+            targetButton.Press(keypad);
+
+        pendingFingerPressCoroutine = null;
     }
 
     // =====================================================================
@@ -935,6 +1500,7 @@ public class Level8_DLCDoor : LevelManager
                 keypad.hintText = "Enter your purchased access code";
                 keypad.showRequestCodeButton = false;
                 keypad.OnCodeSubmitted += HandleCodeSubmitted;
+                SetupPhysicalKeypad();
             }
 
             Debug.Log($"[Level8] Door wired (kept scene position). Keypad ready. Code: {doorCode}");
@@ -1007,6 +1573,65 @@ public class Level8_DLCDoor : LevelManager
         rect.offsetMax = Vector2.zero;
 
         hudCanvas.gameObject.SetActive(false);
+
+        // Narration on its own always-active canvas so it persists when HUD hides
+        GameObject narCanvasObj = new GameObject("NarrationHUD");
+        narCanvasObj.transform.SetParent(transform);
+        Canvas narCanvas = narCanvasObj.AddComponent<Canvas>();
+        UIHelper.ConfigureCanvas(narCanvas, sortingOrder: 16);
+        CanvasScaler narScaler = narCanvasObj.AddComponent<CanvasScaler>();
+        narScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        narScaler.referenceResolution = new Vector2(1920, 1080);
+
+        GameObject narObj = new GameObject("NarrationText");
+        narObj.transform.SetParent(narCanvasObj.transform, false);
+        narrationCanvasGroup = narObj.AddComponent<CanvasGroup>();
+        narrationCanvasGroup.alpha = 0f;
+        narrationText = narObj.AddComponent<Text>();
+        narrationText.font = UIHelper.GetDefaultFont();
+        narrationText.fontSize = 24;
+        narrationText.alignment = TextAnchor.MiddleCenter;
+        narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        narrationText.fontStyle = FontStyle.Italic;
+        narrationText.raycastTarget = false;
+
+        RectTransform narRect = narObj.GetComponent<RectTransform>();
+        narRect.anchorMin = new Vector2(0.1f, 0.05f);
+        narRect.anchorMax = new Vector2(0.9f, 0.14f);
+        narRect.offsetMin = Vector2.zero;
+        narRect.offsetMax = Vector2.zero;
+    }
+
+    private void ShowNarration(string message, float dur)
+    {
+        if (narrationText == null || narrationCanvasGroup == null) return;
+        narrationText.text = message;
+        if (narrationFadeCoroutine != null)
+            StopCoroutine(narrationFadeCoroutine);
+        narrationFadeCoroutine = StartCoroutine(NarrationFadeRoutine(narrationCanvasGroup, dur));
+    }
+
+    private IEnumerator NarrationFadeRoutine(CanvasGroup cg, float holdDuration)
+    {
+        float fadeIn = 0.4f;
+        float fadeOut = 1f;
+        float t = 0f;
+        while (t < fadeIn)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Clamp01(t / fadeIn);
+            yield return null;
+        }
+        cg.alpha = 1f;
+        yield return new WaitForSeconds(holdDuration);
+        t = 0f;
+        while (t < fadeOut)
+        {
+            t += Time.deltaTime;
+            cg.alpha = 1f - Mathf.Clamp01(t / fadeOut);
+            yield return null;
+        }
+        cg.alpha = 0f;
     }
 
     // =====================================================================
