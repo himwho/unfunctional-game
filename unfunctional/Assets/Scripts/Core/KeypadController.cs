@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -88,6 +89,12 @@ public class KeypadController : MonoBehaviour
     private Text statusText;
     private Text hintTextUI;
     private Text titleTextUI;
+    private Text externalCodeDisplayText;
+    private Text externalTimerText;
+    private Text externalStatusText;
+    private Text externalHintText;
+    private Text externalTitleText;
+    private TMP_Text externalCodeDisplayTmp;
     private Button[] digitButtons = new Button[10];
     private Button clearButton;
     private Button submitButton;
@@ -99,6 +106,14 @@ public class KeypadController : MonoBehaviour
 
     // State
     private string enteredCode = "";
+    private string currentStatusText = "";
+    private Color currentStatusColor = Color.white;
+    private string currentTimerValue = "";
+    private Color currentTimerColor = Color.white;
+    private Color codeDisplayBaseColor = Color.white;
+    private Color externalCodeDisplayTextBaseColor = Color.white;
+    private Color externalCodeDisplayTmpBaseColor = Color.white;
+    private Coroutine rejectFlashCoroutine;
 
     // =========================================================================
     // Lifecycle
@@ -131,12 +146,8 @@ public class KeypadController : MonoBehaviour
         SetStatus("Enter the " + codeLength + "-digit code", Color.white);
 
         // Refresh configurable elements
-        if (titleTextUI != null) titleTextUI.text = keypadTitle;
-        if (hintTextUI != null)
-        {
-            hintTextUI.text = hintText;
-            hintTextUI.gameObject.SetActive(!string.IsNullOrEmpty(hintText));
-        }
+        ApplyTitleText();
+        ApplyHintText();
         if (requestCodeButton != null)
         {
             requestCodeButton.gameObject.SetActive(showRequestCodeButton);
@@ -177,6 +188,44 @@ public class KeypadController : MonoBehaviour
         OnKeypadClosed?.Invoke();
     }
 
+    /// <summary>Registers world-space text targets that mirror keypad state.</summary>
+    public void RegisterExternalDisplay(
+        Text codeDisplay,
+        Text timerDisplay = null,
+        Text statusDisplay = null,
+        Text titleDisplay = null,
+        Text hintDisplay = null)
+    {
+        externalCodeDisplayText = codeDisplay;
+        externalTimerText = timerDisplay;
+        externalStatusText = statusDisplay;
+        externalTitleText = titleDisplay;
+        externalHintText = hintDisplay;
+        if (externalCodeDisplayText != null)
+            externalCodeDisplayTextBaseColor = externalCodeDisplayText.color;
+        RefreshAllDisplays();
+    }
+
+    /// <summary>Registers an external TMP display for world-space keypad code text.</summary>
+    public void RegisterExternalDisplay(TMP_Text codeDisplay)
+    {
+        externalCodeDisplayTmp = codeDisplay;
+        if (externalCodeDisplayTmp != null)
+            externalCodeDisplayTmpBaseColor = externalCodeDisplayTmp.color;
+        RefreshAllDisplays();
+    }
+
+    /// <summary>Clears any previously registered world-space display targets.</summary>
+    public void UnregisterExternalDisplay()
+    {
+        externalCodeDisplayText = null;
+        externalTimerText = null;
+        externalStatusText = null;
+        externalTitleText = null;
+        externalHintText = null;
+        externalCodeDisplayTmp = null;
+    }
+
     /// <summary>Call from your level script when the entered code is correct.</summary>
     public void AcceptCode(string message = "ACCESS GRANTED")
     {
@@ -191,24 +240,29 @@ public class KeypadController : MonoBehaviour
         UpdateCodeDisplay();
     }
 
+    /// <summary>Flashes a reject message on the code display, then resets for another attempt.</summary>
+    public void FlashRejectCode(string message = "DENIED", float flashDuration = 0.35f)
+    {
+        if (rejectFlashCoroutine != null)
+            StopCoroutine(rejectFlashCoroutine);
+
+        rejectFlashCoroutine = StartCoroutine(FlashRejectCodeRoutine(message, flashDuration));
+    }
+
     /// <summary>Set the status line text and color.</summary>
     public void SetStatus(string text, Color color)
     {
-        if (statusText != null)
-        {
-            statusText.text = text;
-            statusText.color = color;
-        }
+        currentStatusText = text;
+        currentStatusColor = color;
+        ApplyStatusText();
     }
 
     /// <summary>Set the timer text (shown below the code display).</summary>
     public void SetTimer(string text, Color color)
     {
-        if (timerText != null)
-        {
-            timerText.text = text;
-            timerText.color = color;
-        }
+        currentTimerValue = text;
+        currentTimerColor = color;
+        ApplyTimerText();
     }
 
     /// <summary>Clears the entered code and updates the display.</summary>
@@ -218,15 +272,31 @@ public class KeypadController : MonoBehaviour
         UpdateCodeDisplay();
     }
 
+    /// <summary>Appends a digit from any input source.</summary>
+    public void PressDigit(int digit) => OnDigitPressed(digit);
+
+    /// <summary>Clears all entered digits from any input source.</summary>
+    public void PressClear() => OnClearPressed();
+
+    /// <summary>Removes the most recently entered digit, if any.</summary>
+    public void PressBackspace()
+    {
+        if (enteredCode.Length <= 0) return;
+        enteredCode = enteredCode.Substring(0, enteredCode.Length - 1);
+        UpdateCodeDisplay();
+    }
+
+    /// <summary>Submits the current code from any input source.</summary>
+    public void PressSubmit() => OnSubmitPressed();
+
+    /// <summary>Requests a code from any input source.</summary>
+    public void RequestCode() => OnRequestCodeClicked();
+
     /// <summary>Update the hint text dynamically (e.g. after NPC gives code).</summary>
     public void SetHint(string hint)
     {
         hintText = hint;
-        if (hintTextUI != null)
-        {
-            hintTextUI.text = hint;
-            hintTextUI.gameObject.SetActive(!string.IsNullOrEmpty(hint));
-        }
+        ApplyHintText();
     }
 
     // =========================================================================
@@ -249,7 +319,7 @@ public class KeypadController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Alpha0 + i) || Input.GetKeyDown(KeyCode.Keypad0 + i))
             {
-                OnDigitPressed(i);
+                PressDigit(i);
                 break;
             }
         }
@@ -257,14 +327,13 @@ public class KeypadController : MonoBehaviour
         // Backspace to clear last digit
         if (Input.GetKeyDown(KeyCode.Backspace) && enteredCode.Length > 0)
         {
-            enteredCode = enteredCode.Substring(0, enteredCode.Length - 1);
-            UpdateCodeDisplay();
+            PressBackspace();
         }
 
         // Enter to submit
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
-            OnSubmitPressed();
+            PressSubmit();
         }
     }
 
@@ -303,8 +372,6 @@ public class KeypadController : MonoBehaviour
 
     private void UpdateCodeDisplay()
     {
-        if (codeDisplayText == null) return;
-
         string display = "";
         bool groupByThree = codeLength > 6;
         for (int i = 0; i < codeLength; i++)
@@ -313,7 +380,112 @@ public class KeypadController : MonoBehaviour
                 display += groupByThree && i % 3 != 0 ? "" : " ";
             display += (i < enteredCode.Length) ? enteredCode[i].ToString() : "_";
         }
-        codeDisplayText.text = display;
+        ApplyCodeDisplay(display);
+    }
+
+    private IEnumerator FlashRejectCodeRoutine(string message, float flashDuration)
+    {
+        ApplyCodeDisplay(message);
+        SetCodeDisplayColor(new Color(1f, 0.2f, 0.2f));
+        yield return new WaitForSeconds(flashDuration);
+
+        SetCodeDisplayColorToDefault();
+        enteredCode = "";
+        UpdateCodeDisplay();
+        SetStatus("Enter the " + codeLength + "-digit code", Color.white);
+        rejectFlashCoroutine = null;
+    }
+
+    private void RefreshAllDisplays()
+    {
+        ApplyTitleText();
+        ApplyHintText();
+        ApplyStatusText();
+        ApplyTimerText();
+        UpdateCodeDisplay();
+    }
+
+    private void ApplyCodeDisplay(string display)
+    {
+        if (codeDisplayText != null)
+            codeDisplayText.text = display;
+        if (externalCodeDisplayText != null)
+            externalCodeDisplayText.text = display;
+        if (externalCodeDisplayTmp != null)
+            externalCodeDisplayTmp.text = display;
+    }
+
+    private void SetCodeDisplayColor(Color color)
+    {
+        if (codeDisplayText != null)
+            codeDisplayText.color = color;
+        if (externalCodeDisplayText != null)
+            externalCodeDisplayText.color = color;
+        if (externalCodeDisplayTmp != null)
+            externalCodeDisplayTmp.color = color;
+    }
+
+    private void SetCodeDisplayColorToDefault()
+    {
+        if (codeDisplayText != null)
+            codeDisplayText.color = codeDisplayBaseColor;
+        if (externalCodeDisplayText != null)
+            externalCodeDisplayText.color = externalCodeDisplayTextBaseColor;
+        if (externalCodeDisplayTmp != null)
+            externalCodeDisplayTmp.color = externalCodeDisplayTmpBaseColor;
+    }
+
+    private void ApplyStatusText()
+    {
+        if (statusText != null)
+        {
+            statusText.text = currentStatusText;
+            statusText.color = currentStatusColor;
+        }
+
+        if (externalStatusText != null)
+        {
+            externalStatusText.text = currentStatusText;
+            externalStatusText.color = currentStatusColor;
+        }
+    }
+
+    private void ApplyTimerText()
+    {
+        if (timerText != null)
+        {
+            timerText.text = currentTimerValue;
+            timerText.color = currentTimerColor;
+        }
+
+        if (externalTimerText != null)
+        {
+            externalTimerText.text = currentTimerValue;
+            externalTimerText.color = currentTimerColor;
+        }
+    }
+
+    private void ApplyHintText()
+    {
+        if (hintTextUI != null)
+        {
+            hintTextUI.text = hintText;
+            hintTextUI.gameObject.SetActive(!string.IsNullOrEmpty(hintText));
+        }
+
+        if (externalHintText != null)
+        {
+            externalHintText.text = hintText;
+            externalHintText.gameObject.SetActive(!string.IsNullOrEmpty(hintText));
+        }
+    }
+
+    private void ApplyTitleText()
+    {
+        if (titleTextUI != null)
+            titleTextUI.text = keypadTitle;
+        if (externalTitleText != null)
+            externalTitleText.text = keypadTitle;
     }
 
     // =========================================================================
@@ -370,6 +542,7 @@ public class KeypadController : MonoBehaviour
         codeDisplayText = MakeText(keypadPanel, "CodeDisplay", "",
             new Vector2(0.1f, 0.72f), new Vector2(0.9f, 0.82f),
             48, Color.white);
+        codeDisplayBaseColor = codeDisplayText.color;
 
         // Timer
         timerText = MakeText(keypadPanel, "TimerText", "",

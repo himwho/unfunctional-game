@@ -1,5 +1,8 @@
 using System.Collections;
+using NavKeypad;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
@@ -50,12 +53,23 @@ public class Level4_KeypadPuzzle : LevelManager
     [Tooltip("Animator trigger fired when the player left-clicks.")]
     public string fingerClickTriggerName = "Straighten";
 
+    [Tooltip("Delay before a keypad button press is registered, so it lines up with the finger reaching full extension.")]
+    public float fingerKeypadPressDelay = 0.12f;
+
+    [Tooltip("Child object on the finger prefab whose trigger collider determines which keypad button gets pressed.")]
+    public string fingerTipChildName = "FingerTip";
+
     [Tooltip("DoorController on the LEVEL_DOOR prefab.")]
     public DoorController doorController;
 
     [Header("Keypad Settings")]
     public float codeValiditySeconds = 60f;
     public float interactRange = 3f;
+    public float keypadButtonAimRadius = 0.08f;
+    [Tooltip("Horizontal screen-space offset in pixels used when aiming keypad buttons. Positive values aim farther right.")]
+    public float keypadAimOffsetX = 0f;
+    [Tooltip("Vertical screen-space offset in pixels used when aiming keypad buttons. Positive values aim up, negative values aim down.")]
+    public float keypadAimOffsetY = 0f;
 
     [Header("Server")]
     [Tooltip("Base URL of the email support server. " +
@@ -67,6 +81,7 @@ public class Level4_KeypadPuzzle : LevelManager
     [Header("Debug")]
     [Tooltip("When true (or when server URL is empty), generate codes locally.")]
     public bool offlineMode = true;
+    public bool debugFingerTipPressLogging = true;
 
     // =========================================================================
     // Runtime references
@@ -78,7 +93,6 @@ public class Level4_KeypadPuzzle : LevelManager
     private Canvas hudCanvas;
     private Text interactPromptText;
     private Text narrationText;
-    private Image crosshairImage;
     private CanvasGroup narrationCanvasGroup;
 
     // State
@@ -90,6 +104,18 @@ public class Level4_KeypadPuzzle : LevelManager
     private Coroutine narrationFadeCoroutine;
     private GameObject equippedFingerInstance;
     private Animator equippedFingerAnimator;
+    private WorldKeypadButton hoveredKeypadButton;
+    private Transform physicalKeypadRoot;
+    private Coroutine pendingFingerPressCoroutine;
+    private FingerTipKeypadDetector fingerTipDetector;
+    private Transform fingerTipTransform;
+    private SphereCollider fingerTipSphereCollider;
+    private Camera fingerViewModelCamera;
+    private Camera fingerBaseCamera;
+    private int fingerBaseCameraOriginalCullingMask;
+    private bool fingerBaseCameraMaskCaptured;
+
+    private const int FingerViewModelLayer = 30;
 
     // Narration lines
     private static readonly string[] stickyNoteNarration = new string[]
@@ -147,6 +173,7 @@ public class Level4_KeypadPuzzle : LevelManager
         }
 
         CreateHUD();
+        SetupPhysicalKeypad();
         StartCoroutine(EquipFingerWhenPlayerReady());
         ShowNarration("Another room. This time, there's a keypad.", 4f);
     }
@@ -163,6 +190,11 @@ public class Level4_KeypadPuzzle : LevelManager
         if (equippedFingerInstance != null)
             Destroy(equippedFingerInstance);
 
+        CleanupFingerViewModelCamera();
+
+        if (keypad != null)
+            keypad.UnregisterExternalDisplay();
+
         base.OnDestroy();
     }
 
@@ -171,9 +203,7 @@ public class Level4_KeypadPuzzle : LevelManager
         if (levelComplete || doorOpening) return;
 
         UpdateEquippedFingerTransform();
-
-        if (crosshairImage != null)
-            crosshairImage.enabled = keypad != null && keypad.IsOpen;
+        hoveredKeypadButton = GetHoveredKeypadButton();
 
         HandleFingerClickAnimation();
         UpdateInteractPrompt();
@@ -185,7 +215,7 @@ public class Level4_KeypadPuzzle : LevelManager
     // Interaction (raycasting in 3D world)
     // =========================================================================
 
-    private enum InteractTarget { None, Keypad, Door, StickyNotes }
+    private enum InteractTarget { None, Door, StickyNotes }
 
     /// <summary>
     /// Uses RaycastAll to collect every collider along the crosshair ray, then
@@ -201,22 +231,18 @@ public class Level4_KeypadPuzzle : LevelManager
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit[] hits = Physics.RaycastAll(ray, interactRange, ~0, QueryTriggerInteraction.Collide);
 
-        bool foundKeypad = false;
         bool foundDoor = false;
         bool foundSticky = false;
 
         for (int i = 0; i < hits.Length; i++)
         {
-            if (IsHitOnKeypad(hits[i]))
-                foundKeypad = true;
-            else if (IsHitOnDoor(hits[i]))
+            if (IsHitOnDoor(hits[i]))
                 foundDoor = true;
             else if (stickyNotePoint != null &&
                      Vector3.Distance(hits[i].point, stickyNotePoint.position) < 1.5f)
                 foundSticky = true;
         }
 
-        if (foundKeypad) return InteractTarget.Keypad;
         if (foundSticky) return InteractTarget.StickyNotes;
         if (foundDoor) return InteractTarget.Door;
         return InteractTarget.None;
@@ -224,15 +250,10 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void CheckInteraction()
     {
-        if (keypad != null && keypad.IsOpen) return;
         if (InputManager.Instance == null || !InputManager.Instance.InteractPressed) return;
 
         switch (GetInteractTarget())
         {
-            case InteractTarget.Keypad:
-                if (keypad != null) keypad.Open();
-                else ShowNarration("The keypad seems broken...", 2f);
-                break;
             case InteractTarget.Door:
                 ShowNarration("The door is locked. Use the keypad.", 2.5f);
                 if (doorController != null) doorController.ShakeDoor();
@@ -246,18 +267,10 @@ public class Level4_KeypadPuzzle : LevelManager
     private void UpdateInteractPrompt()
     {
         if (interactPromptText == null) return;
-        if (keypad != null && keypad.IsOpen)
-        {
-            interactPromptText.enabled = false;
-            return;
-        }
 
         string prompt;
         switch (GetInteractTarget())
         {
-            case InteractTarget.Keypad:
-                prompt = "[E] Use Keypad";
-                break;
             case InteractTarget.Door:
                 prompt = "[E] Try Door";
                 break;
@@ -306,6 +319,266 @@ public class Level4_KeypadPuzzle : LevelManager
         if (doorController != null && hit.collider.transform.IsChildOf(doorController.transform))
             return true;
         return false;
+    }
+
+    // =========================================================================
+    // Physical keypad setup
+    // =========================================================================
+
+    private void SetupPhysicalKeypad()
+    {
+        if (keypad == null || doorController == null)
+            return;
+
+        physicalKeypadRoot = ResolvePhysicalKeypadRoot();
+        if (physicalKeypadRoot == null)
+        {
+            Debug.LogWarning("[Level4] Could not resolve the physical keypad root.");
+            return;
+        }
+
+        DisableLegacyPhysicalKeypadBehavior();
+        SetupWorldKeypadDisplay();
+        SetupWorldKeypadButtons();
+        keypad.ClearInput();
+        keypad.SetStatus("Enter the " + keypad.codeLength + "-digit code", Color.white);
+        keypad.SetTimer("", Color.white);
+    }
+
+    private void DisableLegacyPhysicalKeypadBehavior()
+    {
+        if (physicalKeypadRoot == null) return;
+
+        Keypad[] legacyKeypads = physicalKeypadRoot.GetComponentsInParent<Keypad>(true);
+        for (int i = 0; i < legacyKeypads.Length; i++)
+            legacyKeypads[i].enabled = false;
+
+        KeypadButton[] legacyButtons = physicalKeypadRoot.GetComponentsInChildren<KeypadButton>(true);
+        for (int i = 0; i < legacyButtons.Length; i++)
+            legacyButtons[i].enabled = false;
+    }
+
+    private void SetupWorldKeypadDisplay()
+    {
+        Canvas displayCanvas = physicalKeypadRoot != null
+            ? physicalKeypadRoot.GetComponentInChildren<Canvas>(true)
+            : null;
+        if (displayCanvas == null)
+        {
+            Debug.LogWarning("[Level4] No world-space keypad display canvas found.");
+            return;
+        }
+
+        TMP_Text legacyDisplayText = null;
+        Transform legacyDisplayTextTransform = FindNamedDescendant(displayCanvas.transform, "DisplayText");
+        if (legacyDisplayTextTransform != null)
+            legacyDisplayText = legacyDisplayTextTransform.GetComponent<TMP_Text>();
+
+        if (legacyDisplayText != null)
+            keypad.RegisterExternalDisplay(legacyDisplayText);
+
+        Font font = UIHelper.GetDefaultFont();
+        Text timerDisplay = GetOrCreateWorldDisplayText(
+            displayCanvas.transform,
+            "Level4TimerDisplay",
+            font,
+            14,
+            new Color(1f, 0.9f, 0.3f),
+            new Vector2(0.02f, 0.18f),
+            new Vector2(0.98f, 0.42f),
+            TextAnchor.MiddleCenter);
+
+        Text statusDisplay = GetOrCreateWorldDisplayText(
+            displayCanvas.transform,
+            "Level4StatusDisplay",
+            font,
+            12,
+            new Color(0.8f, 0.8f, 0.8f),
+            new Vector2(0.02f, 0.02f),
+            new Vector2(0.98f, 0.18f),
+            TextAnchor.MiddleCenter);
+
+        keypad.RegisterExternalDisplay(null, timerDisplay, statusDisplay);
+    }
+
+    private Text GetOrCreateWorldDisplayText(
+        Transform parent,
+        string name,
+        Font font,
+        int fontSize,
+        Color color,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        TextAnchor alignment)
+    {
+        Transform existing = parent.Find(name);
+        GameObject textObj = existing != null ? existing.gameObject : new GameObject(name);
+        if (existing == null)
+        {
+            textObj.transform.SetParent(parent, false);
+            textObj.AddComponent<RectTransform>();
+        }
+
+        RectTransform rect = textObj.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Text text = textObj.GetComponent<Text>();
+        if (text == null)
+            text = textObj.AddComponent<Text>();
+
+        text.font = font;
+        text.fontSize = fontSize;
+        text.alignment = alignment;
+        text.color = color;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private void SetupWorldKeypadButtons()
+    {
+        Transform keypadRoot = physicalKeypadRoot;
+
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn0", 0);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn1", 1);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn2", 2);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn3", 3);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn4", 4);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn5", 5);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn6", 6);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn7", 7);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn8", 8);
+        ConfigureExistingKeypadDigit(keypadRoot, "bttn9", 9);
+        ConfigureExistingKeypadAction(keypadRoot, "bttnEnter", WorldKeypadButton.ButtonAction.Submit, "OK");
+    }
+
+    private void ConfigureExistingKeypadDigit(Transform keypadRoot, string buttonName, int digit)
+    {
+        Transform buttonTransform = FindNamedDescendant(keypadRoot, buttonName);
+        if (buttonTransform == null)
+        {
+            Debug.LogWarning($"[Level4] Keypad button '{buttonName}' not found.");
+            return;
+        }
+
+        WorldKeypadButton button = GetOrAddWorldKeypadButton(buttonTransform);
+        button.ConfigureDigit(digit);
+    }
+
+    private void ConfigureExistingKeypadAction(
+        Transform keypadRoot,
+        string buttonName,
+        WorldKeypadButton.ButtonAction action,
+        string promptLabel)
+    {
+        Transform buttonTransform = FindNamedDescendant(keypadRoot, buttonName);
+        if (buttonTransform == null)
+        {
+            Debug.LogWarning($"[Level4] Keypad button '{buttonName}' not found.");
+            return;
+        }
+
+        WorldKeypadButton button = GetOrAddWorldKeypadButton(buttonTransform);
+        button.ConfigureAction(action, promptLabel);
+    }
+
+    private WorldKeypadButton GetOrAddWorldKeypadButton(Transform buttonTransform)
+    {
+        WorldKeypadButton button = buttonTransform.GetComponent<WorldKeypadButton>();
+        if (button == null)
+            button = buttonTransform.gameObject.AddComponent<WorldKeypadButton>();
+
+        Collider col = buttonTransform.GetComponent<Collider>();
+        if (col != null)
+            col.enabled = true;
+
+        return button;
+    }
+
+    private Transform FindNamedDescendant(Transform root, string objectName)
+    {
+        if (root == null) return null;
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == objectName)
+                return children[i];
+        }
+
+        return null;
+    }
+
+    private Transform ResolvePhysicalKeypadRoot()
+    {
+        if (doorController == null) return null;
+
+        Transform buttons = FindNamedDescendant(doorController.transform, "Buttons");
+        if (buttons != null && buttons.parent != null)
+            return buttons.parent;
+
+        Transform displayCanvas = FindNamedDescendant(doorController.transform, "DisplayCanvas");
+        if (displayCanvas != null && displayCanvas.parent != null)
+            return displayCanvas.parent;
+
+        if (doorController.keypadMount != null)
+            return doorController.keypadMount.transform;
+
+        return null;
+    }
+
+    private WorldKeypadButton GetHoveredKeypadButton()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || physicalKeypadRoot == null)
+            return null;
+
+        float maxDistance = Mathf.Max(interactRange, 6f);
+        Vector3 screenPoint = GetKeypadAimScreenPoint();
+        Ray ray = cam.ScreenPointToRay(screenPoint);
+        RaycastHit[] directHits = Physics.RaycastAll(ray, maxDistance, ~0, QueryTriggerInteraction.Collide);
+        WorldKeypadButton directButton = FindClosestKeypadButton(directHits);
+        if (directButton != null)
+            return directButton;
+
+        RaycastHit[] hits = Physics.SphereCastAll(
+            ray,
+            keypadButtonAimRadius,
+            maxDistance,
+            ~0,
+            QueryTriggerInteraction.Collide);
+
+        return FindClosestKeypadButton(hits);
+    }
+
+    private Vector3 GetKeypadAimScreenPoint()
+    {
+        return new Vector3(
+            (Screen.width * 0.5f) + keypadAimOffsetX,
+            (Screen.height * 0.5f) + keypadAimOffsetY,
+            0f);
+    }
+
+    private WorldKeypadButton FindClosestKeypadButton(RaycastHit[] hits)
+    {
+        float closestDistance = float.MaxValue;
+        WorldKeypadButton closestButton = null;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            WorldKeypadButton button = hits[i].collider.GetComponentInParent<WorldKeypadButton>();
+            if (button == null) continue;
+            if (!button.transform.IsChildOf(physicalKeypadRoot)) continue;
+            if (hits[i].distance >= closestDistance) continue;
+
+            closestDistance = hits[i].distance;
+            closestButton = button;
+        }
+
+        return closestButton;
     }
 
     // =========================================================================
@@ -393,7 +666,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void OnCodeRejected(string reason)
     {
-        if (keypad != null) keypad.RejectCode(reason);
+        if (keypad != null) keypad.FlashRejectCode();
         failedAttempts++;
         ShowFailNarration();
     }
@@ -640,6 +913,8 @@ public class Level4_KeypadPuzzle : LevelManager
         {
             equippedFingerInstance = existing.gameObject;
             CacheFingerAnimator();
+            CacheFingerTipDetector();
+            SetupFingerViewModelRendering(attachPoint);
             UpdateEquippedFingerTransform();
             return;
         }
@@ -647,10 +922,16 @@ public class Level4_KeypadPuzzle : LevelManager
         equippedFingerInstance = Instantiate(prefab, attachPoint);
         equippedFingerInstance.name = "Finger_Animated_Equipped";
         CacheFingerAnimator();
+        CacheFingerTipDetector();
+        SetupFingerViewModelRendering(attachPoint);
         UpdateEquippedFingerTransform();
 
         foreach (Collider col in equippedFingerInstance.GetComponentsInChildren<Collider>(true))
-            col.enabled = false;
+        {
+            bool isFingerTipCollider = fingerTipDetector != null &&
+                col.transform.IsChildOf(fingerTipDetector.transform);
+            col.enabled = isFingerTipCollider;
+        }
 
         foreach (Rigidbody rb in equippedFingerInstance.GetComponentsInChildren<Rigidbody>(true))
         {
@@ -666,6 +947,124 @@ public class Level4_KeypadPuzzle : LevelManager
             : null;
     }
 
+    private void CacheFingerTipDetector()
+    {
+        fingerTipDetector = null;
+        fingerTipTransform = null;
+        fingerTipSphereCollider = null;
+        if (equippedFingerInstance == null || string.IsNullOrWhiteSpace(fingerTipChildName))
+            return;
+
+        fingerTipTransform = FindNamedDescendant(equippedFingerInstance.transform, fingerTipChildName);
+        if (fingerTipTransform == null)
+        {
+            Debug.LogWarning($"[Level4] Could not find fingertip child '{fingerTipChildName}' on equipped finger.");
+            return;
+        }
+
+        fingerTipSphereCollider = fingerTipTransform.GetComponent<SphereCollider>();
+        if (fingerTipSphereCollider == null)
+            Debug.LogWarning($"[Level4] Fingertip child '{fingerTipChildName}' should have a SphereCollider for keypad overlap checks.");
+
+        fingerTipDetector = fingerTipTransform.GetComponent<FingerTipKeypadDetector>();
+        if (fingerTipDetector == null)
+            fingerTipDetector = fingerTipTransform.gameObject.AddComponent<FingerTipKeypadDetector>();
+    }
+
+    private void SetupFingerViewModelRendering(Transform attachPoint)
+    {
+        if (equippedFingerInstance == null || attachPoint == null) return;
+
+        Camera baseCamera = attachPoint.GetComponent<Camera>();
+        if (baseCamera == null)
+            baseCamera = attachPoint.GetComponentInChildren<Camera>();
+        if (baseCamera == null)
+            return;
+
+        fingerBaseCamera = baseCamera;
+        if (!fingerBaseCameraMaskCaptured)
+        {
+            fingerBaseCameraOriginalCullingMask = fingerBaseCamera.cullingMask;
+            fingerBaseCameraMaskCaptured = true;
+        }
+
+        SetLayerRecursively(equippedFingerInstance, FingerViewModelLayer);
+        if (fingerTipDetector != null)
+            SetLayerRecursively(fingerTipDetector.gameObject, 0);
+        fingerBaseCamera.cullingMask &= ~(1 << FingerViewModelLayer);
+
+        if (fingerViewModelCamera == null)
+        {
+            Transform existingCamera = attachPoint.Find("FingerViewModelCamera");
+            if (existingCamera != null)
+                fingerViewModelCamera = existingCamera.GetComponent<Camera>();
+        }
+
+        if (fingerViewModelCamera == null)
+        {
+            GameObject cameraObject = new GameObject("FingerViewModelCamera");
+            cameraObject.transform.SetParent(attachPoint, false);
+            fingerViewModelCamera = cameraObject.AddComponent<Camera>();
+        }
+
+        fingerViewModelCamera.transform.localPosition = Vector3.zero;
+        fingerViewModelCamera.transform.localRotation = Quaternion.identity;
+        fingerViewModelCamera.nearClipPlane = 0.01f;
+        fingerViewModelCamera.farClipPlane = 10f;
+        fingerViewModelCamera.fieldOfView = fingerBaseCamera.fieldOfView;
+        fingerViewModelCamera.cullingMask = 1 << FingerViewModelLayer;
+        fingerViewModelCamera.allowHDR = fingerBaseCamera.allowHDR;
+        fingerViewModelCamera.allowMSAA = fingerBaseCamera.allowMSAA;
+        fingerViewModelCamera.enabled = true;
+
+        UniversalAdditionalCameraData baseData = fingerBaseCamera.GetComponent<UniversalAdditionalCameraData>();
+        UniversalAdditionalCameraData viewModelData = fingerViewModelCamera.GetComponent<UniversalAdditionalCameraData>();
+        if (viewModelData == null)
+            viewModelData = fingerViewModelCamera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+
+        if (baseData != null)
+        {
+            viewModelData.renderType = CameraRenderType.Overlay;
+            if (!baseData.cameraStack.Contains(fingerViewModelCamera))
+                baseData.cameraStack.Add(fingerViewModelCamera);
+        }
+        else
+        {
+            fingerViewModelCamera.clearFlags = CameraClearFlags.Depth;
+            fingerViewModelCamera.depth = fingerBaseCamera.depth + 1f;
+        }
+    }
+
+    private void CleanupFingerViewModelCamera()
+    {
+        if (fingerBaseCamera != null && fingerBaseCameraMaskCaptured)
+            fingerBaseCamera.cullingMask = fingerBaseCameraOriginalCullingMask;
+
+        if (fingerBaseCamera != null)
+        {
+            UniversalAdditionalCameraData baseData = fingerBaseCamera.GetComponent<UniversalAdditionalCameraData>();
+            if (baseData != null && fingerViewModelCamera != null)
+                baseData.cameraStack.Remove(fingerViewModelCamera);
+        }
+
+        if (fingerViewModelCamera != null)
+            Destroy(fingerViewModelCamera.gameObject);
+
+        fingerViewModelCamera = null;
+        fingerBaseCamera = null;
+        fingerBaseCameraMaskCaptured = false;
+    }
+
+    private void SetLayerRecursively(GameObject obj, int layer)
+    {
+        if (obj == null) return;
+
+        obj.layer = layer;
+        Transform[] children = obj.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+            children[i].gameObject.layer = layer;
+    }
+
     private void UpdateEquippedFingerTransform()
     {
         if (equippedFingerInstance == null) return;
@@ -677,13 +1076,108 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void HandleFingerClickAnimation()
     {
-        if (equippedFingerAnimator == null) return;
-        if (string.IsNullOrWhiteSpace(fingerClickTriggerName)) return;
-        if (keypad != null && keypad.IsOpen) return;
         if (!Input.GetMouseButtonDown(0)) return;
 
-        equippedFingerAnimator.ResetTrigger(fingerClickTriggerName);
-        equippedFingerAnimator.SetTrigger(fingerClickTriggerName);
+        WorldKeypadButton targetButton = hoveredKeypadButton != null
+            ? hoveredKeypadButton
+            : GetHoveredKeypadButton();
+
+        if (equippedFingerAnimator != null && !string.IsNullOrWhiteSpace(fingerClickTriggerName))
+        {
+            equippedFingerAnimator.ResetTrigger(fingerClickTriggerName);
+            equippedFingerAnimator.SetTrigger(fingerClickTriggerName);
+        }
+
+        if (keypad != null)
+        {
+            if (pendingFingerPressCoroutine != null)
+                StopCoroutine(pendingFingerPressCoroutine);
+
+            pendingFingerPressCoroutine = StartCoroutine(PressKeypadButtonAfterDelay(
+                fingerKeypadPressDelay,
+                targetButton));
+        }
+    }
+
+    private IEnumerator PressKeypadButtonAfterDelay(float delay, WorldKeypadButton targetButton)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        if (targetButton != null && keypad != null)
+            targetButton.Press(keypad);
+
+        pendingFingerPressCoroutine = null;
+    }
+
+    private Vector3 GetFingerTipWorldCenter()
+    {
+        if (fingerTipTransform == null)
+            return Vector3.zero;
+
+        if (fingerTipSphereCollider != null)
+            return fingerTipTransform.TransformPoint(fingerTipSphereCollider.center);
+
+        return fingerTipTransform.position;
+    }
+
+    private WorldKeypadButton GetFingerTipTouchedButton()
+    {
+        if (fingerTipTransform == null || fingerTipSphereCollider == null)
+        {
+            if (debugFingerTipPressLogging)
+                Debug.LogWarning("[Level4] FingerTip overlap skipped: fingertip transform or sphere collider missing.");
+            return fingerTipDetector != null ? fingerTipDetector.CurrentTouchedButton : null;
+        }
+
+        Vector3 worldCenter = GetFingerTipWorldCenter();
+        float maxScale = Mathf.Max(
+            Mathf.Abs(fingerTipTransform.lossyScale.x),
+            Mathf.Abs(fingerTipTransform.lossyScale.y),
+            Mathf.Abs(fingerTipTransform.lossyScale.z));
+        float worldRadius = fingerTipSphereCollider.radius * maxScale;
+
+        Collider[] overlaps = Physics.OverlapSphere(
+            worldCenter,
+            worldRadius,
+            ~0,
+            QueryTriggerInteraction.Collide);
+
+        if (debugFingerTipPressLogging)
+            Debug.Log($"[Level4] FingerTip overlap check at {worldCenter} radius {worldRadius:F4}. Hits: {overlaps.Length}");
+
+        float closestDistance = float.MaxValue;
+        WorldKeypadButton closestButton = null;
+
+        for (int i = 0; i < overlaps.Length; i++)
+        {
+            if (overlaps[i] != null && fingerTipTransform != null && overlaps[i].transform.IsChildOf(fingerTipTransform))
+                continue;
+
+            WorldKeypadButton button = overlaps[i].GetComponentInParent<WorldKeypadButton>();
+            if (debugFingerTipPressLogging)
+            {
+                string buttonName = button != null ? button.name : "none";
+                Debug.Log($"[Level4] FingerTip overlap hit '{overlaps[i].name}' -> button '{buttonName}'");
+            }
+
+            if (button == null) continue;
+            if (physicalKeypadRoot != null && !button.transform.IsChildOf(physicalKeypadRoot)) continue;
+
+            float distance = Vector3.Distance(worldCenter, overlaps[i].ClosestPoint(worldCenter));
+            if (distance >= closestDistance) continue;
+
+            closestDistance = distance;
+            closestButton = button;
+        }
+
+        if (debugFingerTipPressLogging)
+        {
+            string result = closestButton != null ? closestButton.name : "none";
+            Debug.Log($"[Level4] FingerTip selected keypad button: {result}");
+        }
+
+        return closestButton;
     }
 
     // =========================================================================
@@ -744,17 +1238,6 @@ public class Level4_KeypadPuzzle : LevelManager
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         canvasObj.AddComponent<GraphicRaycaster>();
-
-        // Crosshair
-        GameObject crossObj = new GameObject("Crosshair");
-        crossObj.transform.SetParent(canvasObj.transform, false);
-        crosshairImage = crossObj.AddComponent<Image>();
-        crosshairImage.color = new Color(1f, 1f, 1f, 0.6f);
-        crosshairImage.raycastTarget = false;
-        RectTransform crossRect = crossObj.GetComponent<RectTransform>();
-        crossRect.anchorMin = crossRect.anchorMax = new Vector2(0.5f, 0.5f);
-        crossRect.sizeDelta = new Vector2(4, 4);
-        crossRect.anchoredPosition = Vector2.zero;
 
         // Interact prompt
         GameObject promptObj = new GameObject("InteractPrompt");
