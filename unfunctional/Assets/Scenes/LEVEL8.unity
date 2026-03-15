@@ -946,6 +946,7 @@ MonoBehaviour:
   playerSpawnPoint: {fileID: 1615269576}
   levelComplete: 0
   doorController: {fileID: 1504970164}
+  tabletObject: {fileID: 1154760862}
   requiredBrowseCount: 8
   freeCreditsAmount: 99999
   doorDLCPrice: 49999
@@ -1045,7 +1046,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 5fabb2e8dc2542446820f1f39c808eb6,
         type: 3}
       propertyPath: m_Name
-      value: Black_Screen_Tablet_0315200537_texture_roughness.png (1)
+      value: Tablet
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5fabb2e8dc2542446820f1f39c808eb6,
         type: 3}
@@ -1055,8 +1056,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5fabb2e8dc2542446820f1f39c808eb6,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1154760863}
   m_SourcePrefab: {fileID: 100100000, guid: 5fabb2e8dc2542446820f1f39c808eb6, type: 3}
+--- !u!1 &1154760862 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5fabb2e8dc2542446820f1f39c808eb6,
+    type: 3}
+  m_PrefabInstance: {fileID: 1154760861}
+  m_PrefabAsset: {fileID: 0}
+--- !u!135 &1154760863
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154760862}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.009485735
+  m_Center: {x: -0.0000017448328, y: 0.000012774079, z: -0.000011085067}
 --- !u!1 &1339059118
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,7 +1747,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c16a763ef419f7d41a67cfbed9c10e78,
         type: 3}
       propertyPath: m_Name
-      value: Floor_standing_monito_0315200528_texture_roughness.png (1)
+      value: Stand
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: c16a763ef419f7d41a67cfbed9c10e78,
         type: 3}

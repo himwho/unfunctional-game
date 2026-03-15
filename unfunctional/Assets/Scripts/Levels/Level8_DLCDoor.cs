@@ -24,6 +24,10 @@ public class Level8_DLCDoor : LevelManager
     [Header("Level 8 – DLC Door")]
     public DoorController doorController;
 
+    [Header("Tablet (Store Access)")]
+    [Tooltip("The Tablet game object the player looks at to open the store.")]
+    public GameObject tabletObject;
+
     [Header("Shop Settings")]
     public int requiredBrowseCount = 8;
     public int freeCreditsAmount = 99999;
@@ -143,6 +147,7 @@ public class Level8_DLCDoor : LevelManager
 
         bool lookingAtDoor = false;
         bool lookingAtKeypad = false;
+        bool lookingAtTablet = false;
 
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Collide))
@@ -150,9 +155,14 @@ public class Level8_DLCDoor : LevelManager
             Transform root = hit.collider.transform.root;
             string hitName = hit.collider.gameObject.name;
 
-            if (doorController != null && root == doorController.transform)
+            if (tabletObject != null &&
+                (hit.collider.gameObject == tabletObject ||
+                 hit.collider.transform.IsChildOf(tabletObject.transform)))
             {
-                // Distinguish between keypad sub-object and the door itself
+                lookingAtTablet = true;
+            }
+            else if (doorController != null && root == doorController.transform)
+            {
                 if (hitName.Contains("Keypad") || hitName.Contains("keypad"))
                     lookingAtKeypad = true;
                 else
@@ -166,11 +176,30 @@ public class Level8_DLCDoor : LevelManager
 
         bool lookingAtAnyDoorPart = lookingAtDoor || lookingAtKeypad;
 
-        if (lookingAtAnyDoorPart)
+        if (lookingAtTablet)
+        {
+            if (dlcPurchased && !codeRevealed)
+            {
+                hudPromptText.text = "Press [E] to view purchase receipt";
+                if (Input.GetKeyDown(KeyCode.E))
+                    ShowCodeReveal();
+            }
+            else if (!dlcPurchased)
+            {
+                hudPromptText.text = "Press [E] to open STORE";
+                if (Input.GetKeyDown(KeyCode.E))
+                    OpenShop();
+            }
+            else
+            {
+                hudPromptText.text = "Enter the code on the door keypad";
+            }
+            hudCanvas.gameObject.SetActive(true);
+        }
+        else if (lookingAtAnyDoorPart)
         {
             if (dlcPurchased && codeRevealed)
             {
-                // After purchase — any part of the door opens the keypad
                 hudPromptText.text = "Press [E] to enter door code";
                 if (Input.GetKeyDown(KeyCode.E) && keypad != null)
                     keypad.Open();
@@ -183,9 +212,7 @@ public class Level8_DLCDoor : LevelManager
             }
             else
             {
-                hudPromptText.text = "Press [E] to open STORE";
-                if (Input.GetKeyDown(KeyCode.E))
-                    OpenShop();
+                hudPromptText.text = "Use the tablet to open the store";
             }
             hudCanvas.gameObject.SetActive(true);
         }
