@@ -1628,6 +1628,12 @@ MonoBehaviour:
   keypadObject: {fileID: 368967945}
   stickyNotePoint: {fileID: 0}
   playerSpawnTransform: {fileID: 0}
+  fingerAnimatedPrefab: {fileID: 8166403833701440023, guid: e18fd20247b4ed84bb8a2693722bb565,
+    type: 3}
+  fingerHeldLocalPosition: {x: 0.28, y: -0.4, z: 0.6}
+  fingerHeldLocalRotation: {x: 8, y: 90, z: 1}
+  fingerHeldLocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  fingerClickTriggerName: Straighten
   doorController: {fileID: 368967943}
   codeValiditySeconds: 60
   interactRange: 3

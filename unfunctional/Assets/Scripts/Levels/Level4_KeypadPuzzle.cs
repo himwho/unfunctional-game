@@ -34,6 +34,22 @@ public class Level4_KeypadPuzzle : LevelManager
     [Tooltip("Where the player spawns in this level.")]
     public Transform playerSpawnTransform;
 
+    [Header("Player Prop")]
+    [Tooltip("Assign the Finger_Animated prefab here to equip it to the player in Level 4.")]
+    public GameObject fingerAnimatedPrefab;
+
+    [Tooltip("Local position of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalPosition = new Vector3(0.28f, -0.32f, 0.55f);
+
+    [Tooltip("Local rotation of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalRotation = new Vector3(8f, -92f, 18f);
+
+    [Tooltip("Local scale of the equipped finger relative to the player camera.")]
+    public Vector3 fingerHeldLocalScale = Vector3.one;
+
+    [Tooltip("Animator trigger fired when the player left-clicks.")]
+    public string fingerClickTriggerName = "Straighten";
+
     [Tooltip("DoorController on the LEVEL_DOOR prefab.")]
     public DoorController doorController;
 
@@ -72,6 +88,8 @@ public class Level4_KeypadPuzzle : LevelManager
     private bool doorOpening = false;
     private int failedAttempts = 0;
     private Coroutine narrationFadeCoroutine;
+    private GameObject equippedFingerInstance;
+    private Animator equippedFingerAnimator;
 
     // Narration lines
     private static readonly string[] stickyNoteNarration = new string[]
@@ -129,6 +147,7 @@ public class Level4_KeypadPuzzle : LevelManager
         }
 
         CreateHUD();
+        StartCoroutine(EquipFingerWhenPlayerReady());
         ShowNarration("Another room. This time, there's a keypad.", 4f);
     }
 
@@ -140,6 +159,10 @@ public class Level4_KeypadPuzzle : LevelManager
             keypad.OnCodeSubmitted -= HandleCodeSubmitted;
             keypad.OnCodeRequested -= HandleCodeRequested;
         }
+
+        if (equippedFingerInstance != null)
+            Destroy(equippedFingerInstance);
+
         base.OnDestroy();
     }
 
@@ -147,9 +170,12 @@ public class Level4_KeypadPuzzle : LevelManager
     {
         if (levelComplete || doorOpening) return;
 
+        UpdateEquippedFingerTransform();
+
         if (crosshairImage != null)
             crosshairImage.enabled = keypad != null && keypad.IsOpen;
 
+        HandleFingerClickAnimation();
         UpdateInteractPrompt();
         CheckInteraction();
         UpdateKeypadTimer();
@@ -553,6 +579,111 @@ public class Level4_KeypadPuzzle : LevelManager
         {
             keypad.SetTimer("", Color.white);
         }
+    }
+
+    // =========================================================================
+    // Player Prop
+    // =========================================================================
+
+    private IEnumerator EquipFingerWhenPlayerReady()
+    {
+        if (fingerAnimatedPrefab == null)
+        {
+            Debug.LogWarning("[Level4] No Finger_Animated prefab assigned on Level4Manager.");
+            yield break;
+        }
+
+        const float timeoutSeconds = 5f;
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            Transform attachPoint = GetFingerAttachPoint();
+            if (attachPoint != null)
+            {
+                EquipFingerPrefab(attachPoint, fingerAnimatedPrefab);
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        Debug.LogWarning("[Level4] Could not find the player camera to equip Finger_Animated.");
+    }
+
+    private Transform GetFingerAttachPoint()
+    {
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+            return mainCam.transform;
+
+        PlayerController playerController = FindAnyObjectByType<PlayerController>();
+        if (playerController != null && playerController.cameraTransform != null)
+            return playerController.cameraTransform;
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Camera playerCamera = player.GetComponentInChildren<Camera>();
+            if (playerCamera != null)
+                return playerCamera.transform;
+        }
+
+        return null;
+    }
+
+    private void EquipFingerPrefab(Transform attachPoint, GameObject prefab)
+    {
+        Transform existing = attachPoint.Find("Finger_Animated_Equipped");
+        if (existing != null)
+        {
+            equippedFingerInstance = existing.gameObject;
+            CacheFingerAnimator();
+            UpdateEquippedFingerTransform();
+            return;
+        }
+
+        equippedFingerInstance = Instantiate(prefab, attachPoint);
+        equippedFingerInstance.name = "Finger_Animated_Equipped";
+        CacheFingerAnimator();
+        UpdateEquippedFingerTransform();
+
+        foreach (Collider col in equippedFingerInstance.GetComponentsInChildren<Collider>(true))
+            col.enabled = false;
+
+        foreach (Rigidbody rb in equippedFingerInstance.GetComponentsInChildren<Rigidbody>(true))
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+    }
+
+    private void CacheFingerAnimator()
+    {
+        equippedFingerAnimator = equippedFingerInstance != null
+            ? equippedFingerInstance.GetComponentInChildren<Animator>(true)
+            : null;
+    }
+
+    private void UpdateEquippedFingerTransform()
+    {
+        if (equippedFingerInstance == null) return;
+
+        equippedFingerInstance.transform.localPosition = fingerHeldLocalPosition;
+        equippedFingerInstance.transform.localRotation = Quaternion.Euler(fingerHeldLocalRotation);
+        equippedFingerInstance.transform.localScale = fingerHeldLocalScale;
+    }
+
+    private void HandleFingerClickAnimation()
+    {
+        if (equippedFingerAnimator == null) return;
+        if (string.IsNullOrWhiteSpace(fingerClickTriggerName)) return;
+        if (keypad != null && keypad.IsOpen) return;
+        if (!Input.GetMouseButtonDown(0)) return;
+
+        equippedFingerAnimator.ResetTrigger(fingerClickTriggerName);
+        equippedFingerAnimator.SetTrigger(fingerClickTriggerName);
     }
 
     // =========================================================================
