@@ -774,6 +774,7 @@ public class Level5_DumbNPC : LevelManager
         else
         {
             keypad.FlashRejectCode();
+            if (doorController != null) doorController.ShakeDoor();
 
             if (!dialogueCompleted)
             {
