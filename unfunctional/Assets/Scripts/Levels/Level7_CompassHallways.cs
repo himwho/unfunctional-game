@@ -75,6 +75,9 @@ public class Level7_CompassHallways : LevelManager
     private Text dialogueNameText;
     private Text dialogueBodyText;
     private Text dialogueDismissText;
+    private Text narrationText;
+    private CanvasGroup narrationCanvasGroup;
+    private Coroutine narrationFadeCoroutine;
     private bool inDialogue = false;
     private bool hasSpokenToNpc = false;
     private bool npcRepositioning = false;
@@ -96,12 +99,15 @@ public class Level7_CompassHallways : LevelManager
         CreateInteractPrompt();
         CreateDoorPrompt();
         CreateDialogueHUD();
+        CreateNarrationHUD();
         StartCoroutine(AttachSpotlightToPlayer());
 
         compassCanvas.gameObject.SetActive(false);
         interactPromptCanvas.gameObject.SetActive(false);
         doorPromptCanvas.gameObject.SetActive(false);
         dialogueCanvas.gameObject.SetActive(false);
+
+        ShowNarration("A dark cramped hallway. What could this level be?", 4f);
     }
 
     private void Update()
@@ -651,6 +657,73 @@ public class Level7_CompassHallways : LevelManager
         nearDoor = value;
     }
 
+    // =========================================================================
+    // Narration HUD
+    // =========================================================================
+
+    private void CreateNarrationHUD()
+    {
+        Font font = UIHelper.GetDefaultFont();
+
+        GameObject canvasObj = new GameObject("NarrationHUD");
+        canvasObj.transform.SetParent(transform);
+        Canvas narCanvas = canvasObj.AddComponent<Canvas>();
+        UIHelper.ConfigureCanvas(narCanvas, sortingOrder: 30);
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        GameObject narObj = new GameObject("NarrationText");
+        narObj.transform.SetParent(canvasObj.transform, false);
+        narrationCanvasGroup = narObj.AddComponent<CanvasGroup>();
+        narrationCanvasGroup.alpha = 0f;
+        narrationText = narObj.AddComponent<Text>();
+        narrationText.font = font;
+        narrationText.fontSize = 24;
+        narrationText.alignment = TextAnchor.MiddleCenter;
+        narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        narrationText.fontStyle = FontStyle.Italic;
+        narrationText.raycastTarget = false;
+        RectTransform narRect = narObj.GetComponent<RectTransform>();
+        narRect.anchorMin = new Vector2(0.1f, 0.05f);
+        narRect.anchorMax = new Vector2(0.9f, 0.14f);
+        narRect.offsetMin = narRect.offsetMax = Vector2.zero;
+    }
+
+    private void ShowNarration(string text, float duration)
+    {
+        if (narrationText == null || narrationCanvasGroup == null) return;
+        narrationText.text = text;
+        if (narrationFadeCoroutine != null) StopCoroutine(narrationFadeCoroutine);
+        narrationFadeCoroutine = StartCoroutine(FadeCanvasGroup(narrationCanvasGroup, duration));
+    }
+
+    private IEnumerator FadeCanvasGroup(CanvasGroup cg, float holdDuration)
+    {
+        float fadeIn = 0.4f;
+        float fadeOut = 1f;
+
+        float t = 0f;
+        while (t < fadeIn)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Clamp01(t / fadeIn);
+            yield return null;
+        }
+        cg.alpha = 1f;
+
+        yield return new WaitForSeconds(holdDuration);
+
+        t = 0f;
+        while (t < fadeOut)
+        {
+            t += Time.deltaTime;
+            cg.alpha = 1f - Mathf.Clamp01(t / fadeOut);
+            yield return null;
+        }
+        cg.alpha = 0f;
+    }
 }
 
 /// <summary>

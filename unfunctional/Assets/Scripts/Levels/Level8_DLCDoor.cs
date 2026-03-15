@@ -158,6 +158,7 @@ public class Level8_DLCDoor : LevelManager
         CreateShopUI();
         CreateHUD();
         StartCoroutine(EquipFingerWhenPlayerReady());
+        ShowNarration("This room has a tablet. Let's see what it does...", 4f);
     }
 
     protected override void OnDestroy()
@@ -238,7 +239,7 @@ public class Level8_DLCDoor : LevelManager
             }
             else if (!dlcPurchased)
             {
-                hudPromptText.text = "Press [E] to open STORE";
+                hudPromptText.text = "Press [E] to open DLC store";
                 if (Input.GetKeyDown(KeyCode.E))
                     OpenShop();
             }
