@@ -203,6 +203,9 @@ public class Level10_ItemDegradation : LevelManager
     private Text toolText;
     private Text taskListText;
     private Text breakText;
+    private Text narrationText;
+    private CanvasGroup narrationCanvasGroup;
+    private Coroutine narrationFadeCoroutine;
 
     // Tool slot UI (4 slots)
     private GameObject toolSlotContainer;
@@ -252,6 +255,8 @@ public class Level10_ItemDegradation : LevelManager
         InitSodaCans();
         InitScenePropsColliders();
         LoadToolIcons();
+
+        ShowNarration("A room full of tools. I hope this level won't be too annoying...", 4f);
     }
 
     private void Update()
@@ -1901,6 +1906,41 @@ public class Level10_ItemDegradation : LevelManager
         breakText.text = "";
     }
 
+    private void ShowNarration(string text, float duration)
+    {
+        Debug.Log($"[Level10 Narration] {text}");
+        if (narrationText == null || narrationCanvasGroup == null) return;
+        narrationText.text = text;
+        if (narrationFadeCoroutine != null) StopCoroutine(narrationFadeCoroutine);
+        narrationFadeCoroutine = StartCoroutine(FadeNarration(duration));
+    }
+
+    private IEnumerator FadeNarration(float holdDuration)
+    {
+        float fadeIn = 0.4f;
+        float fadeOut = 0.6f;
+
+        float t = 0f;
+        while (t < fadeIn)
+        {
+            t += Time.deltaTime;
+            narrationCanvasGroup.alpha = Mathf.Clamp01(t / fadeIn);
+            yield return null;
+        }
+        narrationCanvasGroup.alpha = 1f;
+
+        yield return new WaitForSeconds(holdDuration);
+
+        t = 0f;
+        while (t < fadeOut)
+        {
+            t += Time.deltaTime;
+            narrationCanvasGroup.alpha = 1f - Mathf.Clamp01(t / fadeOut);
+            yield return null;
+        }
+        narrationCanvasGroup.alpha = 0f;
+    }
+
     // =========================================================================
     // Hammer Mesh Handling
     // =========================================================================
@@ -2759,7 +2799,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void UpdateDoorInteraction()
     {
-        if (!allTasksComplete || levelComplete) return;
+        if (levelComplete) return;
         if (doorController == null || doorController.IsOpen || doorController.IsAnimating) return;
 
         if (IsLookingAtDoor())
@@ -2768,9 +2808,17 @@ public class Level10_ItemDegradation : LevelManager
 
             if (Input.GetKeyDown(KeyCode.E))
             {
-                Debug.Log("[Level10] Player opened the door.");
-                promptText.text = "";
-                StartCoroutine(DoorFallAndComplete());
+                if (!allTasksComplete)
+                {
+                    doorController.ShakeDoor();
+                    ShowNarration("I think you need to complete the tasks first...", 3f);
+                }
+                else
+                {
+                    Debug.Log("[Level10] Player opened the door.");
+                    promptText.text = "";
+                    StartCoroutine(DoorFallAndComplete());
+                }
             }
         }
     }
@@ -2869,6 +2917,27 @@ public class Level10_ItemDegradation : LevelManager
             new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.65f),
             28, new Color(1f, 0.3f, 0.3f, 0f), TextAnchor.MiddleCenter);
         breakText.fontStyle = FontStyle.Bold;
+
+        // Narration text (bottom of screen, italic narrator voice)
+        GameObject narObj = new GameObject("NarrationText");
+        narObj.transform.SetParent(canvasObj.transform, false);
+
+        narrationCanvasGroup = narObj.AddComponent<CanvasGroup>();
+        narrationCanvasGroup.alpha = 0f;
+
+        narrationText = narObj.AddComponent<Text>();
+        narrationText.font = UIHelper.GetDefaultFont();
+        narrationText.fontSize = 24;
+        narrationText.alignment = TextAnchor.MiddleCenter;
+        narrationText.color = new Color(0.75f, 0.85f, 1f, 1f);
+        narrationText.fontStyle = FontStyle.Italic;
+        narrationText.raycastTarget = false;
+
+        RectTransform narRect = narObj.GetComponent<RectTransform>();
+        narRect.anchorMin = new Vector2(0.15f, 0.13f);
+        narRect.anchorMax = new Vector2(0.85f, 0.20f);
+        narRect.offsetMin = Vector2.zero;
+        narRect.offsetMax = Vector2.zero;
 
         CreateToolSlotUI(canvasObj.transform);
     }
