@@ -256,7 +256,7 @@ MonoBehaviour:
   spawnFlickerFixtureNames:
   - Ceiling Light 1
   - Ceiling Light 2
-  spawnLightFlickerStartDelay: 0.6
+  spawnLightFlickerStartDelay: 0.1
   spawnLightFlickerDuration: 3
   spawnLightOffTimeRange: {x: 0.04, y: 0.16}
   spawnLightOnTimeRange: {x: 0.03, y: 0.12}
