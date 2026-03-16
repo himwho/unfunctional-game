@@ -68,6 +68,20 @@ public class Level5_DumbNPC : LevelManager
     [Tooltip("Vertical screen-space offset in pixels used when aiming keypad buttons. Positive values aim up, negative values aim down.")]
     public float keypadAimOffsetY = -320f;
 
+    [Header("Spawn Light Flicker")]
+    [Tooltip("If enabled, the named ceiling fixtures flicker once when the player spawns into Level 5.")]
+    public bool playSpawnLightFlicker = true;
+    [Tooltip("Parent object names for the ceiling fixtures that should flicker on spawn.")]
+    public string[] spawnFlickerFixtureNames = { "Ceiling Light 1", "Ceiling Light 2" };
+    [Tooltip("Small delay before the spawn flicker starts so it is visible after the level fades in.")]
+    public float spawnLightFlickerStartDelay = 0.6f;
+    [Tooltip("How long the startup flicker sequence lasts.")]
+    public float spawnLightFlickerDuration = 3f;
+    [Tooltip("Random blackout duration range used during the flicker.")]
+    public Vector2 spawnLightOffTimeRange = new Vector2(0.04f, 0.16f);
+    [Tooltip("Random lit duration range used during the flicker.")]
+    public Vector2 spawnLightOnTimeRange = new Vector2(0.03f, 0.12f);
+
     // Runtime UI references (built in code)
     private Canvas dialogueCanvas;
     private Text npcNameText;
@@ -113,6 +127,7 @@ public class Level5_DumbNPC : LevelManager
     private WorldKeypadButton hoveredKeypadButton;
     private Transform physicalKeypadRoot;
     private Coroutine pendingFingerPressCoroutine;
+    private Coroutine spawnLightFlickerCoroutine;
     private Camera fingerViewModelCamera;
     private Camera fingerBaseCamera;
     private int fingerBaseCameraOriginalCullingMask;
@@ -179,6 +194,7 @@ public class Level5_DumbNPC : LevelManager
         CreateInteractPrompt();
         CreateDoorHUD();
         StartCoroutine(EquipFingerWhenPlayerReady());
+        spawnLightFlickerCoroutine = StartCoroutine(PlaySpawnLightFlickerWhenPlayerReady());
         ShowNarration("A padded room...creepy. Who is that at the end?", 4f);
 
         baseFontSizeDialogue = dialogueText.fontSize;
@@ -213,6 +229,9 @@ public class Level5_DumbNPC : LevelManager
 
         if (equippedFingerInstance != null)
             Destroy(equippedFingerInstance);
+
+        if (spawnLightFlickerCoroutine != null)
+            StopCoroutine(spawnLightFlickerCoroutine);
 
         CleanupFingerViewModelCamera();
         base.OnDestroy();
@@ -1319,6 +1338,259 @@ public class Level5_DumbNPC : LevelManager
         col.center = new Vector3(0f, 1f, 0f);
         col.radius = 0.5f;
         col.height = 2f;
+    }
+
+    // =========================================================================
+    // Spawn light flicker
+    // =========================================================================
+
+    private sealed class SpawnFlickerLightState
+    {
+        public Light light;
+        public bool wasEnabled;
+        public float originalIntensity;
+        public GameObject fixtureRoot;
+        public bool fixtureWasActive;
+        public GameObject emissiveVisual;
+        public bool emissiveWasActive;
+    }
+
+    private IEnumerator PlaySpawnLightFlickerWhenPlayerReady()
+    {
+        if (!playSpawnLightFlicker)
+            yield break;
+
+        const float timeoutSeconds = 8f;
+        float elapsed = 0f;
+        GameObject player = null;
+
+        while (elapsed < timeoutSeconds)
+        {
+            player = GameManager.Instance != null
+                ? GameManager.Instance.CurrentPlayer
+                : GameObject.Find("Player");
+
+            if (player != null)
+                break;
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (player == null)
+        {
+            spawnLightFlickerCoroutine = null;
+            yield break;
+        }
+
+        List<SpawnFlickerLightState> flickerLights = ResolveSpawnFlickerLights();
+        if (flickerLights.Count == 0)
+        {
+            Debug.LogWarning("[Level5] Spawn light flicker could not find Ceiling Light 1 / Ceiling Light 2.");
+            yield break;
+        }
+
+        SetSpawnFlickerLightsInstantIntensity(flickerLights, 0f);
+        SetSpawnFlickerEmissiveVisible(flickerLights, false);
+        SetSpawnFlickerFixtureVisible(flickerLights, false);
+
+        if (spawnLightFlickerStartDelay > 0f)
+            yield return new WaitForSeconds(spawnLightFlickerStartDelay);
+
+        float flickerDuration = Mathf.Max(0.1f, spawnLightFlickerDuration);
+        float flickerTime = 0f;
+
+        while (flickerTime < flickerDuration)
+        {
+            bool lightsOn = Random.value > 0.3f;
+            float fadeTime = lightsOn
+                ? GetRandomPositiveDuration(spawnLightOnTimeRange, 0.06f)
+                : GetRandomPositiveDuration(spawnLightOffTimeRange, 0.1f);
+
+            flickerTime += fadeTime;
+            yield return StartCoroutine(FadeSpawnFlickerLights(flickerLights, lightsOn, fadeTime));
+        }
+
+        RestoreSpawnFlickerLights(flickerLights);
+        spawnLightFlickerCoroutine = null;
+    }
+
+    private List<SpawnFlickerLightState> ResolveSpawnFlickerLights()
+    {
+        List<SpawnFlickerLightState> results = new List<SpawnFlickerLightState>();
+        HashSet<Light> seenLights = new HashSet<Light>();
+
+        if (spawnFlickerFixtureNames == null || spawnFlickerFixtureNames.Length == 0)
+            return results;
+
+        GameObject[] roots = gameObject.scene.GetRootGameObjects();
+        for (int i = 0; i < spawnFlickerFixtureNames.Length; i++)
+        {
+            string fixtureName = spawnFlickerFixtureNames[i];
+            if (string.IsNullOrWhiteSpace(fixtureName))
+                continue;
+
+            Transform fixtureRoot = null;
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                fixtureRoot = FindNamedDescendant(roots[rootIndex].transform, fixtureName);
+                if (fixtureRoot != null)
+                    break;
+            }
+
+            if (fixtureRoot == null)
+                continue;
+
+            Transform emissiveVisual = FindNamedDescendant(fixtureRoot, "light_ON");
+            Light[] childLights = fixtureRoot.GetComponentsInChildren<Light>(true);
+            for (int lightIndex = 0; lightIndex < childLights.Length; lightIndex++)
+            {
+                Light childLight = childLights[lightIndex];
+                if (childLight == null || seenLights.Contains(childLight))
+                    continue;
+
+                if (childLight.type != LightType.Point && childLight.type != LightType.Spot)
+                    continue;
+
+                seenLights.Add(childLight);
+                results.Add(new SpawnFlickerLightState
+                {
+                    light = childLight,
+                    wasEnabled = childLight.enabled,
+                    originalIntensity = childLight.intensity,
+                    fixtureRoot = fixtureRoot.gameObject,
+                    fixtureWasActive = fixtureRoot.gameObject.activeSelf,
+                    emissiveVisual = emissiveVisual != null ? emissiveVisual.gameObject : null,
+                    emissiveWasActive = emissiveVisual != null && emissiveVisual.gameObject.activeSelf
+                });
+            }
+        }
+
+        return results;
+    }
+
+    private IEnumerator FadeSpawnFlickerLights(List<SpawnFlickerLightState> flickerLights, bool lightsOn, float duration)
+    {
+        float safeDuration = Mathf.Max(0.01f, duration);
+        float[] startIntensities = new float[flickerLights.Count];
+
+        if (lightsOn)
+            SetSpawnFlickerFixtureVisible(flickerLights, true);
+
+        SetSpawnFlickerEmissiveVisible(flickerLights, lightsOn);
+
+        for (int i = 0; i < flickerLights.Count; i++)
+        {
+            SpawnFlickerLightState lightState = flickerLights[i];
+            if (lightState.light == null)
+                continue;
+
+            startIntensities[i] = lightState.light.intensity;
+
+            if (lightState.wasEnabled)
+                lightState.light.enabled = true;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < safeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / safeDuration);
+
+            for (int i = 0; i < flickerLights.Count; i++)
+            {
+                SpawnFlickerLightState lightState = flickerLights[i];
+                if (lightState.light == null || !lightState.wasEnabled)
+                    continue;
+
+                float targetIntensity = lightsOn ? lightState.originalIntensity : 0f;
+                lightState.light.intensity = Mathf.Lerp(startIntensities[i], targetIntensity, t);
+            }
+
+            yield return null;
+        }
+
+        if (!lightsOn)
+            SetSpawnFlickerFixtureVisible(flickerLights, false);
+    }
+
+    private void SetSpawnFlickerEmissiveVisible(List<SpawnFlickerLightState> flickerLights, bool visible)
+    {
+        for (int i = 0; i < flickerLights.Count; i++)
+        {
+            SpawnFlickerLightState lightState = flickerLights[i];
+            if (lightState.emissiveVisual == null)
+                continue;
+
+            lightState.emissiveVisual.SetActive(lightState.emissiveWasActive && visible);
+        }
+    }
+
+    private void SetSpawnFlickerFixtureVisible(List<SpawnFlickerLightState> flickerLights, bool visible)
+    {
+        HashSet<GameObject> seenFixtures = new HashSet<GameObject>();
+
+        for (int i = 0; i < flickerLights.Count; i++)
+        {
+            SpawnFlickerLightState lightState = flickerLights[i];
+            if (lightState.fixtureRoot == null || seenFixtures.Contains(lightState.fixtureRoot))
+                continue;
+
+            seenFixtures.Add(lightState.fixtureRoot);
+            lightState.fixtureRoot.SetActive(lightState.fixtureWasActive && visible);
+        }
+    }
+
+    private void SetSpawnFlickerLightsInstantIntensity(List<SpawnFlickerLightState> flickerLights, float intensity)
+    {
+        float clampedIntensity = Mathf.Max(0f, intensity);
+
+        for (int i = 0; i < flickerLights.Count; i++)
+        {
+            SpawnFlickerLightState lightState = flickerLights[i];
+            if (lightState.light == null)
+                continue;
+
+            lightState.light.enabled = lightState.wasEnabled;
+
+            if (lightState.wasEnabled)
+                lightState.light.intensity = clampedIntensity;
+        }
+    }
+
+    private void RestoreSpawnFlickerLights(List<SpawnFlickerLightState> flickerLights)
+    {
+        for (int i = 0; i < flickerLights.Count; i++)
+        {
+            SpawnFlickerLightState lightState = flickerLights[i];
+            if (lightState.fixtureRoot != null)
+                lightState.fixtureRoot.SetActive(lightState.fixtureWasActive);
+
+            if (lightState.light == null)
+                continue;
+
+            lightState.light.enabled = lightState.wasEnabled;
+
+            if (lightState.wasEnabled)
+                lightState.light.intensity = lightState.originalIntensity;
+
+            if (lightState.emissiveVisual != null)
+                lightState.emissiveVisual.SetActive(lightState.emissiveWasActive);
+        }
+    }
+
+    private float GetRandomPositiveDuration(Vector2 range, float fallbackValue)
+    {
+        float min = Mathf.Min(range.x, range.y);
+        float max = Mathf.Max(range.x, range.y);
+
+        if (max <= 0f)
+            return Mathf.Max(0.01f, fallbackValue);
+
+        if (Mathf.Approximately(min, max))
+            return Mathf.Max(0.01f, min);
+
+        return Mathf.Max(0.01f, Random.Range(min, max));
     }
 
     // =========================================================================
