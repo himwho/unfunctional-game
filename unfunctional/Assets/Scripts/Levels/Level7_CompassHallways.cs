@@ -649,6 +649,8 @@ public class Level7_CompassHallways : LevelManager
             yield return new WaitForSeconds(3f);
         }
 
+        ShowNarration("Nice job! You have a great sense of direction.", 3f);
+        yield return new WaitForSeconds(2f);
         CompleteLevel();
     }
 
