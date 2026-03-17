@@ -93,8 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: c669d00d54cef00428e5b5b022beb5c6,
-    type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 6126b6fb6027e2344ae10307557a8348,
     type: 2}
 --- !u!196 &4
@@ -150,8 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.ProbeVolumePerSceneData
-  serializedBakingSet: {fileID: 11400000, guid: a935ac2674e4e2449b7fda8fe2012fc9,
-    type: 2}
+  serializedBakingSet: {fileID: 0}
   sceneGUID: a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
   obsoleteAsset: {fileID: 0}
   obsoleteCellSharedDataAsset: {fileID: 0}
@@ -568,7 +566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 1, y: 1}
+  tiling: {x: 2, y: 2}
   offset: {x: 0, y: 0}
 --- !u!114 &646150981
 MonoBehaviour:
@@ -600,6 +598,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1949038408604777197, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1949038408604777197, guid: c908ed6afbf11614f9e321278879d6f7,
+        type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -607,6 +610,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 2872342308020957174, guid: c908ed6afbf11614f9e321278879d6f7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2872342308020957174, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
@@ -691,7 +699,7 @@ PrefabInstance:
     - target: {fileID: 5442511129885110224, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
       propertyPath: m_Lightmapping
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5632892920256663016, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
@@ -716,7 +724,7 @@ PrefabInstance:
     - target: {fileID: 5632892920256663016, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
       propertyPath: m_Lightmapping
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5710703426470140664, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
@@ -746,7 +754,7 @@ PrefabInstance:
     - target: {fileID: 6346075272810084383, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
       propertyPath: m_Lightmapping
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6937666821697180323, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
@@ -761,7 +769,7 @@ PrefabInstance:
     - target: {fileID: 8444034111214298401, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
       propertyPath: m_Name
-      value: LED_Light_3 (6)
+      value: Exit Light
       objectReference: {fileID: 0}
     - target: {fileID: 8444034111214298401, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
@@ -791,7 +799,7 @@ PrefabInstance:
     - target: {fileID: 8894749383105732449, guid: c908ed6afbf11614f9e321278879d6f7,
         type: 3}
       propertyPath: m_Lightmapping
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -820,133 +828,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -3731654092814758524, guid: 116febc7a1356f347b97cc689f15041d, type: 3}
---- !u!1 &759883414
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 759883417}
-  - component: {fileID: 759883416}
-  - component: {fileID: 759883415}
-  m_Layer: 0
-  m_Name: Point Light (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &759883415
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 759883414}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
---- !u!108 &759883416
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 759883414}
-  m_Enabled: 1
-  serializedVersion: 11
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &759883417
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 759883414}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 8}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &794230365
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -982,7 +863,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 1, y: 1}
+  tiling: {x: 2, y: 2}
   offset: {x: 0, y: 0}
 --- !u!1 &877685957
 GameObject:
@@ -1321,7 +1202,7 @@ GameObject:
   - component: {fileID: 982061013}
   - component: {fileID: 982061012}
   m_Layer: 0
-  m_Name: Point Light
+  m_Name: Keypad Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1367,7 +1248,7 @@ Light:
   serializedVersion: 11
   m_Type: 2
   m_Color: {r: 0.98039216, g: 0.86989856, b: 0.031372555, a: 1}
-  m_Intensity: 0.4
+  m_Intensity: 0.1
   m_Range: 5
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1406,7 +1287,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
@@ -1430,7 +1311,7 @@ Transform:
   m_GameObject: {fileID: 982061011}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.497, y: 2.12, z: 19.597}
+  m_LocalPosition: {x: -1.497, y: 2.048, z: 19.597}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1814,7 +1695,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: c68befaf627d8804c97116d168eecefa, type: 2}
+      objectReference: {fileID: 2100000, guid: 5b348297d48a8af44885105f40c9f647, type: 2}
     - target: {fileID: -8679921383154817045, guid: 116febc7a1356f347b97cc689f15041d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1914,12 +1795,12 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: c68befaf627d8804c97116d168eecefa, type: 2}
+      objectReference: {fileID: 2100000, guid: 5b348297d48a8af44885105f40c9f647, type: 2}
     - target: {fileID: -656798288906812339, guid: 116febc7a1356f347b97cc689f15041d,
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: c68befaf627d8804c97116d168eecefa, type: 2}
+      objectReference: {fileID: 2100000, guid: 5b348297d48a8af44885105f40c9f647, type: 2}
     - target: {fileID: -227492202128446702, guid: 116febc7a1356f347b97cc689f15041d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2004,7 +1885,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: c68befaf627d8804c97116d168eecefa, type: 2}
+      objectReference: {fileID: 2100000, guid: 5b348297d48a8af44885105f40c9f647, type: 2}
     - target: {fileID: 6897205336662246258, guid: 116febc7a1356f347b97cc689f15041d,
         type: 3}
       propertyPath: m_StaticEditorFlags
@@ -2014,7 +1895,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: c68befaf627d8804c97116d168eecefa, type: 2}
+      objectReference: {fileID: 2100000, guid: 5b348297d48a8af44885105f40c9f647, type: 2}
     - target: {fileID: 8975154904436411113, guid: 116febc7a1356f347b97cc689f15041d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2342,7 +2223,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 1, y: 1}
+  tiling: {x: 2, y: 2}
   offset: {x: 0, y: 0}
 --- !u!114 &1805339228
 MonoBehaviour:
@@ -2372,7 +2253,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 1, y: 1}
+  tiling: {x: 2, y: 2}
   offset: {x: 0, y: 0}
 --- !u!114 &1805339230
 MonoBehaviour:
@@ -2655,7 +2536,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerObjectTiling
   texturePropertyName: _BaseMap
-  tiling: {x: 1, y: 1}
+  tiling: {x: 2, y: 2}
   offset: {x: 0, y: 0}
 --- !u!114 &1934306872
 MonoBehaviour:
@@ -3138,4 +3019,3 @@ SceneRoots:
   - {fileID: 692016956}
   - {fileID: 141373254}
   - {fileID: 58581630}
-  - {fileID: 759883417}
