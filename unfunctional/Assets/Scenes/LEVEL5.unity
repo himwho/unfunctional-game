@@ -231,6 +231,8 @@ MonoBehaviour:
   npcObject: {fileID: 1314172100}
   interactRange: 8
   npcName: Gorp
+  npcCompletionTriggerName: LevelComplete
+  npcCompletionAnimationWait: 3
   maxDialogueRange: 15
   comeBackLine: Hey, come back here!
   startOverLine: Let me start over...
@@ -1135,6 +1137,21 @@ PrefabInstance:
       propertyPath: m_InnerSpotAngle
       value: 34.587795
       objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_Strength
+      value: 0.313
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Shadows.m_NearPlane
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 8806840936832261342, guid: d7561889ed225f440abef01860a852b6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1248,10 +1265,10 @@ Light:
   serializedVersion: 11
   m_Type: 2
   m_Color: {r: 0.98039216, g: 0.86989856, b: 0.031372555, a: 1}
-  m_Intensity: 0.1
-  m_Range: 5
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
+  m_Intensity: 0.09
+  m_Range: 15
+  m_SpotAngle: 53.641506
+  m_InnerSpotAngle: 45.44359
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
@@ -1310,13 +1327,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 982061011}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.497, y: 2.048, z: 19.597}
+  m_LocalRotation: {x: 0.7034884, y: -0, z: -0, w: 0.71070683}
+  m_LocalPosition: {x: -1.554, y: 1.982, z: 19.716}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 89.416, y: 0, z: 0}
 --- !u!1 &1166181588
 GameObject:
   m_ObjectHideFlags: 0

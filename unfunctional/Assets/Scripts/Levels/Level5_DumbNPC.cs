@@ -24,6 +24,10 @@ public class Level5_DumbNPC : LevelManager
     public GameObject npcObject;
     public float interactRange = 0.5f;
     public string npcName = "Gorp";
+    [Tooltip("Animator trigger fired when Level 5 is completed.")]
+    public string npcCompletionTriggerName = "LevelComplete";
+    [Tooltip("How long to wait after firing Gorp's completion trigger before advancing to the next level.")]
+    public float npcCompletionAnimationWait = 2f;
 
     [Header("Walk-Away Detection")]
     public float maxDialogueRange = 15f;
@@ -850,7 +854,22 @@ public class Level5_DumbNPC : LevelManager
             ShowNarration("Well done. Gorp was useful after all.", 3f);
             yield return new WaitForSeconds(2f);
         }
+
+        if (PlayNpcCompletionAnimation() && npcCompletionAnimationWait > 0f)
+            yield return new WaitForSeconds(npcCompletionAnimationWait);
+
         CompleteLevel();
+    }
+
+    private bool PlayNpcCompletionAnimation()
+    {
+        if (npcAnimator == null || string.IsNullOrWhiteSpace(npcCompletionTriggerName))
+            return false;
+
+        npcAnimator.ResetTrigger("Reverse");
+        npcAnimator.SetFloat("AnimSpeed", 1f);
+        npcAnimator.SetTrigger(npcCompletionTriggerName);
+        return true;
     }
 
     // =========================================================================
