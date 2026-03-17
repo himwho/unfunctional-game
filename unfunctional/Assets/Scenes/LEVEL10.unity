@@ -7755,6 +7755,11 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5115337834764753551, guid: 23e3bca1494037c4e8f3b207ff613ea1,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6313462988376227782, guid: 23e3bca1494037c4e8f3b207ff613ea1,
         type: 3}
       propertyPath: unlockMethod
