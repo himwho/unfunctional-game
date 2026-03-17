@@ -178,7 +178,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 3
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.98039216, g: 0.92941177, b: 0.81960785, a: 1}
   m_Intensity: 1
   m_Range: 8
   m_SpotAngle: 121.6829
@@ -350,6 +350,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Range
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0.81960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0.92941177
+      objectReference: {fileID: 0}
+    - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.98039216
       objectReference: {fileID: 0}
     - target: {fileID: 8297284783804873001, guid: d7561889ed225f440abef01860a852b6,
         type: 3}
@@ -966,7 +981,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.98039216, g: 0.92941177, b: 0.81960785, a: 1}
   m_Intensity: 0.3
   m_Range: 10
   m_SpotAngle: 30

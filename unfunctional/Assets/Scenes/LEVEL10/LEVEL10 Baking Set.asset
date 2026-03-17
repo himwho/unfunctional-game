@@ -41,11 +41,11 @@ MonoBehaviour:
     m_Values:
     - position: {x: -1, y: 0, z: -1}
       index: 0
-      probeCount: 5888
+      probeCount: 5952
       minSubdiv: 0
       indexChunkCount: 91
       shChunkCount: 1
-      bricksCount: 92
+      bricksCount: 93
       indirectionEntryInfo:
       - positionInBricks: {x: -27, y: 0, z: -27}
         minSubdiv: 0
@@ -55,11 +55,11 @@ MonoBehaviour:
         hasOnlyBiggerBricks: 0
     - position: {x: -1, y: 0, z: 0}
       index: 6
-      probeCount: 6464
+      probeCount: 5376
       minSubdiv: 0
       indexChunkCount: 91
       shChunkCount: 1
-      bricksCount: 101
+      bricksCount: 84
       indirectionEntryInfo:
       - positionInBricks: {x: -27, y: 0, z: 0}
         minSubdiv: 0
@@ -69,11 +69,11 @@ MonoBehaviour:
         hasOnlyBiggerBricks: 0
     - position: {x: 0, y: 0, z: -1}
       index: 1
-      probeCount: 5888
+      probeCount: 5952
       minSubdiv: 0
       indexChunkCount: 91
       shChunkCount: 1
-      bricksCount: 92
+      bricksCount: 93
       indirectionEntryInfo:
       - positionInBricks: {x: 0, y: 0, z: -27}
         minSubdiv: 0
@@ -83,11 +83,11 @@ MonoBehaviour:
         hasOnlyBiggerBricks: 0
     - position: {x: 0, y: 0, z: 0}
       index: 7
-      probeCount: 6464
+      probeCount: 5376
       minSubdiv: 0
       indexChunkCount: 91
       shChunkCount: 1
-      bricksCount: 101
+      bricksCount: 84
       indirectionEntryInfo:
       - positionInBricks: {x: 0, y: 0, z: 0}
         minSubdiv: 0
@@ -118,7 +118,7 @@ MonoBehaviour:
     m_Keys:
     - Default
     m_Values:
-    - sceneHash: -726419580
+    - sceneHash: 819641194
       cellDataAsset:
         m_AssetGUID: ccce3aa99a0a75e4982802def382c02f
         m_StreamableAssetPath: APVStreamingAssets\a1d60493dec502a4c8e101da645432ef\ccce3aa99a0a75e4982802def382c02f.bytes
@@ -175,13 +175,13 @@ MonoBehaviour:
       m_Keys: 00000000060000000100000007000000
       m_Values:
       - offset: 0
-        elementCount: 92
-      - offset: 1472
-        elementCount: 101
-      - offset: 3088
-        elementCount: 92
-      - offset: 4560
-        elementCount: 101
+        elementCount: 93
+      - offset: 1488
+        elementCount: 84
+      - offset: 2832
+        elementCount: 93
+      - offset: 4320
+        elementCount: 84
     m_Asset: {fileID: 4900000, guid: fd0a16a3d0fc3a64da9de77389b0adbb, type: 3}
   cellSupportDataAsset:
     m_AssetGUID: 97b501d9d87d846458330e9fd6667e59
