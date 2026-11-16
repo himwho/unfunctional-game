@@ -305,14 +305,10 @@ public class KeypadController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance != null && (GameManager.Instance.IsLoading || GameManager.Instance.CurrentState != GameManager.GameState.Playing)) return;
         if (!IsOpen) return;
 
-        // Close with Escape
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Close();
-            return;
-        }
+        // Escape is dispatched once by InputManager (modal first, then pause).
 
         // Allow keyboard digit entry while keypad is open
         for (int i = 0; i <= 9; i++)

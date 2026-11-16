@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca13ac38b321466c8dda92ba00a1ee9b, type: 3}
+  m_Name: Library
+  m_EditorClassIdentifier: Assembly-CSharp::GameArtLibrary
+  tile: {fileID: 2100000, guid: d14d6f0bab7d63048b23f028636bcca3, type: 2}
+  concrete: {fileID: 2100000, guid: f21d9acb4a48bd04a9753ea8ea086659, type: 2}
+  wood: {fileID: 2100000, guid: 732b1830e697cb546be5f6c57766c3ff, type: 2}
+  steel: {fileID: 2100000, guid: 7c399b0ba85275a458c46fd91271bd95, type: 2}
+  shovel: {fileID: 1844309610672278670, guid: ecc72571959b444008228bcbfa7991f1, type: 3}
+  door: {fileID: 100000, guid: c3a2e9c7a879b7d41b29957e6f9ed6c0, type: 3}
+  achievementSound: {fileID: 8300000, guid: 54ccf978c7886364c980d9f84ff32bd3, type: 3}
+  achievementVariants:
+  - {fileID: 8300000, guid: 9488cbbf1e4ed4b45b67aa4520008cfd, type: 3}
+  - {fileID: 8300000, guid: fd296d204640d4b15aef9479b3745087, type: 3}
+  - {fileID: 8300000, guid: 26aab2933e1e7479998ec2ad5d5c3547, type: 3}
+  - {fileID: 8300000, guid: db4fd83f4f6e546eab4967c6985120c9, type: 3}
+  - {fileID: 8300000, guid: a4ea9d41489f849509dd328b2bf54d18, type: 3}
+  shovelSnap: {fileID: 8300000, guid: 0bbd171265c4445c4b7cc89da9940ee2, type: 3}
+  shovelLowerShaft: {fileID: 4300000, guid: 0ef5395a529434cc3893a9cf738fe3bf, type: 2}
+  shovelUpperShaft: {fileID: 4300000, guid: 9280812c8a8f2434b8eb5995103b9c0e, type: 2}
+  soilClod: {fileID: 4300000, guid: 52a184c70c5d84d0a8d32e1227d1cf0e, type: 2}

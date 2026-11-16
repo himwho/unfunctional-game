@@ -132,6 +132,7 @@ public class Level3_WallClip : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
 
         // Hint timer

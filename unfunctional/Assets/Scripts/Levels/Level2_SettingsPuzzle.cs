@@ -30,6 +30,16 @@ public class Level2_SettingsPuzzle : LevelManager
     public static float PersistentVolume     { get; private set; } = -1f;
     public static bool  SettingsPersisted    { get; private set; } = false;
 
+    /// <summary>Restore a validated checkpoint or reset calibration for a new run.</summary>
+    public static void RestoreCalibration(bool kept, float brightness = -1f, float contrast = -1f, float volume = -1f)
+    {
+        SettingsPersisted = kept;
+        PersistentBrightness = kept ? brightness : -1f;
+        PersistentContrast = kept ? contrast : -1f;
+        PersistentVolume = kept ? volume : -1f;
+        AudioListener.volume = kept && volume >= 0f ? volume : 1f;
+    }
+
     private const int TOTAL_STEPS = 10;
 
     [Header("Optional - will create if null")]
@@ -217,6 +227,7 @@ public class Level2_SettingsPuzzle : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
         UpdateCurrentStep();
     }
@@ -1191,9 +1202,9 @@ public class Level2_SettingsPuzzle : LevelManager
     {
         step7Timer += Time.deltaTime;
 
-        // Show skip after 10 seconds
-        //if (step7Timer > 10f && !step7Skip.gameObject.activeSelf)
-        //    step7Skip.gameObject.SetActive(true);
+        // Missing/denied microphone access must not block the campaign.
+        if ((!micAvailable || step7Timer > 10f) && !step7Skip.gameObject.activeSelf)
+            step7Skip.gameObject.SetActive(true);
 
         if (!micAvailable) return;
 
@@ -1386,7 +1397,7 @@ public class Level2_SettingsPuzzle : LevelManager
 
         micDevice = Microphone.devices[0];
         micClip = Microphone.Start(micDevice, true, 10, 44100);
-        micAvailable = true;
+        micAvailable = micClip != null;
 #endif
     }
 
@@ -1541,6 +1552,7 @@ public class Level2_SettingsPuzzle : LevelManager
         slider.maxValue = 1f;
         slider.value = 0.5f;
 
+        UnfunctionalUISkin.Slider(slider);
         return slider;
     }
 
@@ -1575,6 +1587,7 @@ public class Level2_SettingsPuzzle : LevelManager
         text.alignment = TextAnchor.MiddleCenter;
         text.color = Color.white;
 
+        UnfunctionalUISkin.Button(btn);
         return btn;
     }
 

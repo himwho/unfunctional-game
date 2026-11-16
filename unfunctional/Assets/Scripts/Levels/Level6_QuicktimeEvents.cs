@@ -239,6 +239,7 @@ public class Level6_QuicktimeEvents : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
 
         // Door code entry phase (separate from QTE system)

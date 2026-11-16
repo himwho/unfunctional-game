@@ -53,6 +53,9 @@ public class Level1_ConfusingMenu : LevelManager
         SetupFakeButtons();
         SetupRealButton();
         SetupSubMenus();
+        CreateContinueButton();
+        UnfunctionalUISkin.ButtonsIn(transform);
+        if (menuCanvas != null) UnfunctionalUISkin.ButtonsIn(menuCanvas.transform);
 
         subMenuTimer = subMenuPopupInterval;
     }
@@ -97,8 +100,24 @@ public class Level1_ConfusingMenu : LevelManager
         }
     }
 
+    private void CreateContinueButton()
+    {
+        var manager = GameManager.Instance;
+        if (manager == null || !manager.CanContinueCampaign) return;
+        // Outside the drifting puzzle panel, above any retained calibration overlays.
+        var canvas = GameScreenUI.Canvas(transform, "ContinueCampaignCanvas", 950);
+        GameScreenUI.Button(canvas.transform, "ContinueCampaign", "CONTINUE SAVED GAME",
+            new Vector2(0.32f, 0.04f), new Vector2(0.68f, 0.12f), () =>
+            {
+                if (CanProcessGameplay && !realButtonFound) manager.ContinueCampaign();
+            });
+        GameScreenUI.Text(canvas.transform, "CheckpointHint", "Resumes at the start of your current level.", 20,
+            new Vector2(0.25f, 0.005f), new Vector2(0.75f, 0.04f));
+    }
+
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete || realButtonFound) return;
 
         // Slowly rotate the entire menu for maximum confusion

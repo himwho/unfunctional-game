@@ -92,6 +92,7 @@ public class Level11_BadRNG : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
 
         if (!hasChosen)
@@ -396,7 +397,7 @@ public class Level11_BadRNG : LevelManager
         yield return new WaitForSeconds(1f);
 
         if (GameManager.Instance != null)
-            GameManager.Instance.LoadLevel(0);
+            GameManager.Instance.StartNewCampaign();
     }
 
     // =========================================================================

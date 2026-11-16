@@ -90,6 +90,7 @@ public class Level9_WalkingSimulator : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete || doorOpening) return;
 
         UpdateStamina();

@@ -26,6 +26,12 @@ public class LevelManager : MonoBehaviour
 
     public bool IsLevelComplete => levelComplete;
 
+    // Time.timeScale does not stop Update or Input.GetKeyDown. Gate level actions too.
+    protected bool CanProcessGameplay => !levelComplete &&
+        (GameManager.Instance == null || (!GameManager.Instance.IsLoading &&
+         (GameManager.Instance.CurrentState == GameManager.GameState.Playing ||
+          GameManager.Instance.CurrentState == GameManager.GameState.MainMenu)));
+
     protected virtual void Start()
     {
         Debug.Log($"[LevelManager] Initialized: {levelDisplayName}");
@@ -36,20 +42,35 @@ public class LevelManager : MonoBehaviour
     /// Applies this level's cursor preference. Called on Start and when
     /// resuming from pause so the correct cursor state is restored.
     /// </summary>
-    public void ApplyCursorState()
+    public virtual void ApplyCursorState()
     {
+        bool shouldLock = wantsCursorLocked;
+        foreach (var keypad in FindObjectsByType<KeypadController>(FindObjectsSortMode.None))
+            if (keypad.IsOpen) shouldLock = false;
         if (InputManager.Instance != null)
         {
-            if (wantsCursorLocked)
+            if (shouldLock)
                 InputManager.Instance.LockCursor();
             else
                 InputManager.Instance.UnlockCursor();
         }
         else
         {
-            Cursor.lockState = wantsCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !wantsCursorLocked;
+            Cursor.lockState = shouldLock ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !shouldLock;
         }
+    }
+
+    /// <summary>Esc closes a modal before the shared input system opens pause.</summary>
+    public virtual bool TryCloseModal()
+    {
+        foreach (var keypad in FindObjectsByType<KeypadController>(FindObjectsSortMode.None))
+        {
+            if (!keypad.IsOpen) continue;
+            keypad.Close();
+            return true;
+        }
+        return false;
     }
 
     /// <summary>

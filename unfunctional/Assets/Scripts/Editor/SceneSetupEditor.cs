@@ -80,7 +80,10 @@ public class SceneSetupEditor : EditorWindow
             "Assets/Scenes/LEVEL8.unity",
             "Assets/Scenes/LEVEL9.unity",
             "Assets/Scenes/LEVEL10.unity",
-            "Assets/Scenes/LEVEL11.unity"
+            "Assets/Scenes/LEVEL11.unity",
+            "Assets/Scenes/LEVEL_2PS.unity",
+            "Assets/Scenes/LEVEL_CRAFTING.unity",
+            "Assets/Scenes/LEVEL12.unity"
         };
 
         List<EditorBuildSettingsScene> buildScenes = new List<EditorBuildSettingsScene>();

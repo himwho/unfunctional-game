@@ -91,6 +91,8 @@ public class Level4_KeypadPuzzle : LevelManager
 
     // HUD
     private Canvas hudCanvas;
+    private Text localReplyText;
+    private UnityWebRequest activeRequest;
     private Text interactPromptText;
     private Text narrationText;
     private CanvasGroup narrationCanvasGroup;
@@ -189,6 +191,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
     protected override void OnDestroy()
     {
+        if (activeRequest != null) { activeRequest.Abort(); activeRequest.Dispose(); activeRequest = null; }
         // Unsubscribe
         if (keypad != null)
         {
@@ -209,7 +212,16 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete || doorOpening) return;
+
+        // Explicit local alternative: playable in a build without an email account
+        // or access to a running support server. No email is sent by this action.
+        if (Input.GetKeyDown(KeyCode.F2)) GenerateOfflineCode();
+        if (localReplyText != null)
+            localReplyText.text = offlineMode && codeRequested && Time.unscaledTime < codeExpiryTime
+                ? $"RODNEY (LOCAL REPLY): {currentValidCode}  |  {Mathf.CeilToInt(codeExpiryTime - Time.unscaledTime)}s\n[F2] Request a fresh local code"
+                : "Email Rodney for a code, or press [F2] to simulate his reply locally.";
 
         UpdateEquippedFingerTransform();
         hoveredKeypadButton = GetHoveredKeypadButton();
@@ -597,6 +609,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void HandleCodeSubmitted(string code)
     {
+        if (doorOpening || !CanProcessGameplay) return;
         // Server mode
         if (!string.IsNullOrEmpty(codeServerUrl) && !offlineMode)
         {
@@ -613,7 +626,7 @@ public class Level4_KeypadPuzzle : LevelManager
             return;
         }
 
-        if (Time.time > codeExpiryTime)
+        if (Time.unscaledTime >= codeExpiryTime)
         {
             if (keypad != null) keypad.RejectCode("Code expired! Request a new one.");
             currentValidCode = "";
@@ -650,6 +663,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void OnCodeAccepted()
     {
+        if (doorOpening) return;
         if (keypad != null) keypad.AcceptCode("ACCESS GRANTED");
         ShowNarration("The code worked. Wait, how did you get that so fast?", 3f);
         StartCoroutine(DoorOpenSequence());
@@ -675,38 +689,42 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private void GenerateOfflineCode()
     {
+        offlineMode = true; // Subsequent submissions must validate the local code.
         currentValidCode = "";
         for (int i = 0; i < 9; i++)
             currentValidCode += Random.Range(0, 10).ToString();
 
-        codeExpiryTime = Time.time + codeValiditySeconds;
+        codeExpiryTime = Time.unscaledTime + codeValiditySeconds;
         codeRequested = true;
 
         if (keypad != null)
-            keypad.SetStatus("Code sent! Check console.\nExpires in " + codeValiditySeconds + "s",
+            keypad.SetStatus("Local reply received.\nExpires in " + codeValiditySeconds + "s",
                 new Color(1f, 0.9f, 0.3f));
 
         Debug.Log($"[Level4 DEBUG] Rodney's code: {currentValidCode} (expires in {codeValiditySeconds}s)");
 
         ShowNarration(
-            "DEBUG MODE: Code logged to console.\n" +
-            "In the real game, you'd email rodney@premiumdoorcodes.com and alt-tab back.", 5f);
+            "Rodney's local reply is at the top of the screen. Type it into the keypad.", 5f);
     }
 
     private IEnumerator RequestCodeFromServer()
     {
+        if (activeRequest != null) yield break;
         if (keypad != null) keypad.SetStatus("Contacting Rodney...", Color.white);
 
         string url = codeServerUrl.TrimEnd('/') + "/api/request-code";
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes("{}");
 
-        UnityWebRequest req = new UnityWebRequest(url, "POST");
+        using var req = new UnityWebRequest(url, "POST");
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
         req.timeout = 10;
 
+        activeRequest = req;
         yield return req.SendWebRequest();
+        activeRequest = null;
+        if (offlineMode) yield break;
 
         if (req.result == UnityWebRequest.Result.Success)
         {
@@ -714,7 +732,7 @@ public class Level4_KeypadPuzzle : LevelManager
             string code = ParseJsonStringField(response, "code");
             string message = ParseJsonStringField(response, "message");
 
-            codeExpiryTime = Time.time + codeValiditySeconds;
+            codeExpiryTime = Time.unscaledTime + codeValiditySeconds;
             codeRequested = true;
 
             if (!string.IsNullOrEmpty(code) && code.Length == 9)
@@ -747,19 +765,23 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private IEnumerator ValidateCodeOnServer(string code)
     {
+        if (activeRequest != null) yield break;
         if (keypad != null) keypad.SetStatus("Validating...", Color.white);
 
         string url = codeServerUrl.TrimEnd('/') + "/api/validate";
         string jsonBody = "{\"code\":\"" + code + "\"}";
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
 
-        UnityWebRequest req = new UnityWebRequest(url, "POST");
+        using var req = new UnityWebRequest(url, "POST");
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
         req.timeout = 10;
 
+        activeRequest = req;
         yield return req.SendWebRequest();
+        activeRequest = null;
+        if (offlineMode) yield break;
 
         if (req.result == UnityWebRequest.Result.Success)
         {
@@ -785,7 +807,7 @@ public class Level4_KeypadPuzzle : LevelManager
             yield return new WaitForSeconds(0.5f);
 
             if (!string.IsNullOrEmpty(currentValidCode) &&
-                Time.time <= codeExpiryTime &&
+                Time.unscaledTime < codeExpiryTime &&
                 code == currentValidCode)
             {
                 OnCodeAccepted();
@@ -825,7 +847,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
         if (codeRequested && codeExpiryTime > 0f)
         {
-            float remaining = codeExpiryTime - Time.time;
+            float remaining = codeExpiryTime - Time.unscaledTime;
             if (remaining > 0f)
             {
                 Color timerColor = remaining < 5f
@@ -1230,6 +1252,8 @@ public class Level4_KeypadPuzzle : LevelManager
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         canvasObj.AddComponent<GraphicRaycaster>();
+        localReplyText = GameScreenUI.Text(canvasObj.transform, "LocalReply", "", 24,
+            new Vector2(0.1f, 0.89f), new Vector2(0.9f, 0.98f));
 
         // Interact prompt
         GameObject promptObj = new GameObject("InteractPrompt");

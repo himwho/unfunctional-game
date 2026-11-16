@@ -159,6 +159,7 @@ public class SecondPersonNPC : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance != null && (GameManager.Instance.IsLoading || GameManager.Instance.CurrentState != GameManager.GameState.Playing)) return;
         if (isDead || player == null) return;
 
         float distToPlayer = Vector3.Distance(transform.position, player.position);

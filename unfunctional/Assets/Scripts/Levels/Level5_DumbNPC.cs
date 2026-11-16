@@ -243,6 +243,7 @@ public class Level5_DumbNPC : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete || doorOpening) return;
 
         UpdateEquippedFingerTransform();

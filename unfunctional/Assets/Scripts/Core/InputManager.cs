@@ -42,6 +42,25 @@ public class InputManager : MonoBehaviour
 
     private void Update()
     {
+        if (CampaignCredits.Instance != null && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CampaignCredits.Instance.Close();
+            ClearInputs();
+            return;
+        }
+        var debug = DebugPanel.Instance;
+        if (debug != null && debug.IsAvailable && Input.GetKeyDown(debug.toggleKey))
+        {
+            debug.Toggle();
+            ClearInputs();
+            return;
+        }
+        if (debug != null && debug.IsOpen)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape)) debug.Close();
+            ClearInputs();
+            return;
+        }
         if (!inputEnabled)
         {
             ClearInputs();
@@ -66,6 +85,12 @@ public class InputManager : MonoBehaviour
         // Handle pause toggle
         if (PausePressed && GameManager.Instance != null)
         {
+            if (GameManager.Instance.IsLoading) return;
+            if (GameManager.Instance.CurrentState == GameManager.GameState.Playing)
+            {
+                var level = FindAnyObjectByType<LevelManager>();
+                if (level != null && level.TryCloseModal()) return;
+            }
             GameManager.Instance.TogglePause();
         }
     }

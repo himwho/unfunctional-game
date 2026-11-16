@@ -62,3 +62,7 @@ sysinfo.txt
 crashlytics-build.properties
 
 
+
+# Local validation reports and generated solution files
+/TestResults/
+*.slnx

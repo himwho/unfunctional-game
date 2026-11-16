@@ -112,6 +112,7 @@ public class Level7_CompassHallways : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
         UpdateCompass();
         CheckExitProximity();

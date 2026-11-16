@@ -1,5 +1,12 @@
 # Game Design Document
 
+> Historical design notes. These are ideas and earlier requirements, not a description of
+> every current implementation. See [current status](../docs/PROJECT_STATUS.md),
+> [campaign order](../README.md#campaign), and [roadmap](../docs/ROADMAP.md).
+> Current code TTL is 60 seconds, the shooter precedes the achievements finale,
+> and the live email service is optional through the local F2 reply.
+
+
 ### LEVELS
 - A bad puzzle for just starting the game using shitty menus?
 - Audio/Video Settings Menu Puzzle

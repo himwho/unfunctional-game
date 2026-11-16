@@ -242,6 +242,7 @@ public class Level13_SecondPersonShooter : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (gameOver || levelComplete) return;
         if (playerTransform == null) return;
 
@@ -856,7 +857,7 @@ public class Level13_SecondPersonShooter : LevelManager
     {
         while (true)
         {
-            if (Input.GetKeyDown(KeyCode.R))
+            if (CanProcessGameplay && Input.GetKeyDown(KeyCode.R))
             {
                 if (GameManager.Instance != null)
                     GameManager.Instance.ReloadCurrentLevel();

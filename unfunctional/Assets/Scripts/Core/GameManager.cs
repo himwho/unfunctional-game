@@ -27,7 +27,10 @@ public class GameManager : MonoBehaviour
         "LEVEL8",
         "LEVEL9",
         "LEVEL10",
-        "LEVEL11"
+        "LEVEL11",
+        "LEVEL_2PS",
+        "LEVEL_CRAFTING",
+        "LEVEL12"
     };
 
     [Header("Player")]
@@ -46,6 +49,7 @@ public class GameManager : MonoBehaviour
     public int CurrentLevelIndex => currentLevelIndex;
     public GameState CurrentState => currentState;
     public GameObject CurrentPlayer => currentPlayerInstance;
+    public bool IsLoading => isLoading;
 
     public enum GameState
     {
@@ -53,7 +57,8 @@ public class GameManager : MonoBehaviour
         MainMenu,   // LEVEL1 - the confusing main menu
         Playing,    // Active gameplay in a level
         Paused,     // Game is paused
-        Transition  // Loading between levels
+        Transition, // Loading between levels
+        Completed   // Campaign ending, with menu and quit controls
     }
 
     // Events for other systems to hook into
@@ -75,6 +80,8 @@ public class GameManager : MonoBehaviour
 
     // Player instance management
     private GameObject currentPlayerInstance;
+    private bool isLoading;
+    private CampaignEnding ending;
 
     private void Awake()
     {
@@ -98,17 +105,47 @@ public class GameManager : MonoBehaviour
         LoadLevel(0);
     }
 
+    public bool CanContinueCampaign => CampaignProgress.TryRead(levelSceneNames, out var save) && !save.completed;
+
+    public void ContinueCampaign()
+    {
+        if (isLoading || !CampaignProgress.TryRead(levelSceneNames, out var save) || save.completed) return;
+        int index = System.Array.IndexOf(levelSceneNames, save.scene);
+        if (!Application.CanStreamedLevelBeLoaded(save.scene)) return;
+        Level2_SettingsPuzzle.RestoreCalibration(save.calibrationKept, save.brightness, save.contrast, save.volume);
+        LoadLevel(index);
+    }
+
+    /// <summary>Explicit new run, including Level 11's intentional whole-campaign punishment.</summary>
+    public void StartNewCampaign()
+    {
+        if (isLoading || !Application.CanStreamedLevelBeLoaded(levelSceneNames[0])) return;
+        CampaignProgress.Clear();
+        Level2_SettingsPuzzle.RestoreCalibration(false);
+        LoadLevel(0);
+    }
+
     /// <summary>
     /// Load a level by index (0-based, maps to levelSceneNames array).
     /// Unloads the previous level scene first with a fade transition.
     /// </summary>
     public void LoadLevel(int levelIndex)
     {
+        if (isLoading) return;
         if (levelIndex < 0 || levelIndex >= levelSceneNames.Length)
         {
             Debug.LogError($"[GameManager] Invalid level index: {levelIndex}");
             return;
         }
+
+        if (!Application.CanStreamedLevelBeLoaded(levelSceneNames[levelIndex]))
+        {
+            Debug.LogError($"[GameManager] Scene missing from Build Settings: {levelSceneNames[levelIndex]}");
+            return; // Keep the current room intact if configuration is broken.
+        }
+
+        isLoading = true;
+        if (ending != null) Destroy(ending.gameObject);
 
         SetState(GameState.Transition);
         StartCoroutine(LoadLevelRoutine(levelIndex));
@@ -119,12 +156,22 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void LoadNextLevel()
     {
+        if (isLoading || currentState == GameState.Completed) return;
         int nextIndex = currentLevelIndex + 1;
         if (nextIndex >= levelSceneNames.Length)
         {
             Debug.Log("[GameManager] All levels completed!");
+            CampaignProgress.Save(levelSceneNames[currentLevelIndex], completed: true);
+            SetState(GameState.Completed);
+            if (InputManager.Instance != null) InputManager.Instance.UnlockCursor();
+            else { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
+            var endingObject = new GameObject("CampaignEnding");
+            endingObject.transform.SetParent(transform);
+            ending = endingObject.AddComponent<CampaignEnding>();
+            ending.Show(this);
             return;
         }
+        if (currentLevelIndex == 0) Level2_SettingsPuzzle.RestoreCalibration(false);
         LoadLevel(nextIndex);
     }
 
@@ -144,11 +191,11 @@ public class GameManager : MonoBehaviour
         currentState = newState;
         OnGameStateChanged?.Invoke(newState);
 
-        if (newState == GameState.Paused)
+        if (newState == GameState.Paused || newState == GameState.Completed)
         {
             Time.timeScale = 0f;
         }
-        else if (newState == GameState.Playing || newState == GameState.MainMenu)
+        else
         {
             Time.timeScale = 1f;
         }
@@ -221,6 +268,7 @@ public class GameManager : MonoBehaviour
         yield return null;
 
         LevelManager lm = FindAnyObjectByType<LevelManager>();
+        if (lm != null) CampaignRoomArt.Dress(lm);
         if (lm != null && lm.needsPlayer)
         {
             SpawnPlayer(lm.GetSpawnPosition(), lm.GetSpawnRotation());
@@ -244,6 +292,9 @@ public class GameManager : MonoBehaviour
 
         // Fade in
         yield return StartCoroutine(Fade(1f, 0f, fadeInDuration));
+        isLoading = false;
+        // Opening the menu preserves the checkpoint. Only explicit new runs clear it.
+        if (levelIndex > 0) CampaignProgress.Save(newSceneName);
     }
 
     // =========================================================================
@@ -357,7 +408,8 @@ public class GameManager : MonoBehaviour
 
         fadeOverlay = overlayObj.AddComponent<Image>();
         fadeOverlay.color = fadeColor;
-        fadeOverlay.raycastTarget = false;
+        fadeOverlay.raycastTarget = true;
+        canvasObj.AddComponent<GraphicRaycaster>();
 
         RectTransform overlayRect = overlayObj.GetComponent<RectTransform>();
         overlayRect.anchorMin = Vector2.zero;
@@ -409,7 +461,7 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// After an additive scene load, destroy every EventSystem except the
-    /// first one found (which lives in the persistent GLOBAL scene).
+    /// one belonging to the persistent GLOBAL scene.
     /// This silences the "There can be only one active Event System" warning
     /// and prevents input conflicts between duplicate EventSystems.
     /// </summary>
@@ -418,15 +470,16 @@ public class GameManager : MonoBehaviour
         EventSystem[] all = FindObjectsByType<EventSystem>(FindObjectsSortMode.None);
         if (all.Length <= 1) return;
 
-        // Keep the very first one (GLOBAL's), destroy the rest
-        bool kept = false;
+        // Discovery order is undefined. Retain GLOBAL's system explicitly so
+        // unloading the next level cannot remove the surviving input system.
+        EventSystem keep = null;
+        foreach (var es in all)
+            if (es.gameObject.scene.name == "GLOBAL") { keep = es; break; }
+        if (keep == null) keep = all[0];
         foreach (var es in all)
         {
-            if (!kept)
-            {
-                kept = true;
-                continue;
-            }
+            if (es == keep) continue;
+            es.enabled = false;
             Debug.Log($"[GameManager] Destroying duplicate EventSystem on '{es.gameObject.name}'.");
             Destroy(es.gameObject);
         }
@@ -574,6 +627,7 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == this)
         {
+            Time.timeScale = 1f;
             Instance = null;
         }
     }

@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Paused)
+        if (GameManager.Instance != null && (GameManager.Instance.IsLoading || GameManager.Instance.CurrentState != GameManager.GameState.Playing))
             return;
 
         HandleLook();

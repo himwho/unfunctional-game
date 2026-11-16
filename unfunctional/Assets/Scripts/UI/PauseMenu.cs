@@ -13,6 +13,7 @@ public class GamePauseMenu : MonoBehaviour
     public Button resumeButton;
     public Button restartButton;
     public Button quitButton;
+    public Button debugLevelsButton;
 
     private void Start()
     {
@@ -27,26 +28,34 @@ public class GamePauseMenu : MonoBehaviour
         if (quitButton != null)
             quitButton.onClick.AddListener(OnQuitClicked);
 
-        // Listen for state changes
-        if (GameManager.Instance != null)
+        if (debugLevelsButton != null)
         {
-            GameManager.Instance.OnGameStateChanged += HandleStateChanged;
+            debugLevelsButton.gameObject.SetActive(DebugPanel.Instance != null && DebugPanel.Instance.IsAvailable);
+            debugLevelsButton.onClick.AddListener(() => DebugPanel.Instance?.Open());
         }
+        Subscribe();
+    }
+
+    private GameManager subscribedManager;
+
+    private void Subscribe()
+    {
+        if (subscribedManager != null || GameManager.Instance == null) return;
+        subscribedManager = GameManager.Instance;
+        subscribedManager.OnGameStateChanged += HandleStateChanged;
     }
 
     private void OnEnable()
     {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnGameStateChanged += HandleStateChanged;
-        }
+        Subscribe();
     }
 
     private void OnDisable()
     {
-        if (GameManager.Instance != null)
+        if (subscribedManager != null)
         {
-            GameManager.Instance.OnGameStateChanged -= HandleStateChanged;
+            subscribedManager.OnGameStateChanged -= HandleStateChanged;
+            subscribedManager = null;
         }
     }
 
@@ -54,7 +63,7 @@ public class GamePauseMenu : MonoBehaviour
     {
         if (pausePanel == null) return;
 
-        bool showPause = (newState == GameManager.GameState.Paused);
+        bool showPause = newState == GameManager.GameState.Paused && !(DebugPanel.Instance != null && DebugPanel.Instance.IsOpen);
         pausePanel.SetActive(showPause);
 
         if (showPause)

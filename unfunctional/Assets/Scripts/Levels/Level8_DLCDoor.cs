@@ -91,6 +91,7 @@ public class Level8_DLCDoor : LevelManager
     private bool rewardGiven = false;
     private bool codeRevealed = false;
     private int currentViewItem = -1;
+    private ShopProductArt productArt;
     private HashSet<int> viewedItems = new HashSet<int>();
     private List<GameObject> viewedTags = new List<GameObject>();
     private GameObject fallbackDoor;
@@ -156,6 +157,8 @@ public class Level8_DLCDoor : LevelManager
         EnsureSpawnPoint();
         SetupDoor();
         CreateShopUI();
+        productArt = gameObject.AddComponent<ShopProductArt>();
+        productArt.Build(shopPanel.transform, itemDetailPanel.transform);
         CreateHUD();
         StartCoroutine(EquipFingerWhenPlayerReady());
         ShowNarration("This room has a tablet. Let's see what it does...", 4f);
@@ -178,6 +181,7 @@ public class Level8_DLCDoor : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
 
         UpdateEquippedFingerTransform();
@@ -188,11 +192,20 @@ public class Level8_DLCDoor : LevelManager
         {
             UpdateInteraction();
         }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-                CloseShop();
-        }
+    }
+
+    public override bool TryCloseModal()
+    {
+        if (!shopOpen) return base.TryCloseModal();
+        CloseShop();
+        return true;
+    }
+
+    public override void ApplyCursorState()
+    {
+        if (!shopOpen) { base.ApplyCursorState(); return; }
+        if (InputManager.Instance != null) InputManager.Instance.UnlockCursor();
+        else { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
     }
 
     // =====================================================================
@@ -667,6 +680,7 @@ public class Level8_DLCDoor : LevelManager
     private void OnViewItem(int index)
     {
         currentViewItem = index;
+        if (productArt != null) productArt.Select(index);
 
         bool isNew = viewedItems.Add(index);
         itemsBrowsed = viewedItems.Count;

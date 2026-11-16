@@ -13,13 +13,13 @@ using System.Collections.Generic;
 /// Builds workshop geometry, tools, task stations, and HUD at runtime.
 /// Attach to root GameObject in LEVEL10 scene.
 /// </summary>
-public class Level10_ItemDegradation : LevelManager
+public partial class Level10_ItemDegradation : LevelManager
 {
     [Header("Level 10 - Item Degradation")]
     public DoorController doorController;
 
     [Header("Tool Settings")]
-    public int maxDurability = 15;          // Uses before tool breaks
+    [Min(1)] public int maxDurability = 3; // Uses before tool breaks; respect the Inspector.
     public float interactRange = 3.5f;
     [Tooltip("Radius of the interaction sphere cast — larger = easier to target tools")]
     public float interactRadius = 0.15f;
@@ -239,7 +239,7 @@ public class Level10_ItemDegradation : LevelManager
         needsPlayer = true;
         wantsCursorLocked = true;
 
-        maxDurability = 15;
+        maxDurability = Mathf.Max(1, maxDurability);
 
         InitToolColors();
         InitInventory();
@@ -250,6 +250,7 @@ public class Level10_ItemDegradation : LevelManager
         InitSaw();
         InitBroom();
         InitWrench();
+        InitWorkshopSupplies();
         InitNut();
         InitPlank();
         InitSodaCans();
@@ -261,6 +262,7 @@ public class Level10_ItemDegradation : LevelManager
 
     private void Update()
     {
+        if (!CanProcessGameplay) return;
         if (levelComplete) return;
 
         UpdateInventoryInput();
@@ -484,6 +486,12 @@ public class Level10_ItemDegradation : LevelManager
         Transform cB = slot.childB;
         int remainingDurability = slot.durability;
 
+        if (toolName == "Shovel" && currentToolVisual != null)
+        {
+            Destroy(currentToolVisual);
+            currentToolVisual = null;
+        }
+
         if (toolName == "Hammer") DropRealHammer();
         else if (toolName == "Saw") DropRealSaw();
         else if (toolName == "Broom") DropRealBroom();
@@ -578,7 +586,11 @@ public class Level10_ItemDegradation : LevelManager
         currentToolName = slot.toolName;
         currentToolDurability = slot.durability;
 
-        if (slot.sceneObject == null) return;
+        if (slot.sceneObject == null)
+        {
+            CreateGenericToolVisual(slot.toolName);
+            return;
+        }
 
         Camera cam = Camera.main;
         if (cam == null) return;
@@ -695,8 +707,7 @@ public class Level10_ItemDegradation : LevelManager
     {
         tasks = new List<Task>
         {
-            // TODO: re-enable these two tasks
-            // new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
+            new Task { name = "Dig a Hole", toolName = "Shovel", requiredUses = 5 },
             new Task { name = "Hammer a Nail", toolName = "Hammer", requiredUses = 40 },
             new Task { name = "Saw a Plank", toolName = "Saw", requiredUses = 40 },
             new Task { name = "Turn a Bolt", toolName = "Wrench", requiredUses = 55 },
@@ -715,7 +726,11 @@ public class Level10_ItemDegradation : LevelManager
             }
             else
             {
-                Debug.LogWarning($"[Level10] Station not found: '{stationName}' — create a GameObject with this name in the scene");
+                // The shovel station is generated below. Saw and wrench use their
+                // authored plank/nut colliders directly, so no duplicate station is needed.
+                if (task.toolName == "Shovel") CreateDigStation(task);
+                else if (task.toolName != "Saw" && task.toolName != "Wrench")
+                    Debug.LogWarning($"[Level10] Required station missing: {stationName}");
             }
         }
 
@@ -1208,7 +1223,7 @@ public class Level10_ItemDegradation : LevelManager
                 showPrompt = true;
                 promptText.text = "Press [E] to pick up Hammer";
 
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Input.GetKeyDown(KeyCode.E) && !isSwinging)
                 {
                     PickUpHammer(hitHammer);
                     promptText.text = "";
@@ -1219,7 +1234,7 @@ public class Level10_ItemDegradation : LevelManager
                 showPrompt = true;
                 promptText.text = "Press [E] to pick up Saw";
 
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Input.GetKeyDown(KeyCode.E) && !isSwinging)
                 {
                     PickUpSaw(hitSaw);
                     promptText.text = "";
@@ -1230,7 +1245,7 @@ public class Level10_ItemDegradation : LevelManager
                 showPrompt = true;
                 promptText.text = "Press [E] to pick up Broom";
 
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Input.GetKeyDown(KeyCode.E) && !isSwinging)
                 {
                     PickUpBroom(hitBroom);
                     promptText.text = "";
@@ -1241,7 +1256,7 @@ public class Level10_ItemDegradation : LevelManager
                 showPrompt = true;
                 promptText.text = "Press [E] to pick up Wrench";
 
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Input.GetKeyDown(KeyCode.E) && !isSwinging)
                 {
                     PickUpWrench(hitWrench);
                     promptText.text = "";
@@ -1258,7 +1273,7 @@ public class Level10_ItemDegradation : LevelManager
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    PickUpTool(toolName);
+                    DispenseReplacementTool(toolName);
                     promptText.text = "";
                 }
             }
@@ -1362,7 +1377,9 @@ public class Level10_ItemDegradation : LevelManager
             promptText.text = "";
         }
 
-        // Tool display is now handled by UpdateToolSlotUI()
+        toolText.text = string.IsNullOrEmpty(currentToolName)
+            ? "[E] Pick up | [1-4] Select | [Q] Drop"
+            : $"{currentToolName} / {currentToolDurability} uses | [Q] Drop";
     }
 
     private string GetToolFromHit(RaycastHit hit)
@@ -1405,21 +1422,7 @@ public class Level10_ItemDegradation : LevelManager
             activeSlotIndex = slotIdx;
         }
 
-        Camera cam = Camera.main;
-        if (cam != null)
-        {
-            currentToolVisual = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            currentToolVisual.name = $"HeldTool_{toolName}";
-            currentToolVisual.transform.SetParent(cam.transform);
-            currentToolVisual.transform.localPosition = new Vector3(0.4f, -0.3f, 0.5f);
-            currentToolVisual.transform.localScale = new Vector3(0.1f, 0.1f, 0.5f);
-            currentToolVisual.transform.localRotation = Quaternion.Euler(0, 0, 30);
-
-            Color toolColor = toolColors.ContainsKey(toolName) ? toolColors[toolName] : Color.grey;
-            currentToolVisual.GetComponent<Renderer>().material.color = toolColor;
-
-            Destroy(currentToolVisual.GetComponent<Collider>());
-        }
+        CreateGenericToolVisual(toolName);
 
         Debug.Log($"[Level10] Picked up {toolName} with {currentToolDurability} durability");
     }
@@ -1428,11 +1431,12 @@ public class Level10_ItemDegradation : LevelManager
     {
         Task task = tasks[taskIndex];
 
-        if (currentToolDurability <= 0 || task.completed) return;
+        if (currentToolDurability <= 0 || task.completed || currentToolName != task.toolName) return;
 
         // Use the tool
         task.currentUses++;
         currentToolDurability--;
+        if (task.toolName == "Shovel") UpdateDigProgress(task);
 
         // Sync durability back to inventory slot
         if (activeSlotIndex >= 0)
@@ -1495,6 +1499,8 @@ public class Level10_ItemDegradation : LevelManager
             currentToolName = "";
             currentToolDurability = 0;
             activeSlotIndex = -1;
+            // Let the swing coroutine finish before removing the held visual.
+            if (currentToolVisual != null) { Destroy(currentToolVisual, 0.6f); currentToolVisual = null; }
 
             if (task.toolName == "Saw" && !plankSplit)
             {
@@ -1551,7 +1557,8 @@ public class Level10_ItemDegradation : LevelManager
         }
         else if (currentToolVisual != null)
         {
-            StartCoroutine(BreakAnimation(currentToolVisual));
+            StartCoroutine(currentToolName == "Shovel" ? SnapShovel(currentToolVisual) : BreakAnimation(currentToolVisual));
+            currentToolVisual = null;
         }
 
         // Clear the inventory slot
@@ -1585,6 +1592,7 @@ public class Level10_ItemDegradation : LevelManager
             tool.AddComponent<BoxCollider>();
         rb.AddForce(Random.insideUnitSphere * 2f, ForceMode.Impulse);
         rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
+        Destroy(tool, 20f);
     }
 
     private IEnumerator SwingAndUseTool(int taskIndex, bool animationOnly = false)
@@ -2101,36 +2109,38 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(launchDir.normalized * hammerHeadLaunchForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * hammerHeadTorque, ForceMode.Impulse);
 
+            Destroy(hammerHeadTransform.gameObject, 20f);
             hammerHeadTransform = null;
         }
 
         if (hammerSceneObject != null)
-            StartCoroutine(DropHandleAfterDelay(0.8f));
+            StartCoroutine(DropHandleAfterDelay(hammerSceneObject, 0.8f));
+        hammerSceneObject = null;
+        hammerHandleTransform = null;
     }
 
-    private IEnumerator DropHandleAfterDelay(float delay)
+    private IEnumerator DropHandleAfterDelay(GameObject brokenHandle, float delay)
     {
         yield return new WaitForSeconds(delay);
 
-        if (hammerSceneObject != null)
+        if (brokenHandle != null)
         {
-            hammerSceneObject.transform.SetParent(null);
+            brokenHandle.transform.SetParent(null);
 
-            foreach (var col in hammerSceneObject.GetComponentsInChildren<Collider>())
+            foreach (var col in brokenHandle.GetComponentsInChildren<Collider>())
             {
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (hammerSceneObject.GetComponentsInChildren<Collider>().Length == 0)
-                hammerSceneObject.AddComponent<BoxCollider>();
+            if (brokenHandle.GetComponentsInChildren<Collider>().Length == 0)
+                brokenHandle.AddComponent<BoxCollider>();
 
-            IgnorePlayerCollision(hammerSceneObject);
+            IgnorePlayerCollision(brokenHandle);
 
-            Rigidbody rb = hammerSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = brokenHandle.AddComponent<Rigidbody>();
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            hammerSceneObject = null;
-            hammerHandleTransform = null;
+            Destroy(brokenHandle, 20f);
         }
     }
 
@@ -2235,36 +2245,38 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(launchDir.normalized * sawBladeLaunchForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * sawBladeTorque, ForceMode.Impulse);
 
+            Destroy(sawBladeTransform.gameObject, 20f);
             sawBladeTransform = null;
         }
 
         if (sawSceneObject != null)
-            StartCoroutine(DropSawHandleAfterDelay(0.8f));
+            StartCoroutine(DropSawHandleAfterDelay(sawSceneObject, 0.8f));
+        sawSceneObject = null;
+        sawHandleTransform = null;
     }
 
-    private IEnumerator DropSawHandleAfterDelay(float delay)
+    private IEnumerator DropSawHandleAfterDelay(GameObject brokenHandle, float delay)
     {
         yield return new WaitForSeconds(delay);
 
-        if (sawSceneObject != null)
+        if (brokenHandle != null)
         {
-            sawSceneObject.transform.SetParent(null);
+            brokenHandle.transform.SetParent(null);
 
-            foreach (var col in sawSceneObject.GetComponentsInChildren<Collider>())
+            foreach (var col in brokenHandle.GetComponentsInChildren<Collider>())
             {
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (sawSceneObject.GetComponentsInChildren<Collider>().Length == 0)
-                sawSceneObject.AddComponent<BoxCollider>();
+            if (brokenHandle.GetComponentsInChildren<Collider>().Length == 0)
+                brokenHandle.AddComponent<BoxCollider>();
 
-            IgnorePlayerCollision(sawSceneObject);
+            IgnorePlayerCollision(brokenHandle);
 
-            Rigidbody rb = sawSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = brokenHandle.AddComponent<Rigidbody>();
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            sawSceneObject = null;
-            sawHandleTransform = null;
+            Destroy(brokenHandle, 20f);
         }
     }
 
@@ -2397,7 +2409,7 @@ public class Level10_ItemDegradation : LevelManager
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             rb.AddForce(Random.insideUnitSphere * 0.5f, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
-
+            Destroy(child.gameObject, 20f);
         }
 
         Destroy(broomSceneObject);
@@ -2405,9 +2417,7 @@ public class Level10_ItemDegradation : LevelManager
         broomHeadTransform = null;
         broomHandleTransform = null;
 
-        Task broomTask = tasks.Find(t => t.toolName == "Broom");
-        if (broomTask != null && !broomTask.completed && availableBrooms.Count == 0)
-            StartBreakMessage("Oops! You ran out of brooms. Guess you have to restart the level now.", new Color(1f, 0.3f, 0.3f, 1f), 5f);
+        StartBreakMessage("Broom broke. Replacement supplies are by the digging station.");
     }
 
     private void DropRealBroom()
@@ -2628,36 +2638,38 @@ public class Level10_ItemDegradation : LevelManager
             rb.AddForce(launchDir.normalized * wrenchTipLaunchForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * wrenchTipTorque, ForceMode.Impulse);
 
+            Destroy(wrenchTipTransform.gameObject, 20f);
             wrenchTipTransform = null;
         }
 
         if (wrenchSceneObject != null)
-            StartCoroutine(DropWrenchHandleAfterDelay(0.8f));
+            StartCoroutine(DropWrenchHandleAfterDelay(wrenchSceneObject, 0.8f));
+        wrenchSceneObject = null;
+        wrenchHandleTransform = null;
     }
 
-    private IEnumerator DropWrenchHandleAfterDelay(float delay)
+    private IEnumerator DropWrenchHandleAfterDelay(GameObject brokenHandle, float delay)
     {
         yield return new WaitForSeconds(delay);
 
-        if (wrenchSceneObject != null)
+        if (brokenHandle != null)
         {
-            wrenchSceneObject.transform.SetParent(null);
+            brokenHandle.transform.SetParent(null);
 
-            foreach (var col in wrenchSceneObject.GetComponentsInChildren<Collider>())
+            foreach (var col in brokenHandle.GetComponentsInChildren<Collider>())
             {
                 col.enabled = true;
                 col.isTrigger = false;
             }
-            if (wrenchSceneObject.GetComponentsInChildren<Collider>().Length == 0)
-                wrenchSceneObject.AddComponent<BoxCollider>();
+            if (brokenHandle.GetComponentsInChildren<Collider>().Length == 0)
+                brokenHandle.AddComponent<BoxCollider>();
 
-            IgnorePlayerCollision(wrenchSceneObject);
+            IgnorePlayerCollision(brokenHandle);
 
-            Rigidbody rb = wrenchSceneObject.AddComponent<Rigidbody>();
+            Rigidbody rb = brokenHandle.AddComponent<Rigidbody>();
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            wrenchSceneObject = null;
-            wrenchHandleTransform = null;
+            Destroy(brokenHandle, 20f);
         }
     }
 
