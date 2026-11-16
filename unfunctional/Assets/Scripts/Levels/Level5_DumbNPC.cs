@@ -833,6 +833,7 @@ public class Level5_DumbNPC : LevelManager
         if (doorController != null && doorController.doorPanel != null)
         {
             GameObject panel = doorController.doorPanel;
+            doorController?.ReleasePassage();
             panel.transform.SetParent(null);
 
             Rigidbody rb = panel.GetComponent<Rigidbody>();
@@ -848,8 +849,8 @@ public class Level5_DumbNPC : LevelManager
             if (panel.GetComponent<Collider>() == null)
                 panel.AddComponent<BoxCollider>();
 
-            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
-            Vector3 pushDir = -panel.transform.forward;
+            Vector3 topOfDoor = panel.GetComponent<Collider>().bounds.center + Vector3.up * panel.GetComponent<Collider>().bounds.extents.y * .8f;
+            Vector3 pushDir = doorController != null ? -doorController.transform.forward : -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
 
             ShowNarration("Well done. Gorp was useful after all.", 3f);

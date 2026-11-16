@@ -1,4 +1,4 @@
-# Editing Level 4 and jumping between stages
+# Editing department scenes and jumping between stages
 
 ## Move Level 4 decorations
 
@@ -48,3 +48,49 @@ release builds by default. This does not change the game's deliberately frustrat
 The pause buttons now occupy separate vertical bands in **GLOBAL → PauseCanvas**. Their old
 positive/negative vertical offsets caused the overlap and have been removed. You can edit these
 RectTransforms in the GLOBAL scene. The debug and ordinary pause panels are mutually exclusive.
+
+
+## Levels 8, 11 and the finale
+
+These scenes now contain their new objects directly, just like Level 4:
+
+- `Assets/Scenes/LEVEL8.unity` → **Level8_Art**.
+- `Assets/Scenes/LEVEL11.unity` → **Level11_Art**.
+- `Assets/Scenes/LEVEL12.unity` → **Level12_Art**.
+
+Each root groups **Furniture and Displays**, **Signs and Certificates**, **Wall and Floor
+Dressing**, and **Lighting**. The finale also has **Room and Interactions**, containing its
+walls, lights, plaque, button, exit and spawn point. The finale manager keeps serialized
+references to the interactive objects, so moving or renaming them preserves their wiring.
+Move a whole exhibit's parts together when adjusting a plinth, caption or certificate.
+
+Stop Play, adjust the objects, and save the scene. No runtime builder or lettering fitter
+replaces these transforms. The art's materials are saved under `Assets/Art/Department/Level8`,
+`Level11`, and `Level12`. The finale's exit-indicator material is copied at runtime so an unlock
+cannot permanently recolor its saved material.
+
+**Unfunctional → Scene Art → Install Editable Departments** has already run. It preserves
+existing art roots. It is for migration/recovery, not routine scene editing. The crafting room
+and workshop dressing still use their runtime builders; they were not part of this migration.
+
+## Keypads and doorway repairs
+
+Physical keypads still use the finger and left-click, with the original animation delay.
+The aim offset now scales from its authored 1080-pixel reference height. Previously the fixed
+320-pixel downward offset could put the ray below a small Game view. A small marker shows the
+aim point near the keypad and turns green over a valid key. Level 4's reach is now 1.5 metres;
+the previous one-metre camera distance could not reach its lower keys with the scaled player.
+Store-overlay clicks no longer also start a physical keypad press in Level 8. The sale sign
+and showroom header have been raised clear of the keypad and door.
+
+The player remains **3 metres tall and 1.5 metres wide**. The crafting and finale door visuals
+are now **3.8 metres tall and 2.4 metres wide**. These stages retain their existing E-to-complete
+exit behavior. The existing mesh wall openings in Levels 4, 8 and 11 are retained. Their
+DoorController root collider was an invisible stationary barrier after the leaf fell; success
+now releases it. The same repair covers the falling-door sequences in Levels 4–11. Their
+imported leaf has a rotated local axis: pushing along that axis drove the door down instead
+of tipping it clear. The force now uses the doorway's forward direction and the actual leaf
+bounds. The original impulse, mass and opening delays remain intact.
+
+Level 11 still requires walking through its successful exit and still resets the campaign on
+a failed roll. Code lengths, expiry, prices and puzzle gates have not been relaxed.

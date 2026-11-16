@@ -31,11 +31,17 @@ public static class CampaignSmokeTests
     }
 
     [MenuItem("Unfunctional/Run Campaign Smoke Tests")]
-    public static void Run()
+    public static void Run() => Begin(false);
+
+    [MenuItem("Unfunctional/Run Scene Interaction Tests")]
+    public static void RunSceneInteractions() => Begin(true);
+
+    private static void Begin(bool focused)
     {
         if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         CampaignValidation.Validate();
         EditorSceneManager.OpenScene("Assets/Scenes/GLOBAL.unity", OpenSceneMode.Single);
+        SessionState.SetBool("Unfunctional.SceneInteractions",focused);
         SessionState.SetBool(PendingKey, true);
         EditorApplication.isPlaying = true;
     }

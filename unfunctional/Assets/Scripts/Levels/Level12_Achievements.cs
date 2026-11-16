@@ -33,8 +33,8 @@ public class Level12_Achievements : LevelManager
     private Text checklist, prompt, narration;
     private AudioSource achievementAudio;
     private Transform popupParent;
-    private GameObject plaque, button, exit;
-    private Renderer exitRenderer;
+    [SerializeField] private GameObject plaque, button, exit;
+    [SerializeField] private Renderer exitRenderer;
     private PlayerController player;
     private CharacterController character;
     private Vector3 previousPosition;
@@ -53,7 +53,16 @@ public class Level12_Achievements : LevelManager
         needsPlayer = true;
         wantsCursorLocked = true;
         base.Start();
-        BuildRoom();
+        if(plaque==null || button==null || exit==null || exitRenderer==null)
+            Debug.LogError("[Finale] Scene references missing. Install editable department scenes in the Editor.");
+        if(exitRenderer!=null)
+        {
+            var indicator=new Material(exitRenderer.sharedMaterial);
+            materials.Add(indicator);exitRenderer.sharedMaterial=indicator;
+        }
+        achievementAudio=gameObject.AddComponent<AudioSource>();
+        achievementAudio.playOnAwake=false;achievementAudio.volume=.25f;
+        var library=GameArtLibrary.Load();if(library!=null)achievementAudio.clip=library.achievementSound;
         BuildHUD();
         RefreshChecklist();
         popupTimer = trivialAchievementInterval;
@@ -205,6 +214,12 @@ public class Level12_Achievements : LevelManager
         popupParent = holder.transform;
     }
 
+#if UNITY_EDITOR
+    public void BuildAuthoredRoom() { BuildRoom(); }
+    public List<Material> ReleaseAuthoredMaterials()
+    {
+        var result=new List<Material>(materials);materials.Clear();return result;
+    }
     private void BuildRoom()
     {
         var art = GameArtLibrary.Load();
@@ -227,9 +242,9 @@ public class Level12_Achievements : LevelManager
             Box("BrassRail", new Vector3(side * 6.77f, 1.65f, 0), new Vector3(0.08f, 0.07f, 18), brass);
             Box("Skirting", new Vector3(side * 6.75f, 0.14f, 0), new Vector3(0.1f, 0.28f, 18), dark);
         }
-        Box("ReceptionHeader", new Vector3(0, 3.8f, 8.7f), new Vector3(10, 0.85f, 0.18f), dark);
-        WorldText("DEPARTMENT OF ACHIEVEMENTS", new Vector3(0, 3.93f, 8.57f), 0.065f, Color.white);
-        WorldText("FINAL INSPECTION  /  PLEASE LOWER YOUR EXPECTATIONS", new Vector3(0, 3.57f, 8.56f), 0.025f, new Color(0.8f, 0.7f, 0.45f));
+        Box("ReceptionHeader", new Vector3(0, 4.42f, 8.7f), new Vector3(10, 0.65f, 0.18f), dark);
+        WorldText("DEPARTMENT OF ACHIEVEMENTS", new Vector3(0, 4.53f, 8.57f), 0.065f, Color.white);
+        WorldText("FINAL INSPECTION  /  PLEASE LOWER YOUR EXPECTATIONS", new Vector3(0, 4.23f, 8.56f), 0.025f, new Color(0.8f, 0.7f, 0.45f));
         // Framed, legible certificate rather than an unlabelled placeholder cube.
         Box("CertificateFrame", new Vector3(-4, 1.65f, 1), new Vector3(2.1f, 1.8f, 0.22f), brass);
         plaque = Box("ReadingPlaque", new Vector3(-4, 1.65f, 0.85f), new Vector3(1.85f, 1.55f, 0.12f), paper);
@@ -246,24 +261,22 @@ public class Level12_Achievements : LevelManager
         button.GetComponent<Renderer>().sharedMaterial = MakeMaterial(new Color(0.65f, 0.06f, 0.035f));
         WorldText("OFFICIAL BUTTON\nONE PRESS REQUIRED", new Vector3(4, 0.72f, 1.36f), 0.025f, Color.white);
         exit = new GameObject("AchievementExit"); exit.transform.SetParent(transform);
-        exit.transform.position = new Vector3(0, 1.6f, 8.45f);
-        var exitCollider = exit.AddComponent<BoxCollider>(); exitCollider.size = new Vector3(2.2f, 3.2f, 0.3f);
+        exit.transform.position = new Vector3(0, 1.9f, 8.45f);
+        var exitCollider = exit.AddComponent<BoxCollider>(); exitCollider.size = new Vector3(2.4f, 3.8f, 0.3f);
         if (art != null && art.door != null)
         {
-            var door = Instantiate(art.door, exit.transform, false);
-            var renderers = door.GetComponentsInChildren<Renderer>();
-            var bounds = renderers[0].bounds;
-            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
-            door.transform.localScale *= 3.2f / Mathf.Max(bounds.size.y, 0.01f);
-            bounds = renderers[0].bounds;
-            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
-            door.transform.position += exit.transform.position - bounds.center;
+            var visual=new GameObject("DoorVisual").transform;visual.SetParent(exit.transform,false);
+            var door=Instantiate(art.door,visual,false);
+            var renderers=door.GetComponentsInChildren<Renderer>();var bounds=renderers[0].bounds;
+            foreach(var renderer in renderers)bounds.Encapsulate(renderer.bounds);
+            door.transform.position+=exit.transform.position-bounds.center;
+            visual.localScale=new Vector3(2.4f/bounds.size.x,3.8f/bounds.size.y,3.8f/bounds.size.y);
         }
-        else Box("ExitLeaf", exit.transform.position, new Vector3(2, 3.2f, 0.2f), concrete);
-        Box("ExitFrameLeft", new Vector3(-1.2f, 1.7f, 8.35f), new Vector3(0.18f, 3.4f, 0.4f), dark);
-        Box("ExitFrameRight", new Vector3(1.2f, 1.7f, 8.35f), new Vector3(0.18f, 3.4f, 0.4f), dark);
+        else Box("ExitLeaf", exit.transform.position, new Vector3(2.4f, 3.8f, 0.2f), concrete);
+        Box("ExitFrameLeft", new Vector3(-1.3f, 1.95f, 8.35f), new Vector3(0.18f, 3.9f, 0.4f), dark);
+        Box("ExitFrameRight", new Vector3(1.3f, 1.95f, 8.35f), new Vector3(0.18f, 3.9f, 0.4f), dark);
         exitRenderer = Box("ExitIndicator", new Vector3(1.65f, 1.8f, 8.6f), new Vector3(0.25f, 0.55f, 0.12f), MakeMaterial(new Color(0.65f, 0.12f, 0.05f))).GetComponent<Renderer>();
-        WorldText("EXIT", new Vector3(0, 3.28f, 8.16f), 0.05f, Color.white);
+        WorldText("EXIT", new Vector3(0, 3.5f, 8.16f), 0.05f, Color.white);
         WorldText("5 CERTIFICATES\nNO EXCEPTIONS", new Vector3(2.5f, 1.8f, 8.5f), 0.025f, Color.white);
         var glow = MakeMaterial(new Color(0.9f, 0.86f, 0.67f));
         glow.EnableKeyword("_EMISSION"); glow.SetColor("_EmissionColor", new Color(1f, 0.9f, 0.65f) * 2f);
@@ -280,9 +293,6 @@ public class Level12_Achievements : LevelManager
         RenderSettings.ambientLight = new Color(0.4f, 0.42f, 0.4f);
         var spawn = new GameObject("PlayerSpawnPoint"); spawn.transform.SetParent(transform);
         spawn.transform.position = new Vector3(0, 1.5f, -6); playerSpawnPoint = spawn.transform;
-        achievementAudio = gameObject.AddComponent<AudioSource>();
-        achievementAudio.playOnAwake = false; achievementAudio.volume = 0.25f;
-        if (art != null) achievementAudio.clip = art.achievementSound;
     }
 
     private Material CopyMaterial(Material source, Vector2 tiling)
@@ -332,6 +342,8 @@ public class Level12_Achievements : LevelManager
         text.font = UIHelper.GetDefaultFont();
         go.GetComponent<Renderer>().sharedMaterial = text.font.material;
     }
+
+#endif
 
     protected override void OnDestroy()
     {

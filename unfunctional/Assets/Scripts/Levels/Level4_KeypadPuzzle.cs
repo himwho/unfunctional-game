@@ -66,9 +66,9 @@ public class Level4_KeypadPuzzle : LevelManager
     public float codeValiditySeconds = 60f;
     public float interactRange = 3f;
     public float keypadButtonAimRadius = 0.08f;
-    [Tooltip("Horizontal screen-space offset in pixels used when aiming keypad buttons. Positive values aim farther right.")]
+    [Tooltip("Horizontal screen-space offset in pixels at a 1080px reference height, scaled with the Game view when aiming keypad buttons. Positive values aim farther right.")]
     public float keypadAimOffsetX = 0f;
-    [Tooltip("Vertical screen-space offset in pixels used when aiming keypad buttons. Positive values aim up, negative values aim down.")]
+    [Tooltip("Vertical screen-space offset in pixels at a 1080px reference height, scaled with the Game view when aiming keypad buttons. Positive values aim up, negative values aim down.")]
     public float keypadAimOffsetY = 0f;
 
     [Header("Server")]
@@ -225,6 +225,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
         UpdateEquippedFingerTransform();
         hoveredKeypadButton = GetHoveredKeypadButton();
+        PhysicalKeypadAim.ShowTarget(this, physicalKeypadRoot, GetKeypadAimScreenPoint(), hoveredKeypadButton);
 
         HandleFingerClickAnimation();
         UpdateInteraction();
@@ -560,10 +561,7 @@ public class Level4_KeypadPuzzle : LevelManager
 
     private Vector3 GetKeypadAimScreenPoint()
     {
-        return new Vector3(
-            (Screen.width * 0.5f) + keypadAimOffsetX,
-            (Screen.height * 0.5f) + keypadAimOffsetY,
-            0f);
+        return PhysicalKeypadAim.ScreenPoint(Camera.main, keypadAimOffsetX, keypadAimOffsetY);
     }
 
     private WorldKeypadButton FindClosestKeypadButton(RaycastHit[] hits)
@@ -1118,7 +1116,7 @@ public class Level4_KeypadPuzzle : LevelManager
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
 
-        if (targetButton != null && keypad != null)
+        if (CanProcessGameplay && targetButton != null && keypad != null)
             targetButton.Press(keypad);
 
         pendingFingerPressCoroutine = null;
@@ -1208,6 +1206,7 @@ public class Level4_KeypadPuzzle : LevelManager
         if (doorController != null && doorController.doorPanel != null)
         {
             GameObject panel = doorController.doorPanel;
+            doorController?.ReleasePassage();
             panel.transform.SetParent(null);
 
             Rigidbody rb = panel.GetComponent<Rigidbody>();
@@ -1223,8 +1222,8 @@ public class Level4_KeypadPuzzle : LevelManager
             if (panel.GetComponent<Collider>() == null)
                 panel.AddComponent<BoxCollider>();
 
-            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
-            Vector3 pushDir = -panel.transform.forward;
+            Vector3 topOfDoor = panel.GetComponent<Collider>().bounds.center + Vector3.up * panel.GetComponent<Collider>().bounds.extents.y * .8f;
+            Vector3 pushDir = doorController != null ? -doorController.transform.forward : -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
 
             yield return new WaitForSeconds(3f);

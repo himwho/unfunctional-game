@@ -29,7 +29,8 @@ utility, not a required installation step. The authored scenes and references ar
 - **E:** interact; **left click:** use a held tool or press physical keypad buttons.
 - **Esc:** pause; the pause menu offers resume, restart, and quit (Level 11 intentionally disables restart).
   In the Editor/Development Builds it also offers **LEVEL SELECT (F1)**.
-- **Scene editing:** Level 4 decorations are saved under `Level4_Art` in `LEVEL4.unity`.
+- **Scene editing:** Levels 4, 8, 11 and the finale save their decorations under
+  `Level4_Art`, `Level8_Art`, `Level11_Art` and `Level12_Art` in their `.unity` scenes.
   See [scene editing and debug controls](docs/SCENE_AUTHORING.md).
 - **Workshop:** **1–4 / mouse wheel** select inventory slots; **Q** drops a tool.
   Replacement crates provide unlimited tools. The shovel shares the four-slot inventory.

@@ -125,9 +125,17 @@ public class DoorController : MonoBehaviour
     // =========================================================================
 
     /// <summary>
-    /// Slides the door panel upward. Call from your level script when the
-    /// player has satisfied the unlock condition.
+    /// Removes the stationary closed-door barrier after a level unlocks the door.
+    /// Frame and door-leaf colliders remain under their normal animation/physics control.
     /// </summary>
+    public void ReleasePassage()
+    {
+        // The prefab's root collider is the closed-door barrier; it does not move with the leaf.
+        foreach (var collider in GetComponents<Collider>())
+            if (!collider.isTrigger) collider.enabled = false;
+    }
+
+    /// <summary>Slides the door panel upward once its unlock condition is satisfied.</summary>
     public void OpenDoor()
     {
         if (isOpen || isAnimating) return;
@@ -160,6 +168,12 @@ public class DoorController : MonoBehaviour
         }
 
         isOpen = !isOpen;
+        if (isOpen) ReleasePassage();
+        else
+        {
+            foreach (var collider in GetComponents<Collider>())
+                if (!collider.isTrigger) collider.enabled = true;
+        }
         isAnimating = false;
     }
 

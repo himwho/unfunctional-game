@@ -69,7 +69,7 @@ public sealed class LevelCrafting_Mandatory : LevelManager
             art.Box("EndWall",new Vector3(0,2.4f,side*9),new Vector3(14,4.8f,.3f),concrete,null,true);
             art.Box("TileDado",new Vector3(side*6.81f,.7f,0),new Vector3(.05f,1.4f,18),tile);
         }
-        art.Sign("DepartmentHeader","DEPARTMENT OF MANDATORY MANUFACTURE",new Vector3(0,3.9f,8.7f),new Vector2(12,.8f),art.Teal,art.Paper,.065f);
+        art.Sign("DepartmentHeader","DEPARTMENT OF MANDATORY MANUFACTURE",new Vector3(0,4.5f,8.7f),new Vector2(12,.6f),art.Teal,art.Paper,.065f);
         art.Sign("SafetyNotice","DO NOT USE THE EXISTING HANDLE\nALL HANDLES MUST BE CRAFTED ON SITE",new Vector3(0,2.9f,-8.7f),new Vector2(6,1),art.Paper,art.Red,.05f,180);
         Station("depot","MATERIALS",new Vector3(-4,0,-4),"01 / TAKE A BILLET");
         Station("grinder","GRINDER",new Vector3(-4,0,-.7f),"02 + 03 / MAKE IT SMALLER");
@@ -83,11 +83,11 @@ public sealed class LevelCrafting_Mandatory : LevelManager
         Target(displayTarget,"display","DISPLAY ONLY");art.Handle(display,new Vector3(-.17f,.2f,-.18f),art.Brass);
         art.Sign("DisplayOnlyNotice","FINISHED DOOR HANDLE\nDISPLAY ONLY",new Vector3(2.4f,1.96f,7.3f),new Vector2(2,.55f),art.Paper,art.Red,.034f);
         art.Sign("DisplayInsult","FUNCTIONAL SINCE ARRIVAL",new Vector3(2.4f,.65f,6.68f),new Vector2(1.1f,.22f),art.Brass,art.Ink,.018f);
-        var door=art.Box("HandlelessExit",new Vector3(0,1.55f,8.5f),new Vector3(1.8f,3.1f,.2f),art.Paper,null,true);Target(door,"exit","EXIT");
-        foreach(int side in new[]{-1,1})art.Box("ExitJamb",new Vector3(side*.99f,1.6f,8.43f),new Vector3(.15f,3.2f,.3f),art.Ink);
+        var door=art.Box("HandlelessExit",new Vector3(0,1.9f,8.5f),new Vector3(2.4f,3.8f,.2f),art.Paper,null,true);Target(door,"exit","EXIT");
+        foreach(int side in new[]{-1,1})art.Box("ExitJamb",new Vector3(side*1.3f,1.95f,8.43f),new Vector3(.15f,3.9f,.3f),art.Ink);
         for(int i=0;i<3;i++)art.Box("DoorRecess",new Vector3(0,.55f+i*.85f,8.385f),new Vector3(1.35f,.58f,.025f),art.Teal);
         installed=art.Group("InstalledHandle",new Vector3(.55f,1.35f,8.33f));art.Handle(installed,Vector3.zero,art.Brass);installed.gameObject.SetActive(false);
-        art.Sign("ExitLabel","EXIT / HANDLE NOT INCLUDED",new Vector3(0,3.35f,8.4f),new Vector2(2.7f,.35f),art.Teal,art.Paper,.03f);
+        art.Sign("ExitLabel","EXIT / HANDLE NOT INCLUDED",new Vector3(0,4.05f,8.4f),new Vector2(2.7f,.35f),art.Teal,art.Paper,.03f);
         carried=art.Group("CurrentCraftingItem",new Vector3(0,0,0));
         var spawn=new GameObject("PlayerSpawnPoint").transform;spawn.SetParent(transform,false);spawn.position=new Vector3(0,1.5f,-6.5f);playerSpawnPoint=spawn;
         for(int i=0;i<3;i++) {

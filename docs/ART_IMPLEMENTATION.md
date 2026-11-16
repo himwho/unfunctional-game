@@ -63,8 +63,9 @@ missing generated assets, use **Unfunctional → Prepare Department Art and Craf
 by **File → Save Project**. Preparation preserves existing assets, creates the crafting scene
 only if absent, and registers its place in the campaign. It is not an authored-scene rebuild.
 
-- `Core/CampaignRoomArt.cs`: runtime composition for Levels 8, 11 and the finale. Level 4 is skipped.
-  GameManager calls it after the level's Start and before spawning the player. It is idempotent.
+- `Core/CampaignRoomArt.cs`: compatibility hook; it never spawns or moves geometry.
+- `Editor/DepartmentSceneComposition.cs`: editor-only recipes for Levels 8, 11 and the finale.
+- `Editor/DepartmentSceneAuthoring.cs`: saves their art and materials without rebuilding existing roots.
 - `Editor/Level4SceneAuthoring.cs`: one-time scene migration and pause layout repair. Existing
   `Level4_Art` is preserved on repeat runs. No authoring component is attached to the saved props.
 - `Core/DepartmentProps.cs`: reusable model pieces and material ownership. Decorative props
@@ -82,10 +83,13 @@ Furniture, Signs, Wall Trim, Floor Mail and Lighting contain editable objects. M
 the groups or individual objects and save the scene. Nothing respawns or refits these props
 at runtime. New material assets are in `Assets/Art/Department/Level4/`.
 
-Other dressed rooms still assemble props at runtime; inspect them in Play mode and edit
-composition in CampaignRoomArt. Changes made only to runtime objects disappear when Play ends.
-Existing project materials are reused; temporary materials and sprites are cleaned up with
-their owning scene. See [SCENE_AUTHORING.md](SCENE_AUTHORING.md) for the editing workflow.
+**Levels 8, 11 and the finale:** edit `Level8_Art`, `Level11_Art` and `Level12_Art` in their
+respective scenes. Their named groups are editable outside Play mode. The finale's room and
+interactive exhibits are also saved in the scene; its manager uses serialized references.
+Materials live in `Assets/Art/Department/Level8`, `Level11`, and `Level12`.
+
+Crafting and workshop dressing still assemble at runtime. Changes made only to those runtime
+objects disappear when Play ends. See [SCENE_AUTHORING.md](SCENE_AUTHORING.md) for the workflow.
 Decorative variation uses deterministic geometry, without consuming Unity's gameplay RNG.
 
 ## Art provenance

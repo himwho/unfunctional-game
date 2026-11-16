@@ -357,6 +357,7 @@ public class Level11_BadRNG : LevelManager
         if (optionADoor != null && optionADoor.doorPanel != null)
         {
             GameObject panel = optionADoor.doorPanel;
+            optionADoor?.ReleasePassage();
             panel.transform.SetParent(null);
 
             Rigidbody rb = panel.GetComponent<Rigidbody>();
@@ -372,8 +373,8 @@ public class Level11_BadRNG : LevelManager
             if (panel.GetComponent<Collider>() == null)
                 panel.AddComponent<BoxCollider>();
 
-            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
-            Vector3 pushDir = -panel.transform.forward;
+            Vector3 topOfDoor = panel.GetComponent<Collider>().bounds.center + Vector3.up * panel.GetComponent<Collider>().bounds.extents.y * .8f;
+            Vector3 pushDir = optionADoor != null ? -optionADoor.transform.forward : -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
         }
 

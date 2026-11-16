@@ -138,11 +138,14 @@ and its runtime room. CompleteLevel is called only after the final handle instal
 Stage checkpoints intentionally do not persist individual recipe steps.
 
 GameManager invokes CampaignRoomArt.Dress after each level's Start and before player spawning.
-CampaignRoomArt skips Level 4 unconditionally: its decoration is serialized in LEVEL4.unity
-under Level4_Art, with persistent materials in Art/Department/Level4. The editor-only
+CampaignRoomArt is now a no-op compatibility hook: Levels 4, 8, 11 and 12 serialize their art
+under Level4_Art, Level8_Art, Level11_Art and Level12_Art, with persistent materials in
+Art/Department/Level4, Level8, Level11 and Level12. The editor-only
 Level4SceneAuthoring migration removes builders and label fitters after saving the geometry;
-repeat runs preserve the existing root and positions. DepartmentProps creates temporary
-decorative models/materials without active colliders for the other dressed rooms.
+repeat runs preserve the existing root and positions. DepartmentSceneAuthoring performs the
+same migration for the other three scenes. The finale room is built only in the Editor and
+its interactions use serialized references; only HUD, audio and progress are initialized at runtime.
+DepartmentProps still creates temporary models/materials for crafting and the workshop.
 Workshop replacement hitboxes stay on their original ToolRack objects; visual crates are separate.
 ShopProductArt owns its twenty cropped sprites and destroys them with the level. Widget skins
 retain the authored RectTransforms and callbacks. DepartmentArtBaker creates reusable assets.
@@ -169,3 +172,13 @@ including transition, player spawning, cursor setup and normal checkpoint behavi
 The selector is enabled in UNITY_EDITOR or DEVELOPMENT_BUILD. Ordinary release builds omit its
 entry points unless allowInReleaseBuild is explicitly enabled. This is development tooling;
 QTE timing, stamina, workshop repetition/durability, and RNG failure rules are unchanged.
+
+
+PhysicalKeypadAim converts the authored aim offsets to camera pixels using a 1080px reference
+height and draws a non-interactive marker. Level 4's serialized 1.5m reach accommodates the
+unchanged 3m player. Both physical keypads use the same projection; shop input is excluded.
+DoorController.ReleasePassage disables the root closed-door colliders when a leaf is released,
+including the detached physics leaves in Levels 4–11. It leaves frame/other child colliders
+alone. Falling leaves use the door controller's forward axis and a point near the top of the
+leaf's world-space collider bounds; the imported mesh's local forward points vertically.
+Existing mesh openings remain authored in their room prefabs.

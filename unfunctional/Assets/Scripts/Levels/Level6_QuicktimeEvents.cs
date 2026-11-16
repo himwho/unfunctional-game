@@ -958,6 +958,7 @@ public class Level6_QuicktimeEvents : LevelManager
         if (doorController != null && doorController.doorPanel != null)
         {
             GameObject panel = doorController.doorPanel;
+            doorController?.ReleasePassage();
             panel.transform.SetParent(null);
 
             if (doorController.frameLeft != null)
@@ -983,8 +984,8 @@ public class Level6_QuicktimeEvents : LevelManager
 
             yield return new WaitForFixedUpdate();
 
-            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
-            Vector3 pushDir = -panel.transform.forward;
+            Vector3 topOfDoor = panel.GetComponent<Collider>().bounds.center + Vector3.up * panel.GetComponent<Collider>().bounds.extents.y * .8f;
+            Vector3 pushDir = doorController != null ? -doorController.transform.forward : -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
             rb.AddTorque(panel.transform.right * 80f, ForceMode.Impulse);
 

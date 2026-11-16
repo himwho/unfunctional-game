@@ -57,14 +57,16 @@ public partial class CampaignSmokeDriver : MonoBehaviour
     {
         startTime = Time.realtimeSinceStartup;
         report.unityVersion = Application.unityVersion;
-        output = Path.GetFullPath("TestResults/CampaignSmoke");
+        bool focused=SessionState.GetBool("Unfunctional.SceneInteractions",false);
+        SessionState.SetBool("Unfunctional.SceneInteractions",false);
+        output = Path.GetFullPath(focused?"TestResults/SceneInteractions":"TestResults/CampaignSmoke");
         string[] args = Environment.GetCommandLineArgs();
         for (int i = 0; i < args.Length - 1; i++) if (args[i] == "-campaignResults") output = args[i + 1];
         Directory.CreateDirectory(output);
         Application.logMessageReceived += CaptureError;
         // Flatten iterators to turn assertion failures into a report and a failing exit code.
         var stack = new Stack<IEnumerator>();
-        stack.Push(ExerciseCampaign());
+        stack.Push(focused?ExerciseSceneInteractions():ExerciseCampaign());
         while (stack.Count > 0 && !finished)
         {
             bool next = false;
@@ -127,6 +129,7 @@ public partial class CampaignSmokeDriver : MonoBehaviour
             yield return ExerciseAuthoredRules(manager);
             yield return ExerciseDepartmentArt(manager);
             yield return ExerciseSceneAuthoredArt(manager);
+            yield return ExerciseEditableDepartments(manager);
 
             if (manager is Level2_SettingsPuzzle settings)
             {

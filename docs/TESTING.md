@@ -133,7 +133,7 @@ live SMTP, platform profiling and the full license-viewer page sequence still ne
 ## Current art and crafting verification
 
 The November 16, 2026 run covers all fourteen campaign stages in Unity 6000.2.6f2 / Metal.
-**223 checks passed with zero recorded errors in the latest scene-authoring/debug run.** Campaign validation and the source audit also passed.
+**223 checks passed with zero recorded errors in the earlier Level 4 scene-authoring/debug run.** Campaign validation and the source audit also passed.
 The report is `TestResults/CampaignSmoke/results.json`; captures are in the same directory.
 
 New checks cover custom widget sprites/ranges, twenty product images and original store rules,
@@ -164,3 +164,32 @@ The smoke check count can vary slightly because workshop break/replacement check
 replacement. Read the recorded check names and zero-error result, not just the count.
 Native F1 opening was also checked in the Unity Game view. Keyboard scrolling and closing are
 covered by an additional interactive check. No standalone player build was made for this change.
+
+
+## Editable departments and physical interaction verification
+
+**Unfunctional → Run Scene Interaction Tests** runs the focused Level 4, 8, 11 and finale
+checks and writes `TestResults/SceneInteractions/results.json`. The full campaign suite also
+includes these checks. Both runners validate the campaign first and leave Play mode on completion.
+
+On November 16, 2026, the full campaign run passed **298 checks with zero recorded errors**
+in Unity 6000.2.6f2 / Metal. The focused run passed **79 checks with zero recorded errors**.
+Campaign validation and the source audit also passed.
+
+Coverage added for this migration:
+
+- Saved art roots in Levels 8, 11 and 12, persistent materials, no runtime spawners/label fitters,
+  and authored transforms preserved on initialization. Finale room/interaction references are saved.
+- All ten digits and Submit in both physical keypads: camera aim, actual physics raycasts and
+  delayed key callbacks, including rejection of an incomplete code. No email is sent.
+- Keypad aim stays inside the small Game view; Level 8 signage bounds leave all keys exposed.
+- Closed doors block the full-size CharacterController in Levels 4, 8 and 11; releasing the
+  stationary barrier and moving the leaf permits traversal through the existing mesh openings.
+- A deterministic successful Level 11 roll runs its actual fall animation. The full-size player
+  walks across the fallen leaf over physics frames and the ordinary exit threshold loads the shooter.
+  The full campaign suite separately forces failure and verifies the original full-campaign reset.
+- The enlarged finale exit and its serialized interactive references are retained.
+
+These tests direct the camera and controller and invoke selected callbacks; they are not a
+complete keyboard/mouse playthrough. They do not certify every falling door orientation or a
+standalone build. The intentionally bad puzzle mechanics remain covered by the existing checks.

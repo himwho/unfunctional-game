@@ -52,9 +52,9 @@ public class Level8_DLCDoor : LevelManager
 
     [Header("Physical Keypad")]
     public float keypadButtonAimRadius = 0.08f;
-    [Tooltip("Horizontal screen-space offset in pixels used when aiming keypad buttons.")]
+    [Tooltip("Horizontal screen-space offset in pixels at a 1080px reference height, scaled with the Game view when aiming keypad buttons.")]
     public float keypadAimOffsetX = 190f;
-    [Tooltip("Vertical screen-space offset in pixels used when aiming keypad buttons.")]
+    [Tooltip("Vertical screen-space offset in pixels at a 1080px reference height, scaled with the Game view when aiming keypad buttons.")]
     public float keypadAimOffsetY = -320f;
     [Tooltip("How close the player needs to be to interact with the physical keypad.")]
     public float doorInteractRange = 3f;
@@ -186,6 +186,7 @@ public class Level8_DLCDoor : LevelManager
 
         UpdateEquippedFingerTransform();
         hoveredKeypadButton = GetHoveredKeypadButton();
+        PhysicalKeypadAim.ShowTarget(this, physicalKeypadRoot, GetKeypadAimScreenPoint(), hoveredKeypadButton);
         HandleFingerClickAnimation();
 
         if (!shopOpen)
@@ -864,6 +865,7 @@ public class Level8_DLCDoor : LevelManager
 
         if (panel != null)
         {
+            doorController?.ReleasePassage();
             panel.transform.SetParent(null);
 
             Rigidbody rb = panel.GetComponent<Rigidbody>();
@@ -879,8 +881,8 @@ public class Level8_DLCDoor : LevelManager
             if (panel.GetComponent<Collider>() == null)
                 panel.AddComponent<BoxCollider>();
 
-            Vector3 topOfDoor = panel.transform.position + Vector3.up * 1.4f;
-            Vector3 pushDir = -panel.transform.forward;
+            Vector3 topOfDoor = panel.GetComponent<Collider>().bounds.center + Vector3.up * panel.GetComponent<Collider>().bounds.extents.y * .8f;
+            Vector3 pushDir = doorController != null ? -doorController.transform.forward : -panel.transform.forward;
             rb.AddForceAtPosition(pushDir * 120f, topOfDoor, ForceMode.Impulse);
 
             ShowNarration("Thanks for purchasing DLC!", 3f);
@@ -1116,10 +1118,7 @@ public class Level8_DLCDoor : LevelManager
 
     private Vector3 GetKeypadAimScreenPoint()
     {
-        return new Vector3(
-            (Screen.width * 0.5f) + keypadAimOffsetX,
-            (Screen.height * 0.5f) + keypadAimOffsetY,
-            0f);
+        return PhysicalKeypadAim.ScreenPoint(Camera.main, keypadAimOffsetX, keypadAimOffsetY);
     }
 
     private WorldKeypadButton FindClosestKeypadButton(RaycastHit[] hits)
@@ -1330,7 +1329,7 @@ public class Level8_DLCDoor : LevelManager
 
     private void HandleFingerClickAnimation()
     {
-        if (!Input.GetMouseButtonDown(0)) return;
+        if (shopOpen || !Input.GetMouseButtonDown(0)) return;
 
         WorldKeypadButton targetButton = hoveredKeypadButton != null
             ? hoveredKeypadButton
@@ -1358,7 +1357,7 @@ public class Level8_DLCDoor : LevelManager
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
 
-        if (targetButton != null && keypad != null)
+        if (CanProcessGameplay && !shopOpen && targetButton != null && keypad != null)
             targetButton.Press(keypad);
 
         pendingFingerPressCoroutine = null;
